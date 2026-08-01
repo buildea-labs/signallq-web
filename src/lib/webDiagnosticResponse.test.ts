@@ -6,7 +6,7 @@ import { createWebDiagnosticResponse } from './webDiagnosticResponse'
 const complete = (overrides: Partial<SpeedTestResult> = {}): SpeedTestResult => ({
   id: 'test', timestamp: 0, mode: 'rapido', status: 'complete', partial: false, server: 'Cloudflare',
   download: { mbps: 80, peakMbps: 90 }, upload: { mbps: 20, peakMbps: 24 },
-  latency: { ms: 15, samples: 12, validSamples: 12, timeouts: 0, maxMs: 18, p95Ms: 17 }, jitter: { ms: 4 },
+  latency: { ms: 15, samples: 12, validSamples: 12, timeouts: 0, maxMs: 18, p95Ms: 17, peaks: 0 }, jitter: { ms: 4 },
   packetLoss: { percent: 0 }, loadedLatency: { downloadMs: 20, uploadMs: 21 }, bufferbloat: { ms: 5, severity: 'none' },
   stabilityScore: 95, dns: { latencyMs: 10, resolverIp: null, provider: null }, connectionType: null, ...overrides,
 })
@@ -31,7 +31,7 @@ describe('web diagnostic response', () => {
   })
 
   it('uses declared answers only to state confidence, never as a certainty', () => {
-    const response = createWebDiagnosticResponse(complete({ latency: { ms: 100, samples: 12, validSamples: 12, timeouts: 0, maxMs: 110, p95Ms: 105 } }), createMeasurementSessionContext('problem', 'jogos-ou-chamadas-ruins'), [{ questionId: 'web_atividade_q1', answerId: 'jogos' }])
+    const response = createWebDiagnosticResponse(complete({ latency: { ms: 100, samples: 12, validSamples: 12, timeouts: 0, maxMs: 110, p95Ms: 105, peaks: 0 } }), createMeasurementSessionContext('problem', 'jogos-ou-chamadas-ruins'), [{ questionId: 'web_atividade_q1', answerId: 'jogos' }])
     expect(response.confidence).toContain('hipótese')
   })
 })
