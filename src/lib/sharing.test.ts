@@ -9,6 +9,6 @@ describe('formatMeasurementShare', () => {
     expect(text).toContain('18 ms')
     expect(text).toContain('Conclusão: Há um sinal de atenção.')
     expect(text).toContain('Próxima ação: Repita o teste.')
-    expect(text).toContain('https://signallq.pages.dev/')
+    expect(text).toContain('https://signallq.com/')
   })
 })

@@ -2,6 +2,8 @@
 
 A CI é automática e valida cada `push` e pull request destinado a `main`; ela nunca publica o site. A publicação acontece somente pelo workflow **Deploy manual na Vercel**, iniciado em **Actions**. Não há integração Git nativa entre este repositório e a Vercel.
 
+As referências públicas canônicas do aplicativo usam `https://signallq.com`: Metadata API, Open Graph, compartilhamento, `robots.txt` e sitemap. Mantenha esse domínio apontado para a produção antes de publicar uma versão que contenha essas referências; a alteração de DNS não publica código.
+
 ## Preparação inicial
 
 Na raiz do repositório, execute os gates antes do primeiro deploy:

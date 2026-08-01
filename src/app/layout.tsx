@@ -4,9 +4,10 @@ import { AdSenseScript } from "../components/AdSenseScript";
 import { CookieConsentBanner } from "../components/CookieConsentBanner";
 import { SiteNav } from "../components/SiteNav";
 import { SiteFooter } from "../components/SiteFooter";
+import { SITE_ORIGIN } from "../lib/routeMetadata";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://signallq.pages.dev"),
+  metadataBase: new URL(SITE_ORIGIN),
   title: "SignallQ - Teste de Velocidade e Qualidade",
   description: "Diagnóstico completo da sua conexão de internet. Medição de download, upload, latência, bufferbloat e jitter.",
   manifest: "/manifest.json",
