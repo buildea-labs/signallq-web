@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PageShell } from "@/components/PageShell";
 import { Velocimetro } from "@/components/Velocimetro";
 import { FaixaMetricas, type ItemFaixaMetricas } from "@/components/FaixaMetricas";
@@ -22,7 +22,15 @@ import {
 } from "@/lib/classification";
 import { fractionForLatency, fractionForThroughput } from "@/lib/gaugeMath";
 import type { SpeedTestResult } from "@/lib/speedEngine";
-import { FEATURE_SPEEDTEST_COMPARTILHOU, trackFeatureUsed } from "@/lib/telemetry";
+import {
+  FEATURE_SPEEDTEST_COMPARTILHOU,
+  FEATURE_SPEEDTEST_ENTRADA_DIRETA,
+  FEATURE_SPEEDTEST_ENTRADA_PROBLEMA,
+  FEATURE_SPEEDTEST_PROBLEMA_ABANDONADO,
+  FEATURE_SPEEDTEST_PROBLEMA_SELECIONADO,
+  trackFeatureUsed,
+} from "@/lib/telemetry";
+import { PROBLEMAS_PERCEBIDOS, type ProblemaPercebido } from "@/lib/problemEntry";
 
 const RUNNING_PHASES: FasePainel[] = [
   "preparando",
@@ -188,6 +196,9 @@ export default function Home() {
 
   const [modo, setModo] = useState<"rapido" | "completo">("rapido");
   const [copiado, setCopiado] = useState(false);
+  const [entradaProblemaAberta, setEntradaProblemaAberta] = useState(false);
+  const [problemaPercebido, setProblemaPercebido] = useState<ProblemaPercebido | null>(null);
+  const abandonoRegistrado = useRef(false);
   const { phase, liveValue, phaseResults, result, cancelTest, retry, forceStart } = useSpeedTest(modo);
 
   const isIdle = phase === "idle";
@@ -197,6 +208,41 @@ export default function Home() {
   const isProblem = PROBLEM_PHASES.includes(phase as ProblemPhase);
   const showDial = isIdle || isRunning;
   const shellAlign = isRunning || isProblem ? "center" : "start";
+
+  useEffect(() => {
+    const registrarAbandono = () => {
+      if (phase === "idle" && problemaPercebido && !abandonoRegistrado.current) {
+        abandonoRegistrado.current = true;
+        trackFeatureUsed(FEATURE_SPEEDTEST_PROBLEMA_ABANDONADO);
+      }
+    };
+    window.addEventListener("pagehide", registrarAbandono);
+    return () => window.removeEventListener("pagehide", registrarAbandono);
+  }, [phase, problemaPercebido]);
+
+  const selecionarProblema = (valor: ProblemaPercebido) => {
+    abandonoRegistrado.current = false;
+    setProblemaPercebido(valor);
+    trackFeatureUsed(FEATURE_SPEEDTEST_PROBLEMA_SELECIONADO);
+  };
+
+  const iniciarTesteDireto = () => {
+    setProblemaPercebido(null);
+    setEntradaProblemaAberta(false);
+    trackFeatureUsed(FEATURE_SPEEDTEST_ENTRADA_DIRETA);
+    forceStart();
+  };
+
+  const abrirEntradaPorProblema = () => {
+    setEntradaProblemaAberta(true);
+    trackFeatureUsed(FEATURE_SPEEDTEST_ENTRADA_PROBLEMA);
+  };
+
+  const iniciarTesteComProblema = () => {
+    if (!problemaPercebido) return;
+    abandonoRegistrado.current = true;
+    forceStart();
+  };
 
   let fraction = 0;
   let phaseColor = "var(--accent)";
@@ -345,12 +391,12 @@ export default function Home() {
             {isIdle && (
               <div className="absolute left-1/2 bottom-[26px] -translate-x-1/2 flex flex-col items-center gap-[10px]">
                 <button
-                  onClick={forceStart}
+                  onClick={iniciarTesteDireto}
                   className="h-[44px] px-[26px] rounded-full flex items-center gap-2 border-none bg-[color:var(--accent)] shadow-[0_14px_30px_color-mix(in_srgb,_var(--accent)_45%,_transparent),_0_2px_6px_rgba(0,0,0,.25)] whitespace-nowrap cursor-pointer hover:scale-105 active:scale-95 transition-transform"
                 >
                   <span className="material-symbols-outlined text-[18px] text-[color:var(--on-accent)]">speed</span>
                   <span className="font-semibold text-[16px] leading-[1.15] text-[color:var(--on-accent)]">
-                    Iniciar teste
+                    Testar agora
                   </span>
                 </button>
                 <span className="font-normal text-[12px] leading-[1.3] text-[color:var(--text-tertiary)]">
@@ -390,6 +436,61 @@ export default function Home() {
 
           {isIdle && (
             <>
+              {!entradaProblemaAberta ? (
+                <button
+                  type="button"
+                  onClick={abrirEntradaPorProblema}
+                  className="h-[40px] rounded-full px-4 border border-[color:var(--border)] bg-transparent cursor-pointer font-medium text-[14px] leading-[1.43] text-[color:var(--text-primary)] hover:bg-[color:var(--bg-secondary)]"
+                >
+                  Minha internet está com problema
+                </button>
+              ) : (
+                <section aria-labelledby="problema-title" className="w-full max-w-[520px] rounded-2xl border border-[color:var(--border)] p-4 sm:p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <h2 id="problema-title" className="m-0 font-semibold text-[16px] leading-[1.38] text-[color:var(--text-primary)]">
+                        O que está acontecendo?
+                      </h2>
+                      <p className="mt-1 mb-0 text-[13px] leading-[1.4] text-[color:var(--text-secondary)]">
+                        Selecione uma opção para registrar o contexto deste teste.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setEntradaProblemaAberta(false)}
+                      className="h-9 w-9 shrink-0 border-none bg-transparent cursor-pointer text-[color:var(--text-secondary)]"
+                      aria-label="Fechar opções de problema"
+                    >
+                      <span className="material-symbols-outlined text-[20px]">close</span>
+                    </button>
+                  </div>
+                  <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    {PROBLEMAS_PERCEBIDOS.map((opcao) => (
+                      <button
+                        key={opcao.value}
+                        type="button"
+                        aria-pressed={problemaPercebido === opcao.value}
+                        onClick={() => selecionarProblema(opcao.value)}
+                        className={`min-h-11 rounded-xl border px-3 text-left font-medium text-[14px] leading-[1.35] cursor-pointer transition-colors ${
+                          problemaPercebido === opcao.value
+                            ? "border-[color:var(--accent)] bg-[color:color-mix(in_srgb,var(--accent)_12%,transparent)] text-[color:var(--text-primary)]"
+                            : "border-[color:var(--border)] bg-transparent text-[color:var(--text-primary)] hover:bg-[color:var(--bg-secondary)]"
+                        }`}
+                      >
+                        {opcao.label}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={iniciarTesteComProblema}
+                    disabled={!problemaPercebido}
+                    className="mt-4 h-[44px] rounded-full px-5 border-none bg-[color:var(--accent)] cursor-pointer font-semibold text-[14px] text-[color:var(--on-accent)] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Testar agora
+                  </button>
+                </section>
+              )}
               <div className="w-full max-w-[220px] flex justify-center">
                 <SegmentedControl options={MODOS} value={modo} onChange={setModo} />
               </div>
@@ -407,6 +508,11 @@ export default function Home() {
 
           {isRunning && (
             <>
+              {problemaPercebido && (
+                <p className="m-0 text-center text-[12px] leading-[1.4] text-[color:var(--text-secondary)]">
+                  Contexto informado: {PROBLEMAS_PERCEBIDOS.find((opcao) => opcao.value === problemaPercebido)?.label}
+                </p>
+              )}
               <FaixaMetricas items={executarTrio} variant="execucao" />
               <button
                 onClick={cancelTest}
