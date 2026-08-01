@@ -85,8 +85,13 @@ jobs:
       - name: Obter configuração Vercel
         run: npx --yes "vercel@$VERCEL_CLI_VERSION" pull --yes --environment=${{ inputs.target == 'production' && 'production' || 'preview' }} --token="$VERCEL_TOKEN"
 
-      - name: Preparar artefato Vercel
+      - name: Preparar artefato Vercel de preview
+        if: inputs.target == 'preview'
         run: npx --yes "vercel@$VERCEL_CLI_VERSION" build --token="$VERCEL_TOKEN"
+
+      - name: Preparar artefato Vercel de produção
+        if: inputs.target == 'production'
+        run: npx --yes "vercel@$VERCEL_CLI_VERSION" build --prod --token="$VERCEL_TOKEN"
 
       - name: Publicar preview
         if: inputs.target == 'preview'
