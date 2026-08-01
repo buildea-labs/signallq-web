@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { EstadoVazio } from '../../components/EstadoVazio'
@@ -7,7 +7,7 @@ import { HistoryEvolutionChart } from '../../components/historico/HistoryEvoluti
 import { HistoryRecordCard } from '../../components/historico/HistoryRecordCard'
 import { PageShell } from '../../components/PageShell'
 import { useDocumentMeta } from '../../hooks/useDocumentMeta'
-import { clearAll, deleteRecord, listComparisons, listRecords, type ComparacaoRegistro, type MedicaoRegistro } from '../../lib/historyStore'
+import { clearAll, createHistoryExport, deleteConnection, deleteRecord, groupRecordsByConnection, listComparisons, listRecords, updateRecordMetadata, type ComparacaoRegistro, type HistoryUserMetadata, type MedicaoRegistro } from '../../lib/historyStore'
 import { PAGE_META } from '../../lib/pageMetaCatalog'
 
 type Status = 'loading' | 'loaded' | 'unavailable'
@@ -48,6 +48,10 @@ export default function Page() {
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [justDeleted, setJustDeleted] = useState(false)
   const [filtro, setFiltro] = useState<Filtro>('todos')
+  const [editing, setEditing] = useState<MedicaoRegistro | null>(null)
+  const [metadata, setMetadata] = useState<HistoryUserMetadata>({})
+  const [selectedConnectionId, setSelectedConnectionId] = useState('')
+  const dialogRef = useRef<HTMLDivElement>(null)
 
   const load = async () => {
     setStatus('loading')
@@ -64,6 +68,13 @@ export default function Page() {
   useEffect(() => {
     load()
   }, [])
+  useEffect(() => {
+    if (!editing) return
+    dialogRef.current?.focus()
+    const escape = (event: KeyboardEvent) => { if (event.key === 'Escape') setEditing(null) }
+    window.addEventListener('keydown', escape)
+    return () => window.removeEventListener('keydown', escape)
+  }, [editing])
 
   const remove = async (id: string) => {
     await deleteRecord(id)
@@ -78,10 +89,27 @@ export default function Page() {
     setComparisons([])
     setConfirmOpen(false)
   }
+  const startEdit = (record: MedicaoRegistro) => { setEditing(record); setMetadata(record.userMetadata || { connectionName: '', reportedProblem: '' }); setSelectedConnectionId(record.userMetadata?.connectionId || '') }
+  const saveMetadata = async () => {
+    if (!editing) return
+    const name = metadata.connectionName?.trim()
+    // O nome é a chave humana: se já existe, reutiliza a conexão. Caso seja
+    // novo, uma chave estável derivada dele permite que a próxima medição seja
+    // agrupada sem depender do id técnico da medição.
+    const matching = name ? records.find((record) => record.id !== editing.id && record.userMetadata?.connectionName?.localeCompare(name, 'pt-BR', { sensitivity: 'accent' }) === 0) : undefined
+    const connectionId = selectedConnectionId || matching?.userMetadata?.connectionId || (name ? `connection:${name.toLocaleLowerCase('pt-BR').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}` : undefined)
+    const updated = await updateRecordMetadata(editing.id, { ...metadata, connectionId })
+    if (updated) setRecords((current) => current.map((record) => record.id === updated.id ? updated : record))
+    setEditing(null)
+  }
+  const exportHistory = () => { const url = URL.createObjectURL(new Blob([JSON.stringify(createHistoryExport(records, comparisons), null, 2)], { type: 'application/json' })); const link = document.createElement('a'); link.href = url; link.download = 'signallq-historico-local.json'; link.click(); URL.revokeObjectURL(url) }
+  const removeConnection = async () => { const connectionId = editing?.userMetadata?.connectionId; if (!connectionId || !window.confirm('Excluir todas as medições deste local? Esta ação não pode ser desfeita.')) return; await deleteConnection(connectionId); setRecords((current) => current.filter((record) => record.userMetadata?.connectionId !== connectionId)); setComparisons(await listComparisons()); setEditing(null) }
 
   const isEmpty = status === 'loaded' && records.length === 0
   const hasRecords = status === 'loaded' && records.length > 0
   const filtered = records.filter((r) => filtro === 'todos' || r.connectionKind === filtro)
+  const groups = groupRecordsByConnection(filtered)
+  const knownConnections = groupRecordsByConnection(records).filter((group) => !group.id.startsWith('legacy:'))
   const byId = new Map(records.map((record) => [record.id, record]))
   const recoverableComparisons = comparisons.filter((comparison) => byId.has(comparison.beforeId) && byId.has(comparison.afterId))
 
@@ -151,15 +179,15 @@ export default function Page() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap border border-[color:var(--border)] rounded-full p-[2px]">
               {FILTROS.map(f => (
-                <div
+                <button
                   key={f.value}
-                  onClick={() => setFiltro(f.value)}
-                  className={`rounded-full py-[6px] px-4 font-medium text-[12px] leading-[1.33] whitespace-nowrap cursor-pointer transition-colors ${
+                  type="button" onClick={() => setFiltro(f.value)} aria-pressed={filtro === f.value}
+                  className={`border-0 rounded-full py-[6px] px-4 font-medium text-[12px] leading-[1.33] whitespace-nowrap cursor-pointer transition-colors ${
                     filtro === f.value ? "bg-[color:var(--accent)] text-[color:var(--on-accent)]" : "text-[color:var(--text-primary)] hover:bg-[color:var(--bg-secondary)]"
                   }`}
                 >
                   {f.label}
-                </div>
+                </button>
               ))}
             </div>
             <button onClick={() => setConfirmOpen(true)} className="flex items-center gap-[6px] whitespace-nowrap bg-transparent border-none cursor-pointer">
@@ -170,6 +198,7 @@ export default function Page() {
                 Limpar histórico
               </span>
             </button>
+            <button type="button" onClick={exportHistory} className="flex items-center gap-[6px] whitespace-nowrap bg-transparent border-none cursor-pointer text-[color:var(--accent)]"><span className="material-symbols-outlined text-[16px]">download</span><span className="font-medium text-[12px]">Exportar dados</span></button>
           </div>
 
           <HistoryEvolutionChart records={records} />
@@ -187,10 +216,8 @@ export default function Page() {
             </section>
           )}
 
-          <div className="grid grid-cols-1 gap-[10px] md:grid-cols-2">
-            {filtered.map((r) => (
-              <HistoryRecordCard key={r.id} record={r} onShare={shareRecord} onRemove={remove} />
-            ))}
+          <div className="flex flex-col gap-5">
+            {groups.map((group) => { const average = group.records.reduce((sum, record) => sum + record.download, 0) / group.records.length; const latest = group.records[0]; return <section key={group.id} aria-label={`Conexão ${group.name}`}><h2 className="m-0 mb-1 font-semibold text-[14px] text-[color:var(--text-primary)]">{group.name} <span className="font-normal text-[12px] text-[color:var(--text-tertiary)]">({group.records.length})</span></h2><p className="m-0 mb-2 text-[12px] text-[color:var(--text-secondary)]">Padrão local: {average.toFixed(1)} Mbps de download · última medição {latest.download >= average ? 'acima' : 'abaixo'} desse padrão.</p><div className="grid grid-cols-1 gap-[10px] md:grid-cols-2">{group.records.map((r) => <HistoryRecordCard key={r.id} record={r} onShare={shareRecord} onRemove={remove} onEdit={startEdit} />)}</div></section>})}
             {filtered.length === 0 && (
               <div className="col-span-full py-6 text-center font-normal text-[12px] leading-[1.33] text-[color:var(--text-tertiary)]">
                 Nenhuma medição neste filtro.
@@ -217,6 +244,19 @@ export default function Page() {
           onConfirm={handleClearAll}
           onCancel={() => setConfirmOpen(false)}
         />
+      )}
+      {editing && (
+        <section ref={dialogRef} role="dialog" aria-modal="true" tabIndex={-1} aria-labelledby="editar-contexto" className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <form onSubmit={(event) => { event.preventDefault(); void saveMetadata() }} className="w-full max-w-md rounded-2xl bg-[color:var(--bg-primary)] p-5 shadow-xl">
+            <h2 id="editar-contexto" className="m-0 text-[18px] text-[color:var(--text-primary)]">Contexto da conexão</h2><p className="mt-2 text-[13px] text-[color:var(--text-secondary)]">Edite somente informações informadas por você. As métricas medidas não são alteradas.</p>
+            {knownConnections.length > 0 && <label className="mt-4 flex flex-col gap-1 text-[13px]">Usar conexão/local existente<select value={selectedConnectionId} onChange={(event) => { const id = event.target.value; setSelectedConnectionId(id); const group = knownConnections.find((item) => item.id === id); if (group) setMetadata((current) => ({ ...current, connectionId: id, connectionName: group.name })) }} className="rounded border p-2 text-[color:var(--text-primary)]"><option value="">Criar ou identificar pelo nome</option>{knownConnections.map((group) => <option key={group.id} value={group.id}>{group.name}</option>)}</select></label>}
+            <label className="mt-4 flex flex-col gap-1 text-[13px]">Nome da conexão ou local<input value={metadata.connectionName || ''} maxLength={120} onChange={(event) => setMetadata((current) => ({ ...current, connectionName: event.target.value }))} className="rounded border p-2 text-[color:var(--text-primary)]" /></label>
+            <label className="mt-3 flex flex-col gap-1 text-[13px]">Velocidade contratada (Mbps)<input type="number" min="1" value={metadata.contractedSpeedMbps || ''} onChange={(event) => setMetadata((current) => ({ ...current, contractedSpeedMbps: event.target.value ? Number(event.target.value) : undefined }))} className="rounded border p-2 text-[color:var(--text-primary)]" /></label>
+            <label className="mt-3 flex flex-col gap-1 text-[13px]">Problema relatado<input value={metadata.reportedProblem || ''} maxLength={120} onChange={(event) => setMetadata((current) => ({ ...current, reportedProblem: event.target.value }))} className="rounded border p-2 text-[color:var(--text-primary)]" /></label>
+            <div className="mt-5 flex justify-between gap-2"><button type="button" onClick={() => setEditing(null)} className="rounded border px-3 py-2">Cancelar</button><button type="submit" className="rounded bg-[color:var(--accent)] px-3 py-2 text-[color:var(--on-accent)]">Salvar</button></div>
+            {editing.userMetadata?.connectionId && <button type="button" onClick={() => void removeConnection()} className="mt-4 text-[13px] text-[color:var(--error)] underline">Excluir esta conexão</button>}
+          </form>
+        </section>
       )}
     </PageShell>
   )

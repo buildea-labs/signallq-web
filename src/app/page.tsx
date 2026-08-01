@@ -34,7 +34,7 @@ import { PROBLEMAS_PERCEBIDOS, type ProblemaPercebido } from "@/lib/problemEntry
 import { createMeasurementSessionContext } from "@/lib/measurementSessionContext";
 import { readMeasurementSession } from "@/lib/measurementSessionStore";
 import { createWebDiagnosticResponse } from "@/lib/webDiagnosticResponse";
-import { addComparison } from "@/lib/historyStore";
+import { addComparison, updateRecordDiagnostic } from "@/lib/historyStore";
 import { compareRetest, comparisonMode, type RetestComparison } from "@/lib/retestComparison";
 
 const RUNNING_PHASES: FasePainel[] = [
@@ -321,6 +321,15 @@ export default function Home() {
   const statusCompleto = result?.status === "complete";
   const statusMensagem = result ? STATUS_MESSAGE[result.status] : undefined;
   const respostaDiagnostica = result ? createWebDiagnosticResponse(result, measurementContext, respostasContextuais) : null;
+  useEffect(() => {
+    if (!result || !respostaDiagnostica || result.status !== 'complete') return;
+    void updateRecordDiagnostic(result.id, {
+      conclusion: respostaDiagnostica.conclusion,
+      confidence: respostaDiagnostica.confidence,
+      nextAction: respostaDiagnostica.nextAction,
+      contractVersion: respostaDiagnostica.version,
+    });
+  }, [result, respostaDiagnostica]);
 
   const executarTrio: ItemFaixaMetricas[] = [
     {

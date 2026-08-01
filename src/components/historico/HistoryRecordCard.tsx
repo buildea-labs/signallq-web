@@ -9,13 +9,14 @@ interface HistoryRecordCardProps {
   record: MedicaoRegistro
   onShare: (record: MedicaoRegistro) => void
   onRemove: (id: string) => void
+  onEdit: (record: MedicaoRegistro) => void
 }
 
 // Card por medição da Tela 3 "Histórico" (protótipo "SignallQ WebApp.dc.html"
 // do Luiz, GH#1186) — substitui a tabela (HistoryTable.tsx) por um card por
 // linha: topo com ícone/tipo de conexão + horário relativo, base com
 // download/upload/latência inline.
-export function HistoryRecordCard({ record, onShare, onRemove }: HistoryRecordCardProps) {
+export function HistoryRecordCard({ record, onShare, onRemove, onEdit }: HistoryRecordCardProps) {
   const verdict = classifyDownload(record.download)
 
   return (
@@ -50,6 +51,9 @@ export function HistoryRecordCard({ record, onShare, onRemove }: HistoryRecordCa
         <div className="body-small">{Math.round(record.latency)} ms</div>
 
         <div className="ml-auto flex gap-1">
+          <button aria-label="Editar contexto da medição" onClick={() => onEdit(record)} className="flex h-8 w-8 items-center justify-center border-none bg-transparent">
+            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>edit</span>
+          </button>
           <button aria-label="Compartilhar medição" onClick={() => onShare(record)} className="flex h-8 w-8 items-center justify-center border-none bg-transparent">
             <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
               share
@@ -62,6 +66,7 @@ export function HistoryRecordCard({ record, onShare, onRemove }: HistoryRecordCa
           </button>
         </div>
       </div>
+      {record.userMetadata?.connectionName && <div className="body-small text-[color:var(--text-secondary)]">{record.userMetadata.connectionName}</div>}
     </div>
   )
 }
