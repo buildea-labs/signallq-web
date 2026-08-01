@@ -126,6 +126,20 @@ export function bytesToMbps(bytes: number, ms: number): number {
   return ms > 0 ? (bytes * 8) / (ms / 1000) / 1e6 : 0
 }
 
+/**
+ * O código de colo é uma informação da borda que respondeu à requisição, não
+ * uma localização escolhida pelo navegador. Só aceitamos o formato IATA de
+ * três letras para nunca renderizar um valor de header arbitrário.
+ */
+export function cloudflareColo(value: string | null): string | null {
+  const colo = value?.trim().toUpperCase() ?? ''
+  return /^[A-Z]{3}$/.test(colo) ? colo : null
+}
+
+export function measurementServerLabel(colo: string | null): string {
+  return colo ? `Borda Cloudflare · PoP ${colo}` : SPEEDTEST_SERVER_LABEL
+}
+
 export function summarizeLatency(raw: Array<number | null>): LatencySummary {
   const samples = raw.slice(1)
   const timeouts = samples.filter((sample) => sample == null).length
@@ -148,7 +162,14 @@ export function summarizeLatency(raw: Array<number | null>): LatencySummary {
   }
 }
 
-function xhrRequest(method: 'GET' | 'POST', url: string, body: Blob | null, token: CancelToken, onProgress?: (loaded: number) => void): Promise<{ bytes: number; duration: number }> {
+function xhrRequest(
+  method: 'GET' | 'POST',
+  url: string,
+  body: Blob | null,
+  token: CancelToken,
+  onProgress?: (loaded: number) => void,
+  onColo?: (colo: string) => void,
+): Promise<{ bytes: number; duration: number }> {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest()
     token.xhrs.add(xhr)
@@ -161,7 +182,13 @@ function xhrRequest(method: 'GET' | 'POST', url: string, body: Blob | null, toke
     const finish = () => token.xhrs.delete(xhr)
     xhr.onload = () => {
       finish()
-      if (xhr.status >= 200 && xhr.status < 300) resolve({ bytes: body?.size ?? (xhr.response as ArrayBuffer | null)?.byteLength ?? 0, duration: performance.now() - startedAt })
+      if (xhr.status >= 200 && xhr.status < 300) {
+        // A leitura só funciona quando o endpoint libera o header por CORS.
+        // Não lemos IP, país, cidade ou coordenadas, ainda que estejam presentes.
+        const colo = cloudflareColo(xhr.getResponseHeader('cf-meta-colo'))
+        if (colo) onColo?.(colo)
+        resolve({ bytes: body?.size ?? (xhr.response as ArrayBuffer | null)?.byteLength ?? 0, duration: performance.now() - startedAt })
+      }
       else reject(new SpeedTestError('endpoint-unavailable', `HTTP ${xhr.status}`))
     }
     xhr.onerror = () => { finish(); reject(new SpeedTestError(navigator.onLine ? 'endpoint-unavailable' : 'no-connection')) }
@@ -208,6 +235,7 @@ async function runThroughput(
   config: SpeedTestModeConfig,
   token: CancelToken,
   onTick: (mbps: number) => void,
+  onColo: (colo: string) => void,
 ): Promise<{ throughput: ThroughputSummary; loadLatencyMs: number }> {
   const durationMs = phase === 'download' ? config.downloadDurationMs : config.uploadDurationMs
   const payloadBytes = phase === 'download' ? config.downloadPayloadBytes : config.uploadPayloadBytes
@@ -234,8 +262,8 @@ async function runThroughput(
           previousLoaded = loaded
         }
         const request = phase === 'download'
-          ? xhrRequest('GET', `${SPEEDTEST_DOWNLOAD_URL}?bytes=${payloadBytes}&_cb=${Date.now()}_${Math.random()}`, null, token, onProgress)
-          : xhrRequest('POST', `${SPEEDTEST_UPLOAD_URL}?_cb=${Date.now()}_${Math.random()}`, uploadBlob(payloadBytes), token, onProgress)
+          ? xhrRequest('GET', `${SPEEDTEST_DOWNLOAD_URL}?bytes=${payloadBytes}&_cb=${Date.now()}_${Math.random()}`, null, token, onProgress, onColo)
+          : xhrRequest('POST', `${SPEEDTEST_UPLOAD_URL}?_cb=${Date.now()}_${Math.random()}`, uploadBlob(payloadBytes), token, onProgress, onColo)
         const response = await request
         // Alguns navegadores não emitem progresso de upload para payloads pequenos.
         if (phase === 'upload' && previousLoaded === 0) bytesTick += response.bytes
@@ -329,15 +357,17 @@ export function createSpeedTest(mode: SpeedTestMode = 'rapido') {
     const onPhase = callbacks.onPhase ?? (() => {})
     const onTick = callbacks.onTick ?? (() => {})
     const onLatencySample = callbacks.onLatencySample ?? (() => {})
+    const edgeColos = new Set<string>()
+    const observeColo = (colo: string) => { edgeColos.add(colo) }
     if (!navigator.onLine) throw new SpeedTestError('no-connection')
     onPhase('preparando')
     onPhase('latencia')
     const latency = await collectLatency(config.latencySampleCount, token, onLatencySample)
     onPhase('download')
-    const download = await runThroughput('download', config, token, (instantMbps) => onTick({ phase: 'download', instantMbps, elapsedMs: 0 }))
+    const download = await runThroughput('download', config, token, (instantMbps) => onTick({ phase: 'download', instantMbps, elapsedMs: 0 }), observeColo)
     onPhase('upload')
     const dnsPromise = measureDns()
-    const upload = await runThroughput('upload', config, token, (instantMbps) => onTick({ phase: 'upload', instantMbps, elapsedMs: 0 }))
+    const upload = await runThroughput('upload', config, token, (instantMbps) => onTick({ phase: 'upload', instantMbps, elapsedMs: 0 }), observeColo)
     const dns = await dnsPromise
     if (token.cancelled) throw new SpeedTestError('cancelled')
     onPhase('processando')
@@ -362,7 +392,9 @@ export function createSpeedTest(mode: SpeedTestMode = 'rapido') {
       bufferbloat: { ms: Math.max(bufferbloatMs, 0), severity: bufferbloatSeverity(Math.max(bufferbloatMs, 0)) },
       stabilityScore: stability([...download.throughput.samples, ...upload.throughput.samples]), dns,
       connectionType: (navigator as Navigator & { connection?: { effectiveType?: string } }).connection?.effectiveType ?? null,
-      server: SPEEDTEST_SERVER_LABEL, partial: status !== 'complete',
+      // Sem header CORS confiável, não inventamos um PoP: só declaramos a
+      // infraestrutura automática configurada para a medição.
+      server: measurementServerLabel(edgeColos.size === 1 ? [...edgeColos][0]! : null), partial: status !== 'complete',
       durationMs: Math.round(performance.now() - startedAt),
     }
   }
