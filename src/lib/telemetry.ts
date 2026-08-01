@@ -101,6 +101,10 @@ export function initTelemetryDeferred() {
 export const FEATURE_SPEEDTEST_INICIADO = 'speedtest_iniciado'
 export const FEATURE_SPEEDTEST_COMPLETOU = 'speedtest_completou'
 export const FEATURE_SPEEDTEST_COMPARTILHOU = 'speedtest_compartilhou'
+export const FEATURE_SPEEDTEST_ENTRADA_DIRETA = 'speedtest_entrada_direta'
+export const FEATURE_SPEEDTEST_ENTRADA_PROBLEMA = 'speedtest_entrada_problema'
+export const FEATURE_SPEEDTEST_PROBLEMA_SELECIONADO = 'speedtest_problema_selecionado'
+export const FEATURE_SPEEDTEST_PROBLEMA_ABANDONADO = 'speedtest_problema_abandonado'
 
 // Novos feature_id do site (dentro do mesmo evento feature_used já
 // whitelistado — nenhuma mudança de schema no worker).

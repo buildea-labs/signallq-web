@@ -4,6 +4,7 @@ import type { TipoRede } from '../lib/connection'
 import { addRecord, resultToRecord } from '../lib/historyStore'
 import { createSpeedTest, SpeedTestError, type SpeedTestMode, type SpeedTestPhase, type SpeedTestResult } from '../lib/speedEngine'
 import { FEATURE_SPEEDTEST_COMPLETOU, FEATURE_SPEEDTEST_INICIADO, trackFeatureUsed } from '../lib/telemetry'
+import type { MeasurementSessionContext } from '../lib/measurementSessionContext'
 
 const LOCK_KEY = 'signallq_speedtest_lock_v1'
 const LOCK_TTL_MS = 4000
@@ -46,6 +47,7 @@ export function useSpeedTest(modo: SpeedTestMode) {
   // de `result.connectionType` (effectiveType da Network Information API).
   const [connectionKind, setConnectionKind] = useState<TipoRede | null>(null)
   const [round, setRound] = useState<number | null>(null)
+  const [measurementContext, setMeasurementContext] = useState<MeasurementSessionContext | null>(null)
 
   const { revalidarAgora } = useEstadoRede()
   const revalidarAgoraRef = useRef(revalidarAgora)
@@ -111,7 +113,10 @@ export function useSpeedTest(modo: SpeedTestMode) {
   const startTest = useCallback(
     // Reservado para diferenciar telemetria de repetição no futuro, se o Console
     // pedir esse recorte — hoje conta como o mesmo evento de funil "iniciado".
-    async (_isRepeat: boolean) => {
+    async (_isRepeat: boolean, context?: MeasurementSessionContext) => {
+      if (context) {
+        setMeasurementContext(context)
+      }
       acquireLock()
       stopHeartbeat()
       heartbeatRef.current = setInterval(acquireLock, 1500)
@@ -242,7 +247,7 @@ export function useSpeedTest(modo: SpeedTestMode) {
   }, [])
 
   const retry = useCallback(() => startTest(true), [startTest])
-  const forceStart = useCallback(() => startTest(false), [startTest])
+  const forceStart = useCallback((context?: MeasurementSessionContext) => startTest(false, context), [startTest])
 
   // Volta pro estado idle sem rodar o motor — usado pela seta "voltar" da
   // tela de Resultado (Tela 2 -> Tela 1), não é engano com cancelTest/retry.
@@ -252,5 +257,5 @@ export function useSpeedTest(modo: SpeedTestMode) {
     setResult(null)
   }, [])
 
-  return { phase, liveValue, phaseResults, result, connectionKind, round, cancelTest, retry, forceStart, goToIdle }
+  return { phase, liveValue, phaseResults, result, connectionKind, round, measurementContext, cancelTest, retry, forceStart, goToIdle }
 }
