@@ -10,8 +10,7 @@
   "theme_color": "#131217",
   "lang": "pt-BR",
   "icons": [
-    { "src": "/assets/signallq-icon-512-play-store.png", "sizes": "1024x1024", "type": "image/png", "purpose": "any" },
-    { "src": "/assets/signallq-icon-512-play-store.png", "sizes": "1024x1024", "type": "image/png", "purpose": "maskable" }
+    { "src": "/assets/signallq-icon-512-play-store.png", "sizes": "1024x1024", "type": "image/png", "purpose": "any" }
   ],
   "shortcuts": [
     {
