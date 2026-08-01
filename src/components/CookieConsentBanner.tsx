@@ -27,8 +27,8 @@ export function CookieConsentBanner() {
     >
       <div className="mx-auto flex w-full max-w-[1280px] flex-wrap items-center justify-between gap-4">
         <p className="m-0 max-w-[640px] font-normal text-[13px] leading-[1.45] text-[color:var(--text-secondary)]">
-          Usamos cookies essenciais ao funcionamento do site e, só com sua autorização, cookies de
-          publicidade. Veja a{" "}
+          Guardamos sua decisão de anúncios no navegador. Só com sua autorização carregamos o Google
+          AdSense, que pode usar cookies e tecnologias próprias de publicidade. Veja a{" "}
           <Link href="/privacidade" className="text-[color:var(--accent)]">
             Política de Privacidade
           </Link>

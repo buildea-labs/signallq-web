@@ -29,7 +29,7 @@ export const PAGE_META: Record<string, PageMeta> = {
   },
   '/privacidade': {
     title: 'Política de Privacidade — SignallQ',
-    description: 'Como o site do SignallQ processa e armazena dados durante o teste de velocidade e o histórico local.',
+    description: 'Política única do SignallQ: dados tratados no Android e na Web/PWA, armazenamento local, serviços externos e seus direitos.',
     path: '/privacidade',
   },
   '/termos': {
