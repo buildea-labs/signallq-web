@@ -86,7 +86,26 @@ export function movingAverage(values: readonly number[]): number {
 }
 
 export function gaugeScaleLabels(max: number): string[] {
-  return [0, 0.1, 0.25, 0.5, 0.75, 1].map((fraction) => `${Math.round(max * fraction)}`)
+  return gaugeScaleLabelPositions(max).map(({ text }) => text)
+}
+
+/** Rótulos de throughput e suas posições reais no arco. */
+export function gaugeScaleLabelPositions(max: number): Array<{ text: string; fraction: number }> {
+  return [0, 0.1, 0.25, 0.5, 0.75, 1].map((fraction) => ({
+    text: `${Math.round(max * fraction)}`,
+    fraction,
+  }))
+}
+
+/**
+ * A leitura de latência é invertida no arco: menor latência fica à direita.
+ * Os rótulos seguem a mesma direção da agulha para não sugerir a escala oposta.
+ */
+export function latencyGaugeLabelPositions(): Array<{ text: string; fraction: number }> {
+  return [150, 100, 75, 50, 25, 0].map((value) => ({
+    text: `${value}`,
+    fraction: fractionForLatency(value),
+  }))
 }
 
 /** Posição da agulha na mesma escala que está sendo exibida. */

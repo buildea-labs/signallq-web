@@ -1,12 +1,11 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { fractionForGaugeScale, gaugeScaleForThroughputPhase, gaugeScaleLabels, movingAverage } from "@/lib/gaugeMath";
+import { fractionForGaugeScale, gaugeScaleForThroughputPhase, gaugeScaleLabelPositions, latencyGaugeLabelPositions, movingAverage } from "@/lib/gaugeMath";
 
 const CX = 180, CY = 186, R = 136;
 const ARC_LEN = Math.PI * R;
 const ARC_PATH = `M ${CX - R} ${CY} A ${R} ${R} 0 0 1 ${CX + R} ${CY}`;
-const LATENCY_SCALE = ["0", "25", "50", "75", "100", "150"];
 const VISUAL_SAMPLE_WINDOW = 4;
 
 function point(radius: number, fraction: number) {
@@ -31,9 +30,9 @@ const TICKS = Array.from({ length: 49 }, (_, i) => {
   };
 });
 
-function scaleLabels(scale: string[]) {
-  return scale.map((text, i) => {
-  const p = point(R + 36, i / (scale.length - 1));
+function scaleLabels(scale: Array<{ text: string; fraction: number }>) {
+  return scale.map(({ text, fraction }) => {
+  const p = point(R + 36, fraction);
   return {
     text,
     left: `${(p.x / 360) * 100}%`,
@@ -87,11 +86,11 @@ export function Velocimetro({
       setThroughputScale(100);
     }
   }, [liveValue, phase]);
-  const labels = useMemo(
-    () => scaleLabels(phase === "download" || phase === "upload" ? gaugeScaleLabels(throughputScale) : LATENCY_SCALE),
-    [phase, throughputScale],
-  );
   const isThroughput = phase === "download" || phase === "upload";
+  const labels = useMemo(
+    () => scaleLabels(isThroughput ? gaugeScaleLabelPositions(throughputScale) : latencyGaugeLabelPositions()),
+    [isThroughput, throughputScale],
+  );
   const visualFraction = isThroughput ? fractionForGaugeScale(smoothedThroughput, throughputScale) : fraction;
   const needle = point(R - 2, visualFraction);
   const needleFrom = point(R - 36, visualFraction);

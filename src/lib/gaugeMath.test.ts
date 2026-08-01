@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { fractionForGaugeScale, gaugeScaleForThroughput, gaugeScaleForThroughputPhase, gaugeScaleLabels, movingAverage } from './gaugeMath'
+import { fractionForGaugeScale, fractionForLatency, gaugeScaleForThroughput, gaugeScaleForThroughputPhase, gaugeScaleLabelPositions, gaugeScaleLabels, latencyGaugeLabelPositions, movingAverage } from './gaugeMath'
 
 describe('dynamic throughput gauge scale', () => {
   it('selects the smallest available scale that fits the measurement', () => {
@@ -20,6 +20,24 @@ describe('dynamic throughput gauge scale', () => {
 
   it('builds readable labels from the selected scale', () => {
     expect(gaugeScaleLabels(1000)).toEqual(['0', '100', '250', '500', '750', '1000'])
+  })
+
+  it('positions each throughput label at the same fraction used by its value', () => {
+    expect(gaugeScaleLabelPositions(100)).toEqual([
+      { text: '0', fraction: 0 },
+      { text: '10', fraction: 0.1 },
+      { text: '25', fraction: 0.25 },
+      { text: '50', fraction: 0.5 },
+      { text: '75', fraction: 0.75 },
+      { text: '100', fraction: 1 },
+    ])
+  })
+
+  it('keeps latency labels aligned with the inverted latency needle', () => {
+    expect(latencyGaugeLabelPositions()).toEqual([150, 100, 75, 50, 25, 0].map((value) => ({
+      text: `${value}`,
+      fraction: fractionForLatency(value),
+    })))
   })
 
   it('keeps the needle position faithful to the displayed scale', () => {
