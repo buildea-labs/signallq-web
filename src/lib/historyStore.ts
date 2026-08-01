@@ -4,11 +4,12 @@
 // IndexedDB, não localStorage (README do protótipo mencionava localStorage,
 // era o texto que estava desatualizado, não o código).
 import type { TipoRede } from './connection'
-import type { SpeedTestResult } from './speedEngine'
+import type { SpeedTestMode, SpeedTestResult } from './speedEngine'
 
 const DB_NAME = 'signallq-site-history'
 const STORE = 'measurements'
-const DB_VERSION = 1
+const DB_VERSION = 2
+const COMPARISON_STORE = 'comparisons'
 
 export interface MedicaoRegistro {
   id: string
@@ -28,6 +29,17 @@ export interface MedicaoRegistro {
   // `null` e só aparecem em "Todos".
   connectionKind: TipoRede | null
   server: string
+  /** Ausente em registros anteriores à US #10; esses registros não são comparáveis. */
+  mode?: SpeedTestMode
+}
+
+/** Vínculo local entre duas medições; não contém diagnóstico nem é enviado ao servidor. */
+export interface ComparacaoRegistro {
+  id: string
+  createdAt: number
+  beforeId: string
+  afterId: string
+  mode: Exclude<SpeedTestMode, 'triplo'>
 }
 
 function openDB(): Promise<IDBDatabase> {
@@ -42,6 +54,12 @@ function openDB(): Promise<IDBDatabase> {
       if (!db.objectStoreNames.contains(STORE)) {
         const store = db.createObjectStore(STORE, { keyPath: 'id' })
         store.createIndex('timestamp', 'timestamp')
+      }
+      if (!db.objectStoreNames.contains(COMPARISON_STORE)) {
+        const store = db.createObjectStore(COMPARISON_STORE, { keyPath: 'id' })
+        store.createIndex('createdAt', 'createdAt')
+        store.createIndex('beforeId', 'beforeId')
+        store.createIndex('afterId', 'afterId')
       }
     }
     req.onsuccess = () => resolve(req.result)
@@ -82,10 +100,31 @@ export async function deleteRecord(id: string): Promise<void> {
 export async function clearAll(): Promise<void> {
   const db = await openDB()
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE, 'readwrite')
+    const tx = db.transaction([STORE, COMPARISON_STORE], 'readwrite')
     tx.objectStore(STORE).clear()
+    tx.objectStore(COMPARISON_STORE).clear()
     tx.oncomplete = () => resolve()
     tx.onerror = () => reject(tx.error)
+  })
+}
+
+export async function addComparison(record: ComparacaoRegistro): Promise<ComparacaoRegistro> {
+  const db = await openDB()
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(COMPARISON_STORE, 'readwrite')
+    tx.objectStore(COMPARISON_STORE).put(record)
+    tx.oncomplete = () => resolve(record)
+    tx.onerror = () => reject(tx.error)
+  })
+}
+
+export async function listComparisons(): Promise<ComparacaoRegistro[]> {
+  const db = await openDB()
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(COMPARISON_STORE, 'readonly')
+    const req = tx.objectStore(COMPARISON_STORE).getAll()
+    req.onsuccess = () => resolve(((req.result as ComparacaoRegistro[]) || []).sort((a, b) => b.createdAt - a.createdAt))
+    req.onerror = () => reject(req.error)
   })
 }
 
@@ -103,5 +142,6 @@ export function resultToRecord(result: SpeedTestResult, connectionKind: TipoRede
     connectionType: result.connectionType,
     connectionKind,
     server: result.server,
+    mode: result.mode,
   }
 }

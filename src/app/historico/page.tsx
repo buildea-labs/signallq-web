@@ -7,7 +7,7 @@ import { HistoryEvolutionChart } from '../../components/historico/HistoryEvoluti
 import { HistoryRecordCard } from '../../components/historico/HistoryRecordCard'
 import { PageShell } from '../../components/PageShell'
 import { useDocumentMeta } from '../../hooks/useDocumentMeta'
-import { clearAll, deleteRecord, listRecords, type MedicaoRegistro } from '../../lib/historyStore'
+import { clearAll, deleteRecord, listComparisons, listRecords, type ComparacaoRegistro, type MedicaoRegistro } from '../../lib/historyStore'
 import { PAGE_META } from '../../lib/pageMetaCatalog'
 
 type Status = 'loading' | 'loaded' | 'unavailable'
@@ -44,6 +44,7 @@ export default function Page() {
 
   const [status, setStatus] = useState<Status>('loading')
   const [records, setRecords] = useState<MedicaoRegistro[]>([])
+  const [comparisons, setComparisons] = useState<ComparacaoRegistro[]>([])
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [justDeleted, setJustDeleted] = useState(false)
   const [filtro, setFiltro] = useState<Filtro>('todos')
@@ -51,8 +52,9 @@ export default function Page() {
   const load = async () => {
     setStatus('loading')
     try {
-      const r = await listRecords()
+      const [r, c] = await Promise.all([listRecords(), listComparisons()])
       setRecords(r)
+      setComparisons(c)
       setStatus('loaded')
     } catch {
       setStatus('unavailable')
@@ -73,12 +75,15 @@ export default function Page() {
   const handleClearAll = async () => {
     await clearAll()
     setRecords([])
+    setComparisons([])
     setConfirmOpen(false)
   }
 
   const isEmpty = status === 'loaded' && records.length === 0
   const hasRecords = status === 'loaded' && records.length > 0
   const filtered = records.filter((r) => filtro === 'todos' || r.connectionKind === filtro)
+  const byId = new Map(records.map((record) => [record.id, record]))
+  const recoverableComparisons = comparisons.filter((comparison) => byId.has(comparison.beforeId) && byId.has(comparison.afterId))
 
   return (
     <PageShell>
@@ -168,6 +173,19 @@ export default function Page() {
           </div>
 
           <HistoryEvolutionChart records={records} />
+
+          {recoverableComparisons.length > 0 && (
+            <section aria-labelledby="historico-comparacoes" className="rounded-2xl border border-[color:var(--border)] p-4">
+              <h2 id="historico-comparacoes" className="m-0 font-semibold text-[16px] leading-[1.38] text-[color:var(--text-primary)]">Retestes vinculados</h2>
+              <div className="mt-3 flex flex-col gap-2">
+                {recoverableComparisons.map((comparison) => {
+                  const before = byId.get(comparison.beforeId)!
+                  const after = byId.get(comparison.afterId)!
+                  return <div key={comparison.id} className="text-[13px] leading-[1.4] text-[color:var(--text-secondary)]">{new Date(before.timestamp).toLocaleString('pt-BR')} → {new Date(after.timestamp).toLocaleString('pt-BR')} · modo {comparison.mode}</div>
+                })}
+              </div>
+            </section>
+          )}
 
           <div className="grid grid-cols-1 gap-[10px] md:grid-cols-2">
             {filtered.map((r) => (
