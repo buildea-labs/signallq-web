@@ -65,3 +65,31 @@ export function fractionForLatency(ms: number): number {
 export function fractionForThroughput(mbps: number): number {
   return clamp(Math.sqrt(mbps / 300), 0, 1)
 }
+
+export const THROUGHPUT_GAUGE_STEPS = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000] as const
+
+/** Menor escala que comporta a leitura, sem nunca diminuir durante a fase. */
+export function gaugeScaleForThroughput(mbps: number, currentScale: number = THROUGHPUT_GAUGE_STEPS[0]): number {
+  const required = THROUGHPUT_GAUGE_STEPS.find((step) => mbps <= step) ?? THROUGHPUT_GAUGE_STEPS.at(-1)!
+  return Math.max(currentScale, required)
+}
+
+/** Reinicia a escala ao iniciar uma nova fase; dentro dela, só permite crescimento. */
+export function gaugeScaleForThroughputPhase(mbps: number, currentScale: number, startsPhase: boolean): number {
+  return gaugeScaleForThroughput(mbps, startsPhase ? THROUGHPUT_GAUGE_STEPS[0] : currentScale)
+}
+
+/** Média móvel apenas para a animação do mostrador; não altera a medição final. */
+export function movingAverage(values: readonly number[]): number {
+  if (values.length === 0) return 0
+  return values.reduce((total, value) => total + value, 0) / values.length
+}
+
+export function gaugeScaleLabels(max: number): string[] {
+  return [0, 0.1, 0.25, 0.5, 0.75, 1].map((fraction) => `${Math.round(max * fraction)}`)
+}
+
+/** Posição da agulha na mesma escala que está sendo exibida. */
+export function fractionForGaugeScale(value: number, scale: number): number {
+  return clamp(value / scale, 0, 1)
+}

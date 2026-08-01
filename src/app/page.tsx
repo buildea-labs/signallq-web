@@ -204,7 +204,7 @@ export default function Home() {
   // Em caso de falha/cancelamento de um reteste, `useSpeedTest` preserva a
   // rodada anterior; ela continua visível abaixo do estado de falha.
   const hasVisibleResult = isResult || (isProblem && result !== null);
-  const showDial = isIdle || isRunning;
+  const showDial = isIdle || isRunning || isResult;
   const shellAlign = isRunning || isProblem ? "center" : "start";
   const shouldCollectContextualQuestions = isResult && measurementContext?.entry === "problem";
   const shouldResumeContextualQuestions = isIdle && questionarioRetomavel && measurementContext?.entry === "problem";
@@ -310,6 +310,13 @@ export default function Home() {
     dialLabel = "Upload";
   } else if (phase === "processando") {
     fraction = 1;
+  } else if (isResult && result) {
+    fraction = fractionForThroughput(result.download.mbps);
+    phaseColor = "var(--phase-download)";
+    dialNumber = result.download.mbps.toFixed(1);
+    dialUnit = "Mbps";
+    dialIcon = "arrow_downward";
+    dialLabel = "Download";
   }
 
   const problema = isProblem ? PROBLEMAS[phase as ProblemPhase] : null;
@@ -426,7 +433,7 @@ export default function Home() {
 
       {showDial && (
         <div className="w-full flex flex-col items-center gap-5">
-          <Velocimetro fraction={fraction} phaseColor={phaseColor} isRunning={isRunning}>
+          <Velocimetro fraction={fraction} phaseColor={phaseColor} isRunning={isRunning} phase={isResult ? "download" : phase} liveValue={isResult && result ? result.download.mbps : liveValue} compact={isResult}>
             {isIdle && (
               <div className="absolute left-1/2 bottom-[26px] -translate-x-1/2 flex flex-col items-center gap-[10px]">
                 <button
