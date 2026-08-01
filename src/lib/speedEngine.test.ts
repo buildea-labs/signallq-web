@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { bytesToMbps, measurementStatus, meanAbsJitter, median, SPEED_TEST_MODE_CONFIG, summarizeLatency } from './speedEngine'
+import { bytesToMbps, cloudflareColo, measurementServerLabel, measurementStatus, meanAbsJitter, median, SPEED_TEST_MODE_CONFIG, summarizeLatency } from './speedEngine'
 
 describe('speed measurement calculations', () => {
   it('calculates median and jitter deterministically', () => {
@@ -12,6 +12,14 @@ describe('speed measurement calculations', () => {
   it('converts bytes and elapsed time to Mbps', () => {
     expect(bytesToMbps(1_000_000, 1_000)).toBe(8)
     expect(bytesToMbps(1_000_000, 0)).toBe(0)
+  })
+
+  it('only displays a PoP when the response supplies a valid Cloudflare colo', () => {
+    expect(cloudflareColo('gig')).toBe('GIG')
+    expect(cloudflareColo('GRU-SP')).toBeNull()
+    expect(cloudflareColo(null)).toBeNull()
+    expect(measurementServerLabel('GIG')).toBe('Borda Cloudflare · PoP GIG')
+    expect(measurementServerLabel(null)).toBe('Borda Cloudflare (roteamento automático)')
   })
 
   it('summarizes timeouts and excludes latency spikes from the reported median', () => {

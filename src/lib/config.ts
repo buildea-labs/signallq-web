@@ -37,7 +37,7 @@ export const SPEEDTEST_DOWNLOAD_URL: string =
 export const SPEEDTEST_UPLOAD_URL: string =
   process.env.NEXT_PUBLIC_SPEEDTEST_UPLOAD_URL || 'https://speed.cloudflare.com/__up'
 export const SPEEDTEST_SERVER_LABEL: string =
-  process.env.NEXT_PUBLIC_SPEEDTEST_SERVER_LABEL || 'speed.cloudflare.com (rede Cloudflare)'
+  process.env.NEXT_PUBLIC_SPEEDTEST_SERVER_LABEL || 'Borda Cloudflare (roteamento automático)'
 export const SPEEDTEST_LATENCY_URL: string =
   process.env.NEXT_PUBLIC_SPEEDTEST_LATENCY_URL ||
   'https://signallq-game-latency-probe.giammattey-luiz.workers.dev/probe'
