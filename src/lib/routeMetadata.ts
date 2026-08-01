@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 import type { PageMeta } from './seo'
 
-const SITE_ORIGIN = 'https://signallq.pages.dev'
+/** Canonical public origin shared by route metadata and user-facing links. */
+export const SITE_ORIGIN = 'https://signallq.pages.dev'
 
 /** Metadados renderizados no HTML inicial das rotas públicas. */
 export function routeMetadata(meta: PageMeta): Metadata {

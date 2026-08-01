@@ -42,7 +42,7 @@ export default function Page() {
         intro="Se o Wi-Fi está com sinal forte e o teste de velocidade mostra número alto, mas a internet ainda trava ou engasga quando mais de uma coisa usa a rede ao mesmo tempo, o motivo normalmente não é velocidade — é latência sob carga, um efeito chamado bufferbloat."
         sections={SECTIONS}
         ctaLabel="Testar minha conexão"
-        ctaTo="/"
+        ctaTo="/?context=travando"
       >
         <p className="body-medium m-0">
           Se o travamento aparece especificamente em jogos online — lag, dificuldade de jogar com amigos ou de hospedar partida — a causa

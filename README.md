@@ -49,3 +49,9 @@ npm run build
 ## PWA e deploy
 
 O service worker é gerado pelo Serwist a partir de `src/app/sw.ts`. O build produz uma aplicação Next.js pronta para hospedagem compatível com Route Handlers e variáveis de ambiente de servidor. Configure as variáveis no provedor de hospedagem e execute `npm run build` antes da publicação.
+
+O PWA mantém apenas os recursos publicados e o Histórico já salvo neste navegador. Sem conexão, não inicia nem simula uma medição ou diagnóstico. Uma atualização fica aguardando a ação **Atualizar** mostrada no app; a ativação não deve apagar IndexedDB ou recarregar a tela antes dessa escolha.
+
+## Compartilhamento e links editoriais
+
+O compartilhamento só é acionado por escolha explícita e envia/copia somente data da medição, download, upload, latência e a URL canônica do teste. Identificadores, nomes de conexão, problema relatado e Histórico local não entram no resumo. Artigos editoriais podem abrir a Home com um contexto declarado (`?context=`) já selecionado; o parâmetro é removido do endereço após a leitura e nunca inicia o teste automaticamente.

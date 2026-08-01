@@ -23,7 +23,7 @@ export default function Page() {
         intro="Não é só velocidade: latência baixa e estável importa mais que Mbps para a maioria dos jogos competitivos."
         sections={SECTIONS}
         ctaLabel="Testar minha conexão"
-        ctaTo="/"
+        ctaTo="/?context=jogos-ou-chamadas-ruins"
       />
     </PageShell>
   )

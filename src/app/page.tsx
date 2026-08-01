@@ -22,6 +22,7 @@ import {
 } from "@/lib/classification";
 import { fractionForLatency, fractionForThroughput } from "@/lib/gaugeMath";
 import type { SpeedTestResult } from "@/lib/speedEngine";
+import { copyMeasurement, shareMeasurement } from "@/lib/sharing";
 import {
   FEATURE_SPEEDTEST_COMPARTILHOU,
   FEATURE_SPEEDTEST_ENTRADA_DIRETA,
@@ -31,6 +32,7 @@ import {
   trackFeatureUsed,
 } from "@/lib/telemetry";
 import { PROBLEMAS_PERCEBIDOS, type ProblemaPercebido } from "@/lib/problemEntry";
+import { contextualProblemFromSearch } from "@/lib/contextualEntry";
 import { createMeasurementSessionContext } from "@/lib/measurementSessionContext";
 import { readMeasurementSession } from "@/lib/measurementSessionStore";
 import { createWebDiagnosticResponse } from "@/lib/webDiagnosticResponse";
@@ -178,11 +180,6 @@ function formatarDuracao(durationMs: number | undefined): string {
   return `${Math.max(1, Math.round(durationMs / 1000))} s`;
 }
 
-function formattedSummary(result: SpeedTestResult): string {
-  const when = formatarDataHora(result.timestamp);
-  return `Meu teste de velocidade SignallQ (${when}): Download ${result.download.mbps.toFixed(1)} Mbps · Upload ${result.upload.mbps.toFixed(1)} Mbps · Latência ${Math.round(result.latency.ms)} ms. Teste a sua em ${location.origin}${location.pathname}`;
-}
-
 export default function Home() {
   useDocumentMeta(PAGE_META["/"]);
 
@@ -216,6 +213,16 @@ export default function Home() {
     const session = readMeasurementSession();
     setQuestionarioRetomavel(Boolean(session?.questionnaireActive));
     setRespostasContextuais(session?.answers ?? []);
+  }, []);
+
+  useEffect(() => {
+    const contextualProblem = contextualProblemFromSearch(window.location.search);
+    if (!contextualProblem) return;
+    // A rota editorial só prepara uma escolha local; nunca inicia teste nem
+    // envia dados sem uma nova ação explícita da pessoa.
+    setEntradaProblemaAberta(true);
+    setProblemaPercebido(contextualProblem);
+    window.history.replaceState(null, "", window.location.pathname);
   }, []);
 
   useEffect(() => {
@@ -384,30 +391,18 @@ export default function Home() {
 
   const compartilhar = async () => {
     if (!result) return;
-    const text = formattedSummary(result);
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: "Meu teste de velocidade SignallQ", text, url: location.href });
-        trackFeatureUsed(FEATURE_SPEEDTEST_COMPARTILHOU);
-        return;
-      } catch {
-        // usuário cancelou o share nativo — cai no fallback de cópia
-      }
-    }
-    await copiarResumo();
+    const outcome = await shareMeasurement({ timestamp: result.timestamp, downloadMbps: result.download.mbps, uploadMbps: result.upload.mbps, latencyMs: result.latency.ms, conclusion: respostaDiagnostica?.conclusion, nextAction: respostaDiagnostica?.nextAction });
+    if (outcome !== "cancelled") trackFeatureUsed(FEATURE_SPEEDTEST_COMPARTILHOU);
   };
 
   const copiarResumo = async () => {
     if (!result) return;
-    const text = formattedSummary(result);
-    try {
-      await navigator.clipboard.writeText(text);
+    const outcome = await copyMeasurement({ timestamp: result.timestamp, downloadMbps: result.download.mbps, uploadMbps: result.upload.mbps, latencyMs: result.latency.ms, conclusion: respostaDiagnostica?.conclusion, nextAction: respostaDiagnostica?.nextAction });
+    if (outcome === "copied" || outcome === "manual-copy") {
       setCopiado(true);
       setTimeout(() => setCopiado(false), 2500);
-    } catch {
-      window.prompt("Copie o resumo abaixo:", text);
+      trackFeatureUsed(FEATURE_SPEEDTEST_COMPARTILHOU);
     }
-    trackFeatureUsed(FEATURE_SPEEDTEST_COMPARTILHOU);
   };
 
   return (
