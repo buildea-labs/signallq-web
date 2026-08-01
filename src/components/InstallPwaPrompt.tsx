@@ -5,8 +5,7 @@ import { FEATURE_PWA_INSTALLED, FEATURE_PWA_INSTALL_PROMPTED, trackFeatureUsed }
 
 // CTA de instalação discreto — toast que vive dentro do container de pilha
 // único `PwaToastStack` (junto com PwaUpdatePrompt), não mais um `fixed`
-// independente brigando pelo canto da tela (fix da Lia, ver
-// .claude/design-specs/2026-07-19-site-pwa-redesign/SPEC.md). Em
+// independente brigando pelo canto da tela. Em
 // Android/Chrome/Edge/desktop, o clique já dispara o prompt nativo do
 // navegador; em iOS Safari (sem essa API) abre um dialog leve com a
 // instrução manual, no mesmo padrão visual do ConfirmDialog.

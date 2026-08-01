@@ -9,11 +9,7 @@ interface SegmentedControlProps<T extends string> {
   onChange: (value: T) => void
 }
 
-// Réplica visual em Tailwind/tokens CSS do SegmentedControl do design system
-// (packages/design-system/src/controls/SegmentedControl.tsx) — o Site usa os
-// tokens CSS diretamente em vez do pacote React (decisão de arquitetura já
-// registrada, ver CLAUDE.md do Site), então replica o visual em vez de
-// importar o componente React do pacote.
+// Controle visual baseado nos tokens CSS locais.
 export function SegmentedControl<T extends string>({ options, value, onChange }: SegmentedControlProps<T>) {
   return (
     <div className="flex rounded-full border p-0.5" style={{ borderColor: 'var(--border)' }}>

@@ -4,8 +4,6 @@ import { PageShell } from '../../components/PageShell'
 import { useDocumentMeta } from '../../hooks/useDocumentMeta'
 import { PAGE_META } from '../../lib/pageMetaCatalog'
 
-// Copy verbatim de `ScreenDoc.dc.html` (`PAGES['como-medimos']`), reconstrução v2
-// (`.claude/design-specs/2026-07-25-site-webapp-v2/`).
 const SECTIONS: DocSection[] = [
   {
     title: 'O que medimos',

@@ -14,7 +14,7 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
   ]),
   {
-    // Preserva o comportamento já validado durante a extração do monorepo.
+    // Preserva o comportamento atual sem exigir refatoração funcional.
     // Estas regras do React Compiler exigiriam refatorações funcionais que não
     // fazem parte da migração para um repositório autônomo.
     rules: {

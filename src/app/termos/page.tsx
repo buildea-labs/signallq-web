@@ -4,11 +4,6 @@ import { PageShell } from '../../components/PageShell'
 import { useDocumentMeta } from '../../hooks/useDocumentMeta'
 import { PAGE_META } from '../../lib/pageMetaCatalog'
 
-// Copy verbatim de `ScreenDoc.dc.html` (`PAGES['termos']`), reconstrução v2
-// (`.claude/design-specs/2026-07-25-site-webapp-v2/README.md`, Achado 3). O protótipo
-// v2 já traz Termos.dc.html (11 seções) — a versão anterior desta página tinha sido
-// adaptada de `docs_ai/legal/TERMS_OF_USE.md` (Termos do app Android) por não existir
-// spec própria; reconciliada aqui com o texto agora oficial do protótipo.
 const SECTIONS: DocSection[] = [
   {
     title: '1. Aceitação dos termos',
