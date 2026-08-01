@@ -45,6 +45,11 @@ const MODOS = [
   { value: "completo" as const, label: "Completo" },
 ];
 
+const MODO_EXPLICACAO = {
+  rapido: "Triagem curta: mede velocidade, latência e resposta sob carga para orientar o próximo passo.",
+  completo: "Mais amostras e mais tempo sob carga: produz evidência mais estável para a avaliação oficial.",
+} as const;
+
 const DIAG_ITEMS = [
   { icon: "speed", label: "Velocidade e latência", href: "/velocidade-e-latencia" },
   { icon: "hourglass_bottom", label: "Latência sob carga", href: "/latencia-sob-carga" },
@@ -388,6 +393,9 @@ export default function Home() {
               <div className="w-full max-w-[220px] flex justify-center">
                 <SegmentedControl options={MODOS} value={modo} onChange={setModo} />
               </div>
+              <p className="m-0 max-w-[360px] text-center font-normal text-[12px] leading-[1.4] text-[color:var(--text-secondary)]">
+                {MODO_EXPLICACAO[modo]}
+              </p>
               <a
                 href="/como-medimos"
                 className="font-medium text-[12px] leading-[1.33] text-[color:var(--accent)] no-underline hover:underline"
