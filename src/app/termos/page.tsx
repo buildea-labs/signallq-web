@@ -1,10 +1,17 @@
 "use client";
-import { DocPage, type DocSection } from '../../components/DocPage'
 import { PageShell } from '../../components/PageShell'
+import {
+  AccessibleAccordion,
+  HighlightSection,
+  InformationGroup,
+  InstitutionalHero,
+  ReadingLayout,
+} from '../../components/institutional/InstitutionalFoundation'
+import { TermsIllustration } from '../../components/institutional/InstitutionalIllustrations'
 import { useDocumentMeta } from '../../hooks/useDocumentMeta'
 import { PAGE_META } from '../../lib/pageMetaCatalog'
 
-const SECTIONS: DocSection[] = [
+const SECTIONS = [
   {
     title: '1. Aceitação dos termos',
     text: 'Ao usar o site do SignallQ, você concorda com estes Termos de Uso. Se não concordar, não utilize o site.',
@@ -55,13 +62,24 @@ export default function Page() {
   useDocumentMeta(PAGE_META['/termos'])
 
   return (
-    <PageShell align="center" mobilePadding="pt-7 px-5 pb-10">
-      <DocPage
-        overline="Termos de Uso"
-        title="Termos de Uso do site SignallQ"
-        updated="Última atualização: 18 de julho de 2026"
-        sections={SECTIONS}
-      />
+    <PageShell contentMax="860px" mobilePadding="pt-7 px-5 pb-10">
+      <ReadingLayout className="flex flex-col gap-7">
+        <InstitutionalHero overline="Termos de Uso" title="Termos de Uso do site SignallQ" summary="As regras para usar o teste, o histórico local e o conteúdo público do SignallQ." meta="Última atualização: 18 de julho de 2026" illustration={<TermsIllustration />} />
+        <HighlightSection title="Resumo direto">
+          <p>O teste e o histórico local são gratuitos e não exigem cadastro. Use o serviço para entender a própria conexão, sem atacar ou sobrecarregar a infraestrutura. Resultados descrevem uma execução e não são garantia de disponibilidade ou velocidade contratada.</p>
+        </HighlightSection>
+        <InformationGroup title="Pontos importantes" items={[
+          { label: 'Uso aceitável', value: 'Medir e entender a própria conexão, compartilhar resultados e usar o conteúdo dentro da lei.' },
+          { label: 'Limites', value: 'O serviço é fornecido como está e depende de infraestrutura de terceiros, inclusive Cloudflare.' },
+          { label: 'Privacidade', value: 'O tratamento de dados é explicado na Política de Privacidade.' },
+          { label: 'Contato', value: <a href="mailto:suporte@signallq.com">suporte@signallq.com</a> },
+        ]} />
+        <AccessibleAccordion title="Texto completo" items={SECTIONS.map((section, index) => ({
+          title: section.title,
+          content: <p>{section.text}</p>,
+          defaultOpen: index === 0 || index === 5 || index === 10,
+        }))} />
+      </ReadingLayout>
     </PageShell>
   )
 }
