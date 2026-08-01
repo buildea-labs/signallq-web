@@ -34,6 +34,8 @@ import { PROBLEMAS_PERCEBIDOS, type ProblemaPercebido } from "@/lib/problemEntry
 import { createMeasurementSessionContext } from "@/lib/measurementSessionContext";
 import { readMeasurementSession } from "@/lib/measurementSessionStore";
 import { createWebDiagnosticResponse } from "@/lib/webDiagnosticResponse";
+import { addComparison } from "@/lib/historyStore";
+import { compareRetest, comparisonMode, type RetestComparison } from "@/lib/retestComparison";
 
 const RUNNING_PHASES: FasePainel[] = [
   "preparando",
@@ -190,7 +192,11 @@ export default function Home() {
   const [problemaPercebido, setProblemaPercebido] = useState<ProblemaPercebido | null>(null);
   const [questionarioRetomavel, setQuestionarioRetomavel] = useState(false);
   const [respostasContextuais, setRespostasContextuais] = useState(() => readMeasurementSession()?.answers ?? []);
+  const [retesteBase, setRetesteBase] = useState<SpeedTestResult | null>(null);
+  const [comparacaoReteste, setComparacaoReteste] = useState<RetestComparison | null>(null);
+  const [comparacaoNaoSalva, setComparacaoNaoSalva] = useState(false);
   const abandonoRegistrado = useRef(false);
+  const comparacaoPersistida = useRef<string | null>(null);
   const { phase, liveValue, phaseResults, result, measurementContext, cancelTest, retry, forceStart } = useSpeedTest(modo);
 
   const isIdle = phase === "idle";
@@ -198,6 +204,9 @@ export default function Home() {
   const isResult =
     phase === "concluido" || phase === "parcial" || phase === "inconclusivo" || phase === "contaminado";
   const isProblem = PROBLEM_PHASES.includes(phase as ProblemPhase);
+  // Em caso de falha/cancelamento de um reteste, `useSpeedTest` preserva a
+  // rodada anterior; ela continua visível abaixo do estado de falha.
+  const hasVisibleResult = isResult || (isProblem && result !== null);
   const showDial = isIdle || isRunning;
   const shellAlign = isRunning || isProblem ? "center" : "start";
   const shouldCollectContextualQuestions = isResult && measurementContext?.entry === "problem";
@@ -219,6 +228,18 @@ export default function Home() {
     window.addEventListener("pagehide", registrarAbandono);
     return () => window.removeEventListener("pagehide", registrarAbandono);
   }, [phase, problemaPercebido]);
+
+  useEffect(() => {
+    if (!retesteBase || !result || retesteBase.id === result.id) return;
+    const comparison = compareRetest(retesteBase, result);
+    setComparacaoReteste(comparison);
+    const mode = comparisonMode(result.mode);
+    const comparisonId = `${retesteBase.id}:${result.id}`;
+    if (!comparison.compatible || !mode || comparacaoPersistida.current === comparisonId) return;
+    comparacaoPersistida.current = comparisonId;
+    void addComparison({ id: comparisonId, createdAt: Date.now(), beforeId: retesteBase.id, afterId: result.id, mode })
+      .catch(() => setComparacaoNaoSalva(true));
+  }, [result, retesteBase]);
 
   const selecionarProblema = (valor: ProblemaPercebido) => {
     abandonoRegistrado.current = false;
@@ -242,6 +263,14 @@ export default function Home() {
     if (!problemaPercebido) return;
     abandonoRegistrado.current = true;
     forceStart(createMeasurementSessionContext("problem", problemaPercebido));
+  };
+
+  const iniciarReteste = () => {
+    if (!result) return;
+    setRetesteBase(result);
+    setComparacaoReteste(null);
+    setComparacaoNaoSalva(false);
+    retry();
   };
 
   let fraction = 0;
@@ -546,7 +575,7 @@ export default function Home() {
         />
       )}
 
-      {isResult && result && resultadoTrio && useCases && (
+      {hasVisibleResult && result && resultadoTrio && useCases && (
         <div className="w-full max-w-[640px] flex flex-col">
           <div className="flex items-center justify-center gap-2 pb-6">
             <span
@@ -598,6 +627,32 @@ export default function Home() {
                   <PlayStoreBadge height={32} source="home-resultado-wifi-contextual" />
                 </div>
               )}
+            </section>
+          )}
+
+          {retesteBase && comparacaoReteste && (
+            <section aria-labelledby="comparacao-reteste" className="py-7 border-b border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]">
+              <div className="font-medium text-[11px] leading-[1.45] text-[color:var(--accent)] tracking-[.3px] uppercase">Antes e depois</div>
+              <h2 id="comparacao-reteste" className="mt-[6px] mb-0 font-semibold text-[16px] leading-[1.38] text-[color:var(--text-primary)]">Comparação desta repetição</h2>
+              {comparacaoReteste.compatible && comparacaoReteste.changes ? (
+                <>
+                  <p className="mt-2 mb-0 text-[13px] leading-[1.4] text-[color:var(--text-secondary)]">Os valores abaixo comparam as duas medições. Eles não comprovam, por si só, a causa de uma mudança.</p>
+                  <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                    {comparacaoReteste.changes.map((item) => {
+                      const difference = item.after - item.before;
+                      const signal = difference === 0 ? "sem mudança" : `${difference > 0 ? "+" : ""}${difference.toFixed(1)} ${item.unit}`;
+                      const direction = item.direction === "better" ? "Melhor nesta medição" : item.direction === "worse" ? "Pior nesta medição" : "Sem mudança";
+                      return <div key={item.label} className="rounded-xl border border-[color:var(--border)] p-3">
+                        <div className="text-[12px] text-[color:var(--text-tertiary)]">{item.label}</div>
+                        <div className="mt-1 font-semibold text-[color:var(--text-primary)]">{item.after.toFixed(1)} {item.unit}</div>
+                        <div className="mt-1 text-[12px] text-[color:var(--text-secondary)]">Antes: {item.before.toFixed(1)} · {signal}</div>
+                        <div className="mt-1 text-[12px] text-[color:var(--text-secondary)]">{direction}</div>
+                      </div>;
+                    })}
+                  </div>
+                </>
+              ) : <p className="mt-2 mb-0 text-[13px] leading-[1.4] text-[color:var(--text-secondary)]">{comparacaoReteste.reason}</p>}
+              {comparacaoNaoSalva && <p role="status" className="mt-3 mb-0 text-[12px] leading-[1.4] text-[color:var(--warning)]">A comparação aparece nesta tela, mas não foi possível salvá-la no histórico local.</p>}
             </section>
           )}
 
@@ -678,12 +733,12 @@ export default function Home() {
 
           <div className="flex gap-3 mt-6">
             <button
-              onClick={retry}
+              onClick={statusCompleto ? iniciarReteste : retry}
               className="flex-1 h-[46px] flex items-center justify-center gap-2 rounded-[var(--radius-button)] border-none bg-[color:var(--accent)] hover:brightness-110 transition-all cursor-pointer"
             >
               <span className="material-symbols-outlined text-[20px] text-[color:var(--on-accent)]">refresh</span>
               <span className="font-medium text-[14px] leading-[1.43] text-[color:var(--on-accent)]">
-                Testar novamente
+                {statusCompleto ? "Fazer e testar novamente" : "Testar novamente"}
               </span>
             </button>
             <a

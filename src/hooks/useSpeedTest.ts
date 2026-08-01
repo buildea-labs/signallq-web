@@ -134,7 +134,10 @@ export function useSpeedTest(modo: SpeedTestMode) {
       setPhase('preparando')
       setLiveValue(0)
       setPhaseResults({})
-      setResult(null)
+      // Num reteste, o resultado anterior continua disponível se a nova
+      // medição for cancelada ou falhar. Durante a execução ele não é exibido,
+      // mas nunca se perde uma medição já concluída.
+      if (!_isRepeat) setResult(null)
       setRound(null)
       trackFeatureUsed(FEATURE_SPEEDTEST_INICIADO)
 
