@@ -38,6 +38,7 @@ import { readMeasurementSession } from "@/lib/measurementSessionStore";
 import { createWebDiagnosticResponse } from "@/lib/webDiagnosticResponse";
 import { addComparison, updateRecordDiagnostic } from "@/lib/historyStore";
 import { compareRetest, comparisonMode, type RetestComparison } from "@/lib/retestComparison";
+import { SPEEDOMETER_ERROR, SPEEDOMETER_OUTCOME, SPEEDOMETER_PHASE, type SpeedometerOutcome, type SpeedometerPhase } from "@/lib/speedometerIdentity";
 
 const RUNNING_PHASES: FasePainel[] = [
   "preparando",
@@ -159,11 +160,11 @@ const BUFFERBLOAT_LABEL: Record<SpeedTestResult["bufferbloat"]["severity"], stri
 };
 
 const STATUS_LABEL: Record<SpeedTestResult["status"], string> = {
-  complete: "Medição completa",
-  partial: "Resultado parcial",
-  inconclusive: "Resultado inconclusivo",
-  contaminated: "Rede alterada durante o teste",
-  cancelled: "Teste cancelado",
+  complete: SPEEDOMETER_OUTCOME.complete.label,
+  partial: SPEEDOMETER_OUTCOME.partial.label,
+  inconclusive: SPEEDOMETER_OUTCOME.inconclusive.label,
+  contaminated: SPEEDOMETER_OUTCOME.contaminated.label,
+  cancelled: SPEEDOMETER_OUTCOME.cancelled.label,
 };
 const STATUS_MESSAGE: Partial<Record<SpeedTestResult["status"], string>> = {
   partial: "Alguma fase não terminou. Use apenas as métricas disponíveis.",
@@ -204,7 +205,13 @@ export default function Home() {
   // Em caso de falha/cancelamento de um reteste, `useSpeedTest` preserva a
   // rodada anterior; ela continua visível abaixo do estado de falha.
   const hasVisibleResult = isResult || (isProblem && result !== null);
-  const showDial = isIdle || isRunning || isResult;
+  const terminalOutcome: SpeedometerOutcome | null =
+    phase === "cancelado"
+      ? "cancelled"
+      : isProblem
+        ? null
+        : result?.status ?? null;
+  const showDial = isIdle || isRunning || terminalOutcome !== null || isProblem;
   const shellAlign = isRunning || isProblem ? "center" : "start";
   const shouldCollectContextualQuestions = isResult && measurementContext?.entry === "problem";
   const shouldResumeContextualQuestions = isIdle && questionarioRetomavel && measurementContext?.entry === "problem";
@@ -281,42 +288,35 @@ export default function Home() {
   };
 
   let fraction = 0;
-  let phaseColor = "var(--accent)";
   let dialNumber = "—";
   let dialUnit = "";
-  let dialIcon = "arrow_downward";
-  let dialLabel = "";
+  const speedometerPhase: SpeedometerPhase = terminalOutcome === "complete"
+    ? "concluido"
+    : (phase === "idle" || phase === "preparando" || phase === "latencia" || phase === "download" || phase === "upload" || phase === "processando" ? phase : "idle");
+  const speedometerIdentity = terminalOutcome
+    ? SPEEDOMETER_OUTCOME[terminalOutcome]
+    : isProblem
+      ? SPEEDOMETER_ERROR
+      : SPEEDOMETER_PHASE[speedometerPhase];
 
   if (phase === "latencia") {
     fraction = fractionForLatency(liveValue);
-    phaseColor = "var(--phase-latencia)";
     dialNumber = liveValue ? Math.round(liveValue).toString() : "—";
     dialUnit = "ms";
-    dialIcon = "network_ping";
-    dialLabel = "Latência";
   } else if (phase === "download") {
     fraction = fractionForThroughput(liveValue);
-    phaseColor = "var(--phase-download)";
     dialNumber = liveValue ? liveValue.toFixed(1) : "0.0";
     dialUnit = "Mbps";
-    dialIcon = "arrow_downward";
-    dialLabel = "Download";
   } else if (phase === "upload") {
     fraction = fractionForThroughput(liveValue);
-    phaseColor = "var(--phase-upload)";
     dialNumber = liveValue ? liveValue.toFixed(1) : "0.0";
     dialUnit = "Mbps";
-    dialIcon = "arrow_upward";
-    dialLabel = "Upload";
   } else if (phase === "processando") {
     fraction = 1;
   } else if (isResult && result) {
     fraction = fractionForThroughput(result.download.mbps);
-    phaseColor = "var(--phase-download)";
     dialNumber = result.download.mbps.toFixed(1);
     dialUnit = "Mbps";
-    dialIcon = "arrow_downward";
-    dialLabel = "Download";
   }
 
   const problema = isProblem ? PROBLEMAS[phase as ProblemPhase] : null;
@@ -433,7 +433,7 @@ export default function Home() {
 
       {showDial && (
         <div className="w-full flex flex-col items-center gap-5">
-          <Velocimetro fraction={fraction} phaseColor={phaseColor} isRunning={isRunning} phase={isResult ? "download" : phase} liveValue={isResult && result ? result.download.mbps : liveValue} compact={isResult}>
+          <Velocimetro fraction={fraction} phaseColor={speedometerIdentity.color} isRunning={isRunning} phase={result ? "download" : phase} liveValue={result ? result.download.mbps : liveValue} value={dialNumber} unit={dialUnit} phaseLabel={isRunning || terminalOutcome !== null || isProblem ? speedometerIdentity.label : undefined} narrative={isRunning || terminalOutcome !== null || isProblem ? speedometerIdentity.narrative : undefined} compact={terminalOutcome !== null || isProblem}>
             {isIdle && (
               <div className="absolute left-1/2 bottom-[26px] -translate-x-1/2 flex flex-col items-center gap-[10px]">
                 <button
@@ -451,24 +451,6 @@ export default function Home() {
               </div>
             )}
 
-            {isRunning && (
-              <div className="absolute left-0 right-0 bottom-1 flex flex-col items-center">
-                <div className="flex items-center gap-[6px]">
-                  <span className="material-symbols-outlined text-[18px]" style={{ color: phaseColor }}>
-                    {dialIcon}
-                  </span>
-                  <span className="font-medium text-[11px] leading-[1.45] text-[color:var(--text-secondary)] tracking-[.3px] uppercase">
-                    {dialLabel}
-                  </span>
-                </div>
-                <div className="font-bold text-[44px] sm:text-[54px] leading-none text-[color:var(--text-primary)] tabular-nums">
-                  {dialNumber}
-                </div>
-                <div className="font-medium text-[14px] leading-[1.43] text-[color:var(--text-secondary)]">
-                  {dialUnit}
-                </div>
-              </div>
-            )}
           </Velocimetro>
 
           <div className="w-full max-w-[520px] flex">

@@ -48,6 +48,10 @@ export function Velocimetro({
   isRunning,
   phase,
   liveValue,
+  value,
+  unit,
+  phaseLabel,
+  narrative,
   compact = false,
   children,
 }: {
@@ -56,6 +60,10 @@ export function Velocimetro({
   isRunning: boolean;
   phase: string;
   liveValue: number;
+  value?: string;
+  unit?: string;
+  phaseLabel?: string;
+  narrative?: string;
   compact?: boolean;
   children?: React.ReactNode;
 }) {
@@ -90,8 +98,11 @@ export function Velocimetro({
   const dashOffset = ARC_LEN * (1 - visualFraction);
   const showMeasurement = isRunning || compact;
 
+  const showCenter = Boolean(value && (isRunning || compact));
+
   return (
-    <div className={`relative aspect-[360/210] ${compact ? "w-[280px]" : "w-full"} transition-[width,transform] duration-500 ease-out motion-reduce:transition-none ${compact ? "" : isRunning ? "sm:w-[520px]" : "sm:w-[440px]"}`} aria-live="polite" aria-atomic="true">
+    <div className={`relative aspect-[360/210] ${compact ? "w-[280px]" : "w-full"} transition-[width,transform] duration-500 ease-out motion-reduce:transition-none ${compact ? "" : isRunning ? "sm:w-[520px]" : "sm:w-[440px]"}`}>
+      {phaseLabel && <span className="sr-only" role="status" aria-live="polite">{phaseLabel}{narrative ? `. ${narrative}` : ""}</span>}
       {children}
       
       {/* Glow effect when running or idle */}
@@ -99,7 +110,7 @@ export function Velocimetro({
         className="absolute left-[50%] top-[62%] w-[60%] aspect-square rounded-full pointer-events-none sq-gauge-glow"
         style={{
           background:
-            "radial-gradient(circle, color-mix(in srgb, var(--accent) 30%, transparent), transparent 72%)",
+            `radial-gradient(circle, color-mix(in srgb, ${phaseColor} 30%, transparent), transparent 72%)`,
         }}
       />
 
@@ -155,6 +166,17 @@ export function Velocimetro({
           </>
         )}
       </svg>
+
+      {showCenter && (
+        <div className={`absolute inset-x-0 top-[42%] -translate-y-1/2 flex flex-col items-center text-center ${compact ? "gap-0" : "gap-1"}`}>
+          <div className={`${compact ? "text-[34px]" : "text-[48px] sm:text-[58px]"} font-bold leading-none tabular-nums`} style={{ color: phaseColor }}>
+            {value}
+          </div>
+          {unit && <div className="font-medium text-[12px] leading-[1.33] tracking-[.5px] text-[color:var(--text-tertiary)]">{unit}</div>}
+          {phaseLabel && <div className="mt-2 font-semibold text-[11px] leading-[1.45] tracking-[1px]" style={{ color: phaseColor }}>{phaseLabel}</div>}
+          {!compact && narrative && <div className="mt-1 max-w-[260px] text-[12px] leading-[1.33] text-[color:var(--text-secondary)]">{narrative}</div>}
+        </div>
+      )}
 
       {/* Scale Labels */}
       {labels.map((l, i) => (
