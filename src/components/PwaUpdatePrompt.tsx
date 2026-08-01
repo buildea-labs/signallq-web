@@ -1,11 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 const UPDATE_CHECK_INTERVAL_MS = 60_000
 
 export function PwaUpdatePrompt() {
   const [needRefresh, setNeedRefresh] = useState(false)
+  const updateConfirmed = useRef(false)
 
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return
@@ -30,6 +31,14 @@ export function PwaUpdatePrompt() {
     return () => window.clearInterval(timer)
   }, [])
 
+  useEffect(() => {
+    const reloadOnControllerChange = () => {
+      if (updateConfirmed.current) window.location.reload()
+    }
+    navigator.serviceWorker?.addEventListener('controllerchange', reloadOnControllerChange)
+    return () => navigator.serviceWorker?.removeEventListener('controllerchange', reloadOnControllerChange)
+  }, [])
+
   if (!needRefresh) return null
 
   return (
@@ -49,8 +58,9 @@ export function PwaUpdatePrompt() {
         type="button"
         onClick={() => {
           void navigator.serviceWorker.getRegistration().then((registration) => {
-            registration?.waiting?.postMessage({ type: 'SKIP_WAITING' })
-            window.location.reload()
+            if (!registration?.waiting) return
+            updateConfirmed.current = true
+            registration.waiting.postMessage({ type: 'SKIP_WAITING' })
           })
         }}
         className="border-none bg-transparent p-0"

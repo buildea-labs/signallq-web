@@ -46,7 +46,7 @@ export default function Page() {
         intro="Se a internet parece boa em qualquer outro uso, mas trava, dá lag ou impede de hospedar partida e jogar com amigos, o motivo mais comum é CGNAT — uma prática da operadora que resulta em NAT Strict no seu console ou PC."
         sections={SECTIONS}
         ctaLabel="Testar minha conexão"
-        ctaTo="/"
+        ctaTo="/?context=jogos-ou-chamadas-ruins"
       >
         <p className="body-medium m-0">
           Se a internet trava mesmo fora de jogos — por exemplo, engasga em chamadas de vídeo quando outra pessoa está baixando algo — a

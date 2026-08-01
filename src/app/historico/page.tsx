@@ -9,6 +9,7 @@ import { PageShell } from '../../components/PageShell'
 import { useDocumentMeta } from '../../hooks/useDocumentMeta'
 import { clearAll, createHistoryExport, deleteConnection, deleteRecord, groupRecordsByConnection, listComparisons, listRecords, updateRecordMetadata, type ComparacaoRegistro, type HistoryUserMetadata, type MedicaoRegistro } from '../../lib/historyStore'
 import { PAGE_META } from '../../lib/pageMetaCatalog'
+import { shareMeasurement } from '../../lib/sharing'
 
 type Status = 'loading' | 'loaded' | 'unavailable'
 type Filtro = 'todos' | 'wifi' | 'celular' | 'ethernet'
@@ -21,20 +22,7 @@ const FILTROS: Array<{ value: Filtro; label: string }> = [
 ]
 
 async function shareRecord(record: MedicaoRegistro) {
-  const text = `Meu teste de velocidade SignallQ (${new Date(record.timestamp).toLocaleString('pt-BR')}): Download ${record.download.toFixed(1)} Mbps · Upload ${record.upload.toFixed(1)} Mbps · Latência ${Math.round(record.latency)} ms.`
-  if (navigator.share) {
-    try {
-      await navigator.share({ title: 'Meu teste de velocidade SignallQ', text })
-      return
-    } catch {
-      // cancelado
-    }
-  }
-  try {
-    await navigator.clipboard.writeText(text)
-  } catch {
-    window.prompt('Copie o resumo:', text)
-  }
+  await shareMeasurement({ timestamp: record.timestamp, downloadMbps: record.download, uploadMbps: record.upload, latencyMs: record.latency, conclusion: record.diagnostic?.conclusion, nextAction: record.diagnostic?.nextAction })
 }
 
 export default function Page() {
