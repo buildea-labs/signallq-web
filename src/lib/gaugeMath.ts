@@ -1,6 +1,4 @@
-// Geometria do velocímetro (arco SVG) — porte 1:1 das constantes da
-// reconstrução v2 (`.claude/design-specs/2026-07-25-site-webapp-v2/ScreenHome.dc.html`,
-// script `renderVals()`), extraídas para funções puras e testáveis.
+// Geometria do velocímetro (arco SVG), extraída para funções puras e testáveis.
 export const GAUGE_CX = 180
 export const GAUGE_CY = 186
 export const GAUGE_R = 136

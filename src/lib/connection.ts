@@ -17,9 +17,8 @@ export function labelConexao(tipo: TipoRede | null | undefined): string {
   }
 }
 
-// Ícone Material Symbol por tipo. Ampliado na reconstrução v2 do Histórico
-// (`.claude/design-specs/2026-07-25-site-webapp-v2/ScreenHistorico.dc.html`,
-// RECORDS usa `settings_ethernet` para Ethernet) — antes só distinguia Wi-Fi
+// Ícone Material Symbol por tipo. `settings_ethernet` representa Ethernet;
+// antes só distinguia Wi-Fi
 // do resto porque o filtro de Ethernet ainda não existia na UI.
 export function iconeConexao(tipo: TipoRede | null | undefined): string {
   if (tipo === 'wifi') return 'wifi'

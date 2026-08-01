@@ -1,13 +1,7 @@
 export type BrandEndorsementVariant = 'text' | 'symbol-text'
 export type BrandEndorsementSize = 'compact' | 'default'
 
-// GH#1376 (símbolo original "7A", legado) + rebrand institucional 7A Labs → Buildea
-// (2026-07-29, ver `_workspace/docs/decisions/DECISAO_REBRAND_BUILDEA_2026-07-29.md`).
-// Símbolo oficial da Buildea (monograma "iB", preto/branco/amarelo) extraído do avatar
-// real da org no GitHub (`buildea-labs`, fonte: `brand/buildea-symbol.png` na raiz do
-// monorepo) — já vem com fundo preto opaco embutido (não é um traço vetorial soltável
-// como o símbolo "7A" antigo), por isso um único asset serve pra tema claro e escuro
-// do Site (o próprio símbolo carrega seu fundo, não depende do fundo da página).
+// Símbolo oficial da Buildea. O asset contém seu próprio fundo e serve aos dois temas.
 const BUILDEA_SYMBOL_SRC = '/brand/buildea-symbol.png'
 
 interface BrandEndorsementProps {
@@ -28,18 +22,7 @@ interface BrandEndorsementProps {
 }
 
 /**
- * Assinatura institucional "by Buildea" (rebrand 2026-07-29, sucede o "by 7A"
- * de GH#1376 — ver `_workspace/docs/decisions/DECISAO_REBRAND_BUILDEA_2026-07-29.md`).
- * Endosso discreto, nunca lockup completo "Buildea" em tela operacional.
- *
- * Mesmo contrato/props do `BrandEndorsement` do SignallQ Admin
- * (`SignallQ Admin/src/components/ui/BrandEndorsement.tsx`), reimplementado
- * aqui em vez de compartilhado via pacote — o Site já decidiu consumir o
- * design system via CSS puro (tokens.css), não via componentes React de
- * outro app (ver `SignallQ Site/CLAUDE.md`, "Decisões técnicas relevantes").
- *
- * Uso: superfícies institucionais (rodapé, páginas Quem somos/Privacidade/
- * Termos) — nunca repetida em todas as telas.
+ * Assinatura institucional "by Buildea" para superfícies institucionais.
  */
 export function BrandEndorsement({
   variant = 'text',

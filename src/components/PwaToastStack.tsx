@@ -4,8 +4,7 @@ import { PwaUpdatePrompt } from './PwaUpdatePrompt'
 // Pilha coordenada dos dois toasts fixos do PWA (atualizar + instalar) — cada
 // um era antes um elemento `fixed` independente brigando pelo mesmo canto da
 // tela (instalar em bottom-4 left-4, atualizar em bottom-center quase
-// full-width — achado da Lia, ver
-// .claude/design-specs/2026-07-19-site-pwa-redesign/SPEC.md). Agora os dois
+// full-width. Agora os dois
 // vivem na mesma casca visual dentro de um único container fixo,
 // column-reverse com gap fixo — nunca dois `fixed` disputando espaço.
 //

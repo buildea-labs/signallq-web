@@ -1,5 +1,4 @@
-// Matemática do gráfico "Evolução das medições" do Histórico — reconstrução v2
-// (`.claude/design-specs/2026-07-25-site-webapp-v2/ScreenHistorico.dc.html`).
+// Matemática do gráfico "Evolução das medições" do Histórico.
 // Porte da curva suave (Catmull-Rom → Bézier) e do layout SVG do `<script
 // data-dc-script>` do protótipo, adaptado para consumir `MedicaoRegistro[]`
 // real (`historyStore.ts`) em vez da constante `SERIES` de exemplo.

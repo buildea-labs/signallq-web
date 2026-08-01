@@ -6,8 +6,7 @@ interface HistoryEvolutionChartProps {
   records: MedicaoRegistro[]
 }
 
-// Card "Evolução das medições" — gráfico novo do Histórico na reconstrução v2
-// (`.claude/design-specs/2026-07-25-site-webapp-v2/ScreenHistorico.dc.html`).
+// Card "Evolução das medições".
 // Mostra download/upload ao longo do tempo, sempre a partir do histórico
 // completo (não é filtrado pelo chip Wi-Fi/Rede móvel/Ethernet/Todos — o
 // protótipo não tinha o filtro conectado à série, e a leitura de "evolução

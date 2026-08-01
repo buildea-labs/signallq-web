@@ -1,13 +1,7 @@
 /* ============================================================================
    SignallQ — Design Foundations (colors + type) — MD3 (Fluxo de Telas To-Be)
-   Source of truth: .claude/skills/SignallQ-design/colors_and_type.css
-   (SignallQ App - Fluxo de Telas.dc.html, Claude Design projeto
-   e77ea465-291f-4bf5-930c-a267680da04e) + android SignallQTheme.kt.
-   Platform: Android (Kotlin / Jetpack Compose / Material Design 3)
+   Tokens locais do SignallQ Web.
    ----------------------------------------------------------------------------
-   Atualizado em 2026-07-18 (drift corrigido): estava preso na paleta Linka
-   antiga (accent #6C2BFF, sem secondary fixo, 15 estilos de tipo, Roboto-only).
-   Ver .design-sync/conventions.md para o histórico da correção.
    ============================================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap');

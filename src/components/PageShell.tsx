@@ -19,10 +19,7 @@ interface PageShellProps {
   children: ReactNode;
 }
 
-// Miolo de tela — fase Fundação da reconstrução v4 (`Guia de Implementação.dc.html`,
-// §3/§6). Consolida os dois shells que existiam em paralelo (`PageShell` +
-// `PageLayout`, pendência registrada no CLAUDE.md local) numa única
-// implementação: miolo centralizado (`flex:1; max-width: contentMax`).
+// Miolo de tela centralizado (`flex:1; max-width: contentMax`).
 //
 // `SiteNav`/`SiteFooter` NÃO são renderizados aqui — desde o achado de
 // 01/08/2026 ("topbar sambando" ao trocar de rota), os dois vivem no layout
