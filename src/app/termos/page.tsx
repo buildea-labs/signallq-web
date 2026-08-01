@@ -1,4 +1,4 @@
-"use client";
+import type { Metadata } from 'next'
 import { PageShell } from '../../components/PageShell'
 import {
   AccessibleAccordion,
@@ -8,8 +8,10 @@ import {
   ReadingLayout,
 } from '../../components/institutional/InstitutionalFoundation'
 import { TermsIllustration } from '../../components/institutional/InstitutionalIllustrations'
-import { useDocumentMeta } from '../../hooks/useDocumentMeta'
 import { PAGE_META } from '../../lib/pageMetaCatalog'
+import { routeMetadata } from '../../lib/routeMetadata'
+
+export const metadata: Metadata = routeMetadata(PAGE_META['/termos'])
 
 const SECTIONS = [
   {
@@ -59,8 +61,6 @@ const SECTIONS = [
 ]
 
 export default function Page() {
-  useDocumentMeta(PAGE_META['/termos'])
-
   return (
     <PageShell contentMax="860px" mobilePadding="pt-7 px-5 pb-10">
       <ReadingLayout className="flex flex-col gap-7">

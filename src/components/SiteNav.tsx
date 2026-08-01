@@ -94,16 +94,18 @@ export function SiteNav() {
       scrolled ? "bg-[color:var(--bg-primary)]" : "bg-transparent"
     )}>
       <div className="relative mx-auto max-w-[1280px] min-h-[76px] flex items-center justify-between gap-4 py-[14px] px-[20px] box-border">
-        <Link href="/">
+        <Link href="/" aria-label="Página inicial SignallQ">
           <img
             className="sq-logo-light h-[32px] w-auto block shrink-0"
             src="/assets/signallq-lockup-light-bg-v5.png"
-            alt="SignallQ"
+            alt=""
+            aria-hidden="true"
           />
           <img
             className="sq-logo-dark h-[32px] w-auto hidden shrink-0"
             src="/assets/signallq-lockup-dark-bg-v5.png"
-            alt="SignallQ"
+            alt=""
+            aria-hidden="true"
           />
         </Link>
 
@@ -171,9 +173,9 @@ export function SiteNav() {
               onClick={() => setMenuOpen(false)}
               className="md:hidden fixed inset-0 z-[30] bg-black/40"
             />
-            <div
+            <nav
               id="site-nav-mobile-menu"
-              role="menu"
+              aria-label="Navegação do site"
               className="md:hidden absolute right-[20px] top-full z-[31] mt-2 w-[272px] max-h-[70vh] overflow-y-auto box-border rounded-2xl border border-[color-mix(in_srgb,_var(--border)_30%,_transparent)] bg-[color:var(--bg-card)] shadow-[0_24px_48px_rgba(0,0,0,.28)] p-2"
             >
               {MENU_GROUPS.map((group) => (
@@ -186,7 +188,6 @@ export function SiteNav() {
                     return (
                       <Link
                         key={it.key}
-                        role="menuitem"
                         href={it.href}
                         className={clsx(
                           "min-h-[44px] flex items-center px-3 rounded-[10px] font-medium text-[14px] leading-[1.4] font-sans no-underline",
@@ -204,7 +205,7 @@ export function SiteNav() {
               <div className="mt-1 border-t border-[color-mix(in_srgb,_var(--border)_18%,_transparent)] p-3 font-normal text-[11px] leading-[1.4] text-[color:var(--text-tertiary)]">
                 © 2026 SignallQ · by Buildea. Beta.
               </div>
-            </div>
+            </nav>
           </>
         )}
       </div>

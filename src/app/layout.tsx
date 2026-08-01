@@ -6,6 +6,7 @@ import { SiteNav } from "../components/SiteNav";
 import { SiteFooter } from "../components/SiteFooter";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://signallq.pages.dev"),
   title: "SignallQ - Teste de Velocidade e Qualidade",
   description: "Diagnóstico completo da sua conexão de internet. Medição de download, upload, latência, bufferbloat e jitter.",
   manifest: "/manifest.json",
