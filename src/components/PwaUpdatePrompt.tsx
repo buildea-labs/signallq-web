@@ -1,43 +1,34 @@
-// Banner "Nova versão disponível" do Service Worker.
-//
-// Estratégia (resolve o ciclo de update conservador do Safari/iOS), portada
-// do repo antecessor linka-speedtest:
-//   1. `registerType: 'autoUpdate'` + `skipWaiting`/`clientsClaim` no
-//      vite.config.ts — o novo SW assume controle imediatamente.
-//   2. Verificação periódica a cada 60s via `registration.update()` —
-//      garante que o navegador re-cheque o service worker mesmo sem reload.
-//   3. UX explícita: ao detectar nova versão, mostra este banner com
-//      "Atualizar" (força reload) ou "Fechar" (adia até a próxima visita).
-//
-// Sem reload-surpresa: o usuário escolhe quando aplicar a atualização.
-//
-// Casca visual unificada com InstallPwaPrompt (bg-card + borda + pill, ícone
-// Material Symbol único, nunca bloco `--accent` sólido) — os dois vivem
-// dentro do `PwaToastStack` (fix da Lia, ver
-// .claude/design-specs/2026-07-19-site-pwa-redesign/SPEC.md). Antes disso
-// este componente tinha seu próprio CSS com bloco de cor sólida e o
-// glifo "×" cru — removido.
-import { useRegisterSW } from 'virtual:pwa-register/react'
+'use client'
+
+import { useEffect, useState } from 'react'
 
 const UPDATE_CHECK_INTERVAL_MS = 60_000
 
 export function PwaUpdatePrompt() {
-  const {
-    needRefresh: [needRefresh, setNeedRefresh],
-    updateServiceWorker,
-  } = useRegisterSW({
-    onRegistered(registration) {
-      if (!registration) return
-      setInterval(() => {
-        registration.update().catch(() => {
-          // offline ou falha transiente — próxima verificação tenta de novo
+  const [needRefresh, setNeedRefresh] = useState(false)
+
+  useEffect(() => {
+    if (!('serviceWorker' in navigator)) return
+
+    let registration: ServiceWorkerRegistration | undefined
+    const observe = (candidate: ServiceWorkerRegistration) => {
+      registration = candidate
+      if (candidate.waiting) setNeedRefresh(true)
+      candidate.addEventListener('updatefound', () => {
+        const worker = candidate.installing
+        worker?.addEventListener('statechange', () => {
+          if (worker.state === 'installed' && navigator.serviceWorker.controller) setNeedRefresh(true)
         })
-      }, UPDATE_CHECK_INTERVAL_MS)
-    },
-    onRegisterError(error) {
-      console.warn('[pwa] falha ao registrar service worker:', error)
-    },
-  })
+      })
+    }
+
+    navigator.serviceWorker.ready.then((candidate) => {
+      observe(candidate)
+      void candidate.update().catch(() => undefined)
+    }).catch(() => undefined)
+    const timer = window.setInterval(() => void registration?.update().catch(() => undefined), UPDATE_CHECK_INTERVAL_MS)
+    return () => window.clearInterval(timer)
+  }, [])
 
   if (!needRefresh) return null
 
@@ -57,7 +48,10 @@ export function PwaUpdatePrompt() {
       <button
         type="button"
         onClick={() => {
-          void updateServiceWorker(true)
+          void navigator.serviceWorker.getRegistration().then((registration) => {
+            registration?.waiting?.postMessage({ type: 'SKIP_WAITING' })
+            window.location.reload()
+          })
         }}
         className="border-none bg-transparent p-0"
       >

@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SignallQ Web
 
-## Getting Started
+Site público do SignallQ para medição de qualidade da conexão, histórico local e conteúdo explicativo sobre desempenho de internet.
 
-First, run the development server:
+## Stack
+
+- Next.js 16, React 19 e TypeScript
+- Tailwind CSS 4
+- Serwist para service worker e instalação PWA
+- Vitest para regras críticas de domínio
+
+## Estrutura
+
+- `src/app/`: rotas App Router e Route Handlers
+- `src/components/`: interface reutilizável
+- `src/lib/`: motor de medição, classificação, telemetria e SEO
+- `src/styles/tokens.css`: tokens visuais usados pelo site
+- `public/`: ícones, manifest, imagens e arquivos de SEO
+
+## Rotas
+
+`/` executa o teste de velocidade. O site também oferece `/historico`, `/como-medimos`, `/comparativo`, `/app`, `/brand`, `/privacidade`, `/termos`, `/quem-somos` e páginas editoriais para diagnóstico e jogos. As APIs internas são `POST /api/track` e `POST /api/waitlist`.
+
+## Variáveis de ambiente
+
+Copie `.env.example` para `.env.local` quando precisar sobrescrever valores padrão.
+
+- `NEXT_PUBLIC_SIGNALLQ_BETA_DOWNLOAD_URL`
+- `NEXT_PUBLIC_SIGNALLQ_TEST_GROUP_URL`
+- `NEXT_PUBLIC_SIGNALLQ_CLOSED_TESTING_URL`
+- `NEXT_PUBLIC_ADSENSE_PUBLISHER_ID`
+- `NEXT_PUBLIC_SPEEDTEST_DOWNLOAD_URL`
+- `NEXT_PUBLIC_SPEEDTEST_UPLOAD_URL`
+- `NEXT_PUBLIC_SPEEDTEST_SERVER_LABEL`
+- `NEXT_PUBLIC_SPEEDTEST_LATENCY_URL`
+- `SITE_INGEST_KEY` — secret exclusivo do servidor para os Route Handlers; nunca use o prefixo `NEXT_PUBLIC_`.
+
+## Comandos
 
 ```bash
+npm ci
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run lint
+npm run typecheck
+npm test
+npm run build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## PWA e deploy
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+O service worker é gerado pelo Serwist a partir de `src/app/sw.ts`. O build produz uma aplicação Next.js pronta para hospedagem compatível com Route Handlers e variáveis de ambiente de servidor. Configure as variáveis no provedor de hospedagem e execute `npm run build` antes da publicação.
