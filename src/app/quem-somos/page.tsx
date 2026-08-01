@@ -1,38 +1,44 @@
 "use client";
-import { DocPage, type DocSection } from '../../components/DocPage'
 import { PageShell } from '../../components/PageShell'
+import {
+  HighlightSection,
+  InformationGroup,
+  InstitutionalCta,
+  InstitutionalHero,
+  ReadingLayout,
+} from '../../components/institutional/InstitutionalFoundation'
+import { ConnectionIllustration } from '../../components/institutional/InstitutionalIllustrations'
 import { useDocumentMeta } from '../../hooks/useDocumentMeta'
 import { PAGE_META } from '../../lib/pageMetaCatalog'
-
-// Copy verbatim de `ScreenDoc.dc.html` (`PAGES['quem-somos']`), reconstrução v4
-// — a seção 2 mudou de "O SignallQ PRO" para "Diagnóstico, não só medição" no
-// protótipo atual (`/pro` foi removido do site na fase de Fundação).
-const SECTIONS: DocSection[] = [
-  {
-    title: 'O SignallQ gratuito',
-    text: 'O aplicativo SignallQ, em fase Beta, é gratuito e feito para qualquer pessoa medir e entender sua própria conexão: Wi-Fi, fibra, DNS ou sinal móvel.',
-  },
-  {
-    title: 'Diagnóstico, não só medição',
-    text: 'Além de medir velocidade, o app lê sinal Wi-Fi cômodo a cômodo, rede móvel, modem de fibra e aponta a causa provável do problema, não só um número.',
-  },
-  {
-    title: 'Onde queremos chegar',
-    text: 'Tornar diagnósticos de rede mais compreensíveis e acionáveis para qualquer pessoa, sem precisar entender de redes.',
-  },
-]
 
 export default function Page() {
   useDocumentMeta(PAGE_META['/quem-somos'])
 
   return (
-    <PageShell align="center" mobilePadding="pt-7 px-5 pb-10">
-      <DocPage
-        overline="Quem somos"
-        title="Conectividade explicada, não só medida"
-        intro="Mostrar a métrica é só o começo: o valor está em explicar o que ela significa na prática, em português claro."
-        sections={SECTIONS}
-      />
+    <PageShell contentMax="860px" mobilePadding="pt-7 px-5 pb-10">
+      <ReadingLayout className="flex flex-col gap-7">
+        <InstitutionalHero
+          overline="Quem somos"
+          title="Conectividade explicada, não só medida"
+          summary="Mostrar a métrica é só o começo: o valor está em explicar o que ela significa na prática, em português claro."
+          illustration={<ConnectionIllustration />}
+        />
+        <HighlightSection title="O que fazemos">
+          <p>O SignallQ é gratuito e está em fase Beta. Ele ajuda qualquer pessoa a medir e entender a própria conexão: Wi‑Fi, fibra, DNS ou sinal móvel.</p>
+        </HighlightSection>
+        <section className="flex flex-col gap-3" aria-labelledby="approach-title">
+          <h2 id="approach-title" className="title-large m-0">Da medida para a ação</h2>
+          <InformationGroup items={[
+            { label: 'Problema', value: 'Uma conexão pode ter velocidade alta e ainda travar, oscilar ou responder devagar.' },
+            { label: 'Abordagem', value: 'O Site/PWA mede no navegador e organiza o resultado; o app Android amplia a leitura com recursos do aparelho.' },
+            { label: 'Objetivo', value: 'Tornar diagnósticos de rede mais compreensíveis e acionáveis, sem exigir conhecimento técnico.' },
+          ]} />
+        </section>
+        <HighlightSection title="Site/PWA e Android">
+          <p>São experiências complementares. O site permite medir e acompanhar o histórico local no navegador; o Android pode acessar sinais e recursos de rede que o navegador não expõe.</p>
+        </HighlightSection>
+        <InstitutionalCta label="Medir minha conexão" href="/" supportingText="Comece pelo teste direto, sem cadastro." />
+      </ReadingLayout>
     </PageShell>
   )
 }
