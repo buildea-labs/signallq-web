@@ -32,6 +32,7 @@ import {
 } from "@/lib/telemetry";
 import { PROBLEMAS_PERCEBIDOS, type ProblemaPercebido } from "@/lib/problemEntry";
 import { createMeasurementSessionContext } from "@/lib/measurementSessionContext";
+import { readMeasurementSession } from "@/lib/measurementSessionStore";
 
 const RUNNING_PHASES: FasePainel[] = [
   "preparando",
@@ -199,6 +200,7 @@ export default function Home() {
   const [copiado, setCopiado] = useState(false);
   const [entradaProblemaAberta, setEntradaProblemaAberta] = useState(false);
   const [problemaPercebido, setProblemaPercebido] = useState<ProblemaPercebido | null>(null);
+  const [questionarioRetomavel, setQuestionarioRetomavel] = useState(false);
   const abandonoRegistrado = useRef(false);
   const { phase, liveValue, phaseResults, result, measurementContext, cancelTest, retry, forceStart } = useSpeedTest(modo);
 
@@ -210,6 +212,12 @@ export default function Home() {
   const showDial = isIdle || isRunning;
   const shellAlign = isRunning || isProblem ? "center" : "start";
   const shouldCollectContextualQuestions = isResult && measurementContext?.entry === "problem";
+  const shouldResumeContextualQuestions = isIdle && questionarioRetomavel && measurementContext?.entry === "problem";
+
+  useEffect(() => {
+    const session = readMeasurementSession();
+    setQuestionarioRetomavel(Boolean(session?.questionnaireActive));
+  }, []);
 
   useEffect(() => {
     const registrarAbandono = () => {
@@ -384,6 +392,12 @@ export default function Home() {
           <p className="m-0 max-w-[460px] font-normal text-[14px] leading-[1.43] text-[color:var(--text-secondary)]">
             Download, upload e latência medidos no seu navegador.
           </p>
+        </div>
+      )}
+
+      {shouldResumeContextualQuestions && (
+        <div className="w-full max-w-[640px] mt-6 pt-6 border-t border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]">
+          <GuidedDiagnosis measurementContext={measurementContext} />
         </div>
       )}
 

@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { MeasurementSessionContext } from '../../lib/measurementSessionContext'
 import { resolveContextualQuestions, type ContextualAnswer } from '../../lib/contextualQuestionFlow'
+import { activateQuestionnaire, readMeasurementSession, saveQuestionnaireAnswers } from '../../lib/measurementSessionStore'
 
 type Props = { measurementContext: MeasurementSessionContext | null }
 
@@ -9,13 +10,28 @@ type Props = { measurementContext: MeasurementSessionContext | null }
  * transições; este componente apenas preserva os códigos das respostas.
  */
 export function GuidedDiagnosis({ measurementContext }: Props) {
-  const [answers, setAnswers] = useState<ContextualAnswer[]>([])
+  const [answers, setAnswers] = useState<ContextualAnswer[]>(() => readMeasurementSession()?.answers ?? [])
   const state = useMemo(() => resolveContextualQuestions(measurementContext, answers), [measurementContext, answers])
 
-  const reset = () => setAnswers([])
+  useEffect(() => {
+    const restored = readMeasurementSession()
+    if (restored && restored.context.entry === measurementContext?.entry && restored.context.declaredProblem === measurementContext?.declaredProblem) {
+      setAnswers(restored.answers)
+    }
+    activateQuestionnaire()
+  }, [measurementContext])
+
+  const reset = () => {
+    setAnswers([])
+    saveQuestionnaireAnswers([])
+  }
   const appendAnswer = (answerId: string | null) => {
     if (!('question' in state)) return
-    setAnswers((current) => [...current, { questionId: state.question.id, answerId }])
+    setAnswers((current) => {
+      const next = [...current, { questionId: state.question.id, answerId }]
+      saveQuestionnaireAnswers(next)
+      return next
+    })
   }
 
   if (state.status === 'awaiting_answer' || state.status === 'invalid_answer') {

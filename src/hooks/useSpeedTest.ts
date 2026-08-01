@@ -5,6 +5,7 @@ import { addRecord, resultToRecord } from '../lib/historyStore'
 import { createSpeedTest, SpeedTestError, type SpeedTestMode, type SpeedTestPhase, type SpeedTestResult } from '../lib/speedEngine'
 import { FEATURE_SPEEDTEST_COMPLETOU, FEATURE_SPEEDTEST_INICIADO, trackFeatureUsed } from '../lib/telemetry'
 import type { MeasurementSessionContext } from '../lib/measurementSessionContext'
+import { beginMeasurementSession, readMeasurementSession } from '../lib/measurementSessionStore'
 
 const LOCK_KEY = 'signallq_speedtest_lock_v1'
 const LOCK_TTL_MS = 4000
@@ -47,7 +48,13 @@ export function useSpeedTest(modo: SpeedTestMode) {
   // de `result.connectionType` (effectiveType da Network Information API).
   const [connectionKind, setConnectionKind] = useState<TipoRede | null>(null)
   const [round, setRound] = useState<number | null>(null)
-  const [measurementContext, setMeasurementContext] = useState<MeasurementSessionContext | null>(null)
+  const [measurementContext, setMeasurementContext] = useState<MeasurementSessionContext | null>(() => readMeasurementSession()?.context ?? null)
+
+  // A primeira renderização pode ocorrer no servidor, onde sessionStorage não
+  // existe. Reidrata no navegador para retomar a coleta após reload/navegação.
+  useEffect(() => {
+    if (!measurementContext) setMeasurementContext(readMeasurementSession()?.context ?? null)
+  }, [measurementContext])
 
   const { revalidarAgora } = useEstadoRede()
   const revalidarAgoraRef = useRef(revalidarAgora)
@@ -114,8 +121,10 @@ export function useSpeedTest(modo: SpeedTestMode) {
     // Reservado para diferenciar telemetria de repetição no futuro, se o Console
     // pedir esse recorte — hoje conta como o mesmo evento de funil "iniciado".
     async (_isRepeat: boolean, context?: MeasurementSessionContext) => {
-      if (context) {
-        setMeasurementContext(context)
+      const sessionContext = context ?? measurementContext
+      if (sessionContext) {
+        setMeasurementContext(sessionContext)
+        beginMeasurementSession(sessionContext)
       }
       acquireLock()
       stopHeartbeat()
@@ -206,7 +215,7 @@ export function useSpeedTest(modo: SpeedTestMode) {
         releaseLock()
       }
     },
-    [acquireLock, stopHeartbeat, releaseLock]
+    [acquireLock, measurementContext, stopHeartbeat, releaseLock]
   )
 
   useEffect(() => {
