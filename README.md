@@ -50,6 +50,8 @@ npm run build
 
 O service worker é gerado pelo Serwist a partir de `src/app/sw.ts`. O build produz uma aplicação Next.js pronta para hospedagem compatível com Route Handlers e variáveis de ambiente de servidor. Configure as variáveis no provedor de hospedagem e execute `npm run build` antes da publicação.
 
+A CI do GitHub Actions valida automaticamente alterações, mas não publica o site. O deploy Vercel é exclusivamente manual, não usa a integração Git nativa da Vercel e requer os secrets do repositório configurados depois do vínculo inicial pela CLI. Consulte o [procedimento operacional de deploy](docs/deploy-vercel.md).
+
 O PWA mantém apenas os recursos publicados e o Histórico já salvo neste navegador. Sem conexão, não inicia nem simula uma medição ou diagnóstico. Uma atualização fica aguardando a ação **Atualizar** mostrada no app; a ativação não deve apagar IndexedDB ou recarregar a tela antes dessa escolha.
 
 ## Compartilhamento e links editoriais
