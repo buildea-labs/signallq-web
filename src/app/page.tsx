@@ -31,6 +31,7 @@ import {
   trackFeatureUsed,
 } from "@/lib/telemetry";
 import { PROBLEMAS_PERCEBIDOS, type ProblemaPercebido } from "@/lib/problemEntry";
+import { createMeasurementSessionContext } from "@/lib/measurementSessionContext";
 
 const RUNNING_PHASES: FasePainel[] = [
   "preparando",
@@ -199,7 +200,7 @@ export default function Home() {
   const [entradaProblemaAberta, setEntradaProblemaAberta] = useState(false);
   const [problemaPercebido, setProblemaPercebido] = useState<ProblemaPercebido | null>(null);
   const abandonoRegistrado = useRef(false);
-  const { phase, liveValue, phaseResults, result, cancelTest, retry, forceStart } = useSpeedTest(modo);
+  const { phase, liveValue, phaseResults, result, measurementContext, cancelTest, retry, forceStart } = useSpeedTest(modo);
 
   const isIdle = phase === "idle";
   const isRunning = RUNNING_PHASES.includes(phase);
@@ -230,7 +231,7 @@ export default function Home() {
     setProblemaPercebido(null);
     setEntradaProblemaAberta(false);
     trackFeatureUsed(FEATURE_SPEEDTEST_ENTRADA_DIRETA);
-    forceStart();
+    forceStart(createMeasurementSessionContext("direct"));
   };
 
   const abrirEntradaPorProblema = () => {
@@ -241,7 +242,7 @@ export default function Home() {
   const iniciarTesteComProblema = () => {
     if (!problemaPercebido) return;
     abandonoRegistrado.current = true;
-    forceStart();
+    forceStart(createMeasurementSessionContext("problem", problemaPercebido));
   };
 
   let fraction = 0;
@@ -508,9 +509,9 @@ export default function Home() {
 
           {isRunning && (
             <>
-              {problemaPercebido && (
+              {measurementContext?.declaredProblem && (
                 <p className="m-0 text-center text-[12px] leading-[1.4] text-[color:var(--text-secondary)]">
-                  Contexto informado: {PROBLEMAS_PERCEBIDOS.find((opcao) => opcao.value === problemaPercebido)?.label}
+                  Contexto informado: {PROBLEMAS_PERCEBIDOS.find((opcao) => opcao.value === measurementContext.declaredProblem)?.label}
                 </p>
               )}
               <FaixaMetricas items={executarTrio} variant="execucao" />
@@ -536,7 +537,7 @@ export default function Home() {
           actionIcon={problema.actionIcon}
           actionLabel={problema.actionLabel}
           color={problema.color}
-          onAction={phase === "bloqueado-outra-aba" ? forceStart : retry}
+          onAction={phase === "bloqueado-outra-aba" ? iniciarTesteDireto : retry}
         />
       )}
 

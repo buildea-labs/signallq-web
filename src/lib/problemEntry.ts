@@ -1,10 +1,10 @@
 /**
  * Contexto declarado pelo visitante antes da medição.
  *
- * Isto não é uma classificação nem uma entrada do contrato de diagnóstico:
- * a versão atual do contrato oficial não possui um campo para esse dado. Ele
- * permanece no cliente para sustentar a jornada e só poderá ser encaminhado
- * quando o Worker/Android documentarem o atributo correspondente.
+ * Isto não é uma classificação nem uma entrada do contrato de diagnóstico.
+ * A fronteira local versionada que o acompanha é `MeasurementSessionContext`;
+ * o contrato oficial só poderá recebê-lo quando Android/Worker documentarem
+ * o atributo correspondente.
  */
 export const PROBLEMAS_PERCEBIDOS = [
   { value: 'lenta', label: 'Está lenta' },
