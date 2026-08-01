@@ -30,5 +30,5 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules", "_archive_vite", "dist", "functions", "**/*.test.ts", "**/*.test.tsx", "src/test/**/*"]
+  "exclude": ["node_modules", "dist"]
 }
