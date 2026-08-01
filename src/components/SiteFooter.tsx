@@ -21,12 +21,14 @@ export function SiteFooter() {
           <img
             className="sq-logo-light h-[24px] w-auto object-contain block"
             src="/assets/signallq-lockup-light-bg-v5.png"
-            alt="SignallQ"
+            alt=""
+            aria-hidden="true"
           />
           <img
             className="sq-logo-dark h-[24px] w-auto object-contain hidden"
             src="/assets/signallq-lockup-dark-bg-v5.png"
-            alt="SignallQ"
+            alt=""
+            aria-hidden="true"
           />
           <span className="rounded-full py-[1px] px-[8px] font-medium text-[11px] leading-[1.6] font-sans text-[color:var(--on-accent)] bg-[color:var(--accent)]">
             Beta
@@ -49,12 +51,14 @@ export function SiteFooter() {
         <img
           className="sq-logo-light h-[22px] w-auto object-contain block"
           src="/assets/signallq-lockup-light-bg-v5.png"
-          alt="SignallQ"
+          alt=""
+          aria-hidden="true"
         />
         <img
           className="sq-logo-dark h-[22px] w-auto object-contain hidden"
           src="/assets/signallq-lockup-dark-bg-v5.png"
-          alt="SignallQ"
+          alt=""
+          aria-hidden="true"
         />
         <span className="rounded-full py-[1px] px-[8px] font-medium text-[11px] leading-[1.6] font-sans text-[color:var(--on-accent)] bg-[color:var(--accent)]">
           Beta
@@ -78,12 +82,14 @@ export function SiteFooter() {
             <img
               className="sq-logo-light self-start h-[32px] w-auto object-contain block"
               src="/assets/signallq-lockup-light-bg-v5.png"
-              alt="SignallQ"
+              alt=""
+              aria-hidden="true"
             />
             <img
               className="sq-logo-dark self-start h-[32px] w-auto object-contain hidden"
               src="/assets/signallq-lockup-dark-bg-v5.png"
-              alt="SignallQ"
+              alt=""
+              aria-hidden="true"
             />
             <div className="font-normal text-[12px] leading-[1.33] text-[color:var(--text-secondary)]">
               Teste de velocidade e diagnóstico de conexão.
