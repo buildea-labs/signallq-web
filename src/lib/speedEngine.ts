@@ -66,8 +66,10 @@ export interface SpeedTestResult {
   rounds?: Array<{ downloadMbps: number; uploadMbps: number; latencyMs: number }>
 }
 
-export const SPEED_TEST_MODE_CONFIG: Record<Exclude<SpeedTestMode, 'triplo'>, {
+export interface SpeedTestModeConfig {
   latencySampleCount: number
+  /** Amostras de latência válidas necessárias para considerar a rodada completa. */
+  minimumValidLatencySamples: number
   downloadDurationMs: number
   uploadDurationMs: number
   downloadPayloadBytes: number
@@ -77,17 +79,35 @@ export const SPEED_TEST_MODE_CONFIG: Record<Exclude<SpeedTestMode, 'triplo'>, {
   uploadInitialStreams: number
   uploadMaxStreams: number
   warmupMs: number
-}> = {
+}
+
+/**
+ * Parâmetros de medição, não regras de diagnóstico. O modo integra o contexto
+ * da execução; somente o motor oficial, via contrato Cloudflare, conclui causas.
+ */
+export const SPEED_TEST_MODE_CONFIG: Record<Exclude<SpeedTestMode, 'triplo'>, SpeedTestModeConfig> = {
   rapido: {
-    latencySampleCount: 15, downloadDurationMs: 7000, uploadDurationMs: 7000,
+    latencySampleCount: 15, minimumValidLatencySamples: 8, downloadDurationMs: 7000, uploadDurationMs: 7000,
     downloadPayloadBytes: 10_000_000, uploadPayloadBytes: 5_000_000,
     downloadInitialStreams: 2, downloadMaxStreams: 4, uploadInitialStreams: 4, uploadMaxStreams: 4, warmupMs: 1000,
   },
   completo: {
-    latencySampleCount: 25, downloadDurationMs: 18_000, uploadDurationMs: 18_000,
+    latencySampleCount: 25, minimumValidLatencySamples: 18, downloadDurationMs: 18_000, uploadDurationMs: 18_000,
     downloadPayloadBytes: 25_000_000, uploadPayloadBytes: 10_000_000,
     downloadInitialStreams: 2, downloadMaxStreams: 8, uploadInitialStreams: 8, uploadMaxStreams: 8, warmupMs: 2000,
   },
+}
+
+export function measurementStatus(
+  config: SpeedTestModeConfig,
+  input: { validLatencySamples: number; throughputComplete: boolean; contaminated: boolean },
+): MeasurementStatus {
+  if (input.contaminated) return 'contaminated'
+  // Menos de cinco respostas não sustenta sequer a triagem curta.
+  if (input.validLatencySamples < 5) return 'inconclusive'
+  // Cada modo declara a precisão que efetivamente conseguiu coletar.
+  if (!input.throughputComplete || input.validLatencySamples < config.minimumValidLatencySamples) return 'partial'
+  return 'complete'
 }
 
 export function median(nums: number[]): number {
@@ -185,7 +205,7 @@ async function collectLatency(count: number, token: CancelToken, onSample: (ms: 
 
 async function runThroughput(
   phase: 'download' | 'upload',
-  config: typeof SPEED_TEST_MODE_CONFIG.rapido,
+  config: SpeedTestModeConfig,
   token: CancelToken,
   onTick: (mbps: number) => void,
 ): Promise<{ throughput: ThroughputSummary; loadLatencyMs: number }> {
@@ -322,8 +342,15 @@ export function createSpeedTest(mode: SpeedTestMode = 'rapido') {
     if (token.cancelled) throw new SpeedTestError('cancelled')
     onPhase('processando')
     const bufferbloatMs = Math.max(download.loadLatencyMs, upload.loadLatencyMs) - latency.ms
-    const partial = download.throughput.endedBy !== 'time_elapsed' || upload.throughput.endedBy !== 'time_elapsed' || download.throughput.mbps <= 0 || upload.throughput.mbps <= 0
-    const status: MeasurementStatus = token.contaminated ? 'contaminated' : latency.validSamples < 5 ? 'inconclusive' : partial ? 'partial' : 'complete'
+    const throughputComplete = download.throughput.endedBy === 'time_elapsed'
+      && upload.throughput.endedBy === 'time_elapsed'
+      && download.throughput.mbps > 0
+      && upload.throughput.mbps > 0
+    const status = measurementStatus(config, {
+      validLatencySamples: latency.validSamples,
+      throughputComplete,
+      contaminated: token.contaminated,
+    })
     return {
       id: crypto.randomUUID(), timestamp: Date.now(), mode: singleMode, status,
       download: { mbps: download.throughput.mbps, peakMbps: download.throughput.peakMbps },
@@ -335,7 +362,7 @@ export function createSpeedTest(mode: SpeedTestMode = 'rapido') {
       bufferbloat: { ms: Math.max(bufferbloatMs, 0), severity: bufferbloatSeverity(Math.max(bufferbloatMs, 0)) },
       stabilityScore: stability([...download.throughput.samples, ...upload.throughput.samples]), dns,
       connectionType: (navigator as Navigator & { connection?: { effectiveType?: string } }).connection?.effectiveType ?? null,
-      server: SPEEDTEST_SERVER_LABEL, partial,
+      server: SPEEDTEST_SERVER_LABEL, partial: status !== 'complete',
       durationMs: Math.round(performance.now() - startedAt),
     }
   }
