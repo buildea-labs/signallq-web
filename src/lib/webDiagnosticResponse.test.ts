@@ -17,10 +17,11 @@ describe('web diagnostic response', () => {
     expect(response.confidence).toContain('baixa')
   })
 
-  it('does not conclude from download alone', () => {
+  it('keeps an isolated download result explicitly limited, even when it is low', () => {
     const response = createWebDiagnosticResponse(complete({ download: { mbps: 5, peakMbps: 6 } }), null, [])
-    expect(response.conclusion).toContain('sinal de atenção')
-    expect(response.conclusion).not.toContain('conexão está fraca')
+    expect(response.conclusion).toContain('leitura é limitada')
+    expect(response.confidence).toContain('baixa')
+    expect(response.conclusion).not.toContain('sinal de atenção')
   })
 
   it('offers Android only for a declared browser-unobservable Wi-Fi need', () => {

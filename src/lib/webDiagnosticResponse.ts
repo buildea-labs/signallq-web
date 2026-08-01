@@ -34,16 +34,23 @@ export function createWebDiagnosticResponse(
     nextAction: 'Faça um novo teste e mantenha esta tela aberta até o fim.',
   }
 
-  const signals = [
-    classifyDownload(result.download.mbps).nivel,
-    classifyUpload(result.upload.mbps).nivel,
-    classifyLatency(result.latency.ms).nivel,
-    classifyJitter(result.jitter?.ms).nivel,
-  ]
+  const download = classifyDownload(result.download.mbps)
+  const upload = classifyUpload(result.upload.mbps)
+  const latency = classifyLatency(result.latency.ms)
+  const jitter = classifyJitter(result.jitter?.ms)
+  const signals = [download.nivel, upload.nivel, latency.nivel, jitter.nivel]
   const criticalSignals = signals.filter((signal) => signal === 'error').length + (result.bufferbloat.severity === 'severe' ? 1 : 0)
   const attentionSignals = signals.filter((signal) => signal === 'warning').length + (result.bufferbloat.severity === 'moderate' ? 1 : 0)
   const hasDeclaredContext = context?.entry === 'problem'
   const answeredContext = answers.length > 0
+
+  if (download.nivel !== 'success' && upload.nivel === 'success' && latency.nivel === 'success' && jitter.nivel === 'success' && ['none', 'mild'].includes(result.bufferbloat.severity)) return {
+    ...base,
+    conclusion: 'A velocidade de download desta rodada ficou abaixo do esperado, mas a leitura é limitada.',
+    impact: 'Sem outros sinais nesta medição, não dá para afirmar que há um problema geral na conexão.',
+    confidence: 'Confiança baixa: uma métrica isolada não confirma a origem nem a recorrência do problema.',
+    nextAction: 'Faça um novo teste nas mesmas condições para verificar se esse resultado se repete.',
+  }
 
   if (criticalSignals >= 2 || (criticalSignals >= 1 && attentionSignals >= 1)) return {
     ...base,

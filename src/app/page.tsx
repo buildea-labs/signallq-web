@@ -580,15 +580,15 @@ export default function Home() {
           {respostaDiagnostica && (
             <section aria-labelledby="resultado-conclusao" className="py-7 border-b border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]">
               <div className="font-medium text-[11px] leading-[1.45] text-[color:var(--accent)] tracking-[.3px] uppercase">Leitura desta medição</div>
-              <h2 id="resultado-conclusao" className="mt-[6px] mb-0 font-semibold text-[22px] leading-[1.27] text-[color:var(--text-primary)]">{respostaDiagnostica.conclusion}</h2>
+              <h1 id="resultado-conclusao" className="mt-[6px] mb-0 font-semibold text-[22px] leading-[1.27] text-[color:var(--text-primary)]">{respostaDiagnostica.conclusion}</h1>
               <p className="mt-2 mb-0 font-normal text-[14px] leading-[1.43] text-[color:var(--text-secondary)]">{respostaDiagnostica.impact}</p>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <div>
-                  <div className="font-medium text-[11px] uppercase tracking-[.3px] text-[color:var(--text-tertiary)]">Confiança e limites</div>
+                  <h2 className="m-0 font-medium text-[11px] uppercase tracking-[.3px] text-[color:var(--text-tertiary)]">Confiança e limites</h2>
                   <p className="mt-1 mb-0 text-[13px] leading-[1.4] text-[color:var(--text-secondary)]">{respostaDiagnostica.confidence}</p>
                 </div>
                 <div>
-                  <div className="font-medium text-[11px] uppercase tracking-[.3px] text-[color:var(--text-tertiary)]">Próxima ação</div>
+                  <h2 className="m-0 font-medium text-[11px] uppercase tracking-[.3px] text-[color:var(--text-tertiary)]">Próxima ação</h2>
                   <p className="mt-1 mb-0 text-[13px] leading-[1.4] text-[color:var(--text-secondary)]">{respostaDiagnostica.nextAction}</p>
                 </div>
               </div>
@@ -607,7 +607,7 @@ export default function Home() {
           </div>
 
           <details className="py-7 border-b border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]">
-            <summary className="cursor-pointer font-semibold text-[16px] leading-[1.38] text-[color:var(--text-primary)]">Detalhes por tipo de uso e técnicos</summary>
+            <summary className="cursor-pointer"><h2 className="m-0 inline font-semibold text-[16px] leading-[1.38] text-[color:var(--text-primary)]">Detalhes por tipo de uso e técnicos</h2></summary>
             <div className="mt-[18px] grid grid-cols-2 sm:grid-cols-4">
               {(Object.keys(USE_CASE_ICONS) as Array<keyof typeof USE_CASE_ICONS>).map((key) => {
                 const veredictoCaso = useCases[key];
