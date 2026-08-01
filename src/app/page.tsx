@@ -33,6 +33,7 @@ import {
 import { PROBLEMAS_PERCEBIDOS, type ProblemaPercebido } from "@/lib/problemEntry";
 import { createMeasurementSessionContext } from "@/lib/measurementSessionContext";
 import { readMeasurementSession } from "@/lib/measurementSessionStore";
+import { createWebDiagnosticResponse } from "@/lib/webDiagnosticResponse";
 
 const RUNNING_PHASES: FasePainel[] = [
   "preparando",
@@ -133,19 +134,6 @@ const NIVEL_COR: Record<Nivel, string> = {
   indisponivel: "var(--text-tertiary)",
 };
 
-// Frase-veredito da "Interpretação SignallQ" — varia por classificação real
-// do download (não é texto fixo como no protótipo). Copy é decisão de
-// produto já registrada na reconstrução anterior da tela de Resultado.
-const VEREDITO: Record<Nivel, { titulo: string; subtitulo: string }> = {
-  success: { titulo: "Sua conexão está boa", subtitulo: "Dá para navegar, assistir e jogar sem grandes travamentos." },
-  warning: {
-    titulo: "Sua conexão está aceitável",
-    subtitulo: "Funciona para a maioria dos usos, mas pode engasgar em tarefas mais pesadas.",
-  },
-  error: { titulo: "Sua conexão está fraca", subtitulo: "Streaming, chamadas e jogos online podem travar ou ficar lentos." },
-  indisponivel: { titulo: "Não deu para avaliar sua conexão", subtitulo: "Tente novamente para ver um veredito completo." },
-};
-
 const USE_CASE_ICONS = {
   navegacao: "travel_explore",
   streaming: "movie",
@@ -201,6 +189,7 @@ export default function Home() {
   const [entradaProblemaAberta, setEntradaProblemaAberta] = useState(false);
   const [problemaPercebido, setProblemaPercebido] = useState<ProblemaPercebido | null>(null);
   const [questionarioRetomavel, setQuestionarioRetomavel] = useState(false);
+  const [respostasContextuais, setRespostasContextuais] = useState(() => readMeasurementSession()?.answers ?? []);
   const abandonoRegistrado = useRef(false);
   const { phase, liveValue, phaseResults, result, measurementContext, cancelTest, retry, forceStart } = useSpeedTest(modo);
 
@@ -217,6 +206,7 @@ export default function Home() {
   useEffect(() => {
     const session = readMeasurementSession();
     setQuestionarioRetomavel(Boolean(session?.questionnaireActive));
+    setRespostasContextuais(session?.answers ?? []);
   }, []);
 
   useEffect(() => {
@@ -291,7 +281,6 @@ export default function Home() {
   const downloadVerdict = result ? classifyDownload(result.download.mbps) : null;
   const uploadVerdict = result ? classifyUpload(result.upload.mbps) : null;
   const latencyVerdict = result ? classifyLatency(result.latency.ms) : null;
-  const veredito = downloadVerdict ? VEREDITO[downloadVerdict.nivel] : VEREDITO.indisponivel;
   const useCases = result
     ? interpretUseCases({
         download: result.download.mbps,
@@ -302,6 +291,7 @@ export default function Home() {
     : null;
   const statusCompleto = result?.status === "complete";
   const statusMensagem = result ? STATUS_MESSAGE[result.status] : undefined;
+  const respostaDiagnostica = result ? createWebDiagnosticResponse(result, measurementContext, respostasContextuais) : null;
 
   const executarTrio: ItemFaixaMetricas[] = [
     {
@@ -397,7 +387,7 @@ export default function Home() {
 
       {shouldResumeContextualQuestions && (
         <div className="w-full max-w-[640px] mt-6 pt-6 border-t border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]">
-          <GuidedDiagnosis measurementContext={measurementContext} />
+          <GuidedDiagnosis measurementContext={measurementContext} onAnswersChange={setRespostasContextuais} />
         </div>
       )}
 
@@ -576,8 +566,6 @@ export default function Home() {
             </span>
           </div>
 
-          <FaixaMetricas items={resultadoTrio} variant="resultado" />
-
           {statusMensagem && (
             <div className="flex items-start justify-center gap-2 py-4 border-b border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]">
               <span className="material-symbols-outlined text-[16px] text-[color:var(--warning)]">
@@ -589,17 +577,37 @@ export default function Home() {
             </div>
           )}
 
-          <div className="py-7 border-b border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]">
-            <div className="font-medium text-[11px] leading-[1.45] text-[color:var(--accent)] tracking-[.3px] uppercase">
-              Interpretação SignallQ
-            </div>
-            <div className="mt-[6px] font-semibold text-[22px] leading-[1.27] text-[color:var(--text-primary)]">
-              {veredito.titulo}
-            </div>
-            <div className="mt-1 font-normal text-[14px] leading-[1.43] text-[color:var(--text-secondary)]">
-              {veredito.subtitulo}
-            </div>
+          {respostaDiagnostica && (
+            <section aria-labelledby="resultado-conclusao" className="py-7 border-b border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]">
+              <div className="font-medium text-[11px] leading-[1.45] text-[color:var(--accent)] tracking-[.3px] uppercase">Leitura desta medição</div>
+              <h2 id="resultado-conclusao" className="mt-[6px] mb-0 font-semibold text-[22px] leading-[1.27] text-[color:var(--text-primary)]">{respostaDiagnostica.conclusion}</h2>
+              <p className="mt-2 mb-0 font-normal text-[14px] leading-[1.43] text-[color:var(--text-secondary)]">{respostaDiagnostica.impact}</p>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <div>
+                  <div className="font-medium text-[11px] uppercase tracking-[.3px] text-[color:var(--text-tertiary)]">Confiança e limites</div>
+                  <p className="mt-1 mb-0 text-[13px] leading-[1.4] text-[color:var(--text-secondary)]">{respostaDiagnostica.confidence}</p>
+                </div>
+                <div>
+                  <div className="font-medium text-[11px] uppercase tracking-[.3px] text-[color:var(--text-tertiary)]">Próxima ação</div>
+                  <p className="mt-1 mb-0 text-[13px] leading-[1.4] text-[color:var(--text-secondary)]">{respostaDiagnostica.nextAction}</p>
+                </div>
+              </div>
+              {respostaDiagnostica.androidCta && (
+                <div className="mt-4 flex flex-wrap items-center gap-[10px] rounded-xl border border-[color:var(--border)] p-3">
+                  <p className="m-0 flex-1 text-[13px] leading-[1.4] text-[color:var(--text-secondary)]">{respostaDiagnostica.androidCta.reason}</p>
+                  <PlayStoreBadge height={32} source="home-resultado-wifi-contextual" />
+                </div>
+              )}
+            </section>
+          )}
 
+          <div className="py-7 border-b border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]">
+            <h2 className="m-0 font-semibold text-[16px] leading-[1.38] text-[color:var(--text-primary)]">Métricas da medição</h2>
+            <div className="mt-4"><FaixaMetricas items={resultadoTrio} variant="resultado" /></div>
+          </div>
+
+          <details className="py-7 border-b border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]">
+            <summary className="cursor-pointer font-semibold text-[16px] leading-[1.38] text-[color:var(--text-primary)]">Detalhes por tipo de uso e técnicos</summary>
             <div className="mt-[18px] grid grid-cols-2 sm:grid-cols-4">
               {(Object.keys(USE_CASE_ICONS) as Array<keyof typeof USE_CASE_ICONS>).map((key) => {
                 const veredictoCaso = useCases[key];
@@ -628,12 +636,9 @@ export default function Home() {
               })}
             </div>
 
-            <p className="mt-4 mb-0 font-normal text-[12px] leading-[1.33] text-[color:var(--text-tertiary)]">
-              Esta é uma leitura das métricas desta medição, não uma certificação da velocidade contratada.
-            </p>
-          </div>
+            <p className="mt-4 mb-0 font-normal text-[12px] leading-[1.33] text-[color:var(--text-tertiary)]">Esta é uma leitura das métricas desta medição, não uma certificação da velocidade contratada.</p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 py-7 border-b border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-6">
             <ListaChaveValor
               title="Contexto"
               items={[
@@ -657,10 +662,9 @@ export default function Home() {
                 },
               ]}
             />
-            <p className="sm:col-span-2 mt-1 mb-0 font-normal text-[12px] leading-[1.33] text-[color:var(--text-tertiary)]">
-              O navegador não confirma provedor, localização, nem lê sinal Wi-Fi ou 4G/5G — isso é diagnóstico do app.
-            </p>
+            <p className="sm:col-span-2 mt-1 mb-0 font-normal text-[12px] leading-[1.33] text-[color:var(--text-tertiary)]">O navegador não confirma provedor, localização, nem lê sinal Wi-Fi ou 4G/5G.</p>
           </div>
+          </details>
 
           <a
             href="/como-medimos"
@@ -688,13 +692,6 @@ export default function Home() {
             </a>
           </div>
 
-          <div className="flex items-center justify-center gap-[10px] mt-6">
-            <span className="font-normal text-[13px] leading-[1.4] text-[color:var(--text-secondary)]">
-              Diagnóstico de Wi-Fi e sinal móvel: só no app.
-            </span>
-            <PlayStoreBadge height={32} source="home-resultado" />
-          </div>
-
           <div className="flex flex-wrap justify-center gap-[10px] mt-6">
             <button
               onClick={compartilhar}
@@ -716,7 +713,7 @@ export default function Home() {
 
           {shouldCollectContextualQuestions && (
             <div className="mt-6 pt-6 border-t border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]">
-              <GuidedDiagnosis measurementContext={measurementContext} />
+              <GuidedDiagnosis measurementContext={measurementContext} onAnswersChange={setRespostasContextuais} />
             </div>
           )}
         </div>

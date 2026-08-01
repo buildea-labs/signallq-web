@@ -3,13 +3,13 @@ import type { MeasurementSessionContext } from '../../lib/measurementSessionCont
 import { resolveContextualQuestions, type ContextualAnswer } from '../../lib/contextualQuestionFlow'
 import { activateQuestionnaire, readMeasurementSession, saveQuestionnaireAnswers } from '../../lib/measurementSessionStore'
 
-type Props = { measurementContext: MeasurementSessionContext | null }
+type Props = { measurementContext: MeasurementSessionContext | null; onAnswersChange?: (answers: ContextualAnswer[]) => void }
 
 /**
  * Apresentação do fluxo local de perguntas. O resolvedor define perguntas e
  * transições; este componente apenas preserva os códigos das respostas.
  */
-export function GuidedDiagnosis({ measurementContext }: Props) {
+export function GuidedDiagnosis({ measurementContext, onAnswersChange }: Props) {
   const [answers, setAnswers] = useState<ContextualAnswer[]>(() => readMeasurementSession()?.answers ?? [])
   const state = useMemo(() => resolveContextualQuestions(measurementContext, answers), [measurementContext, answers])
 
@@ -20,6 +20,8 @@ export function GuidedDiagnosis({ measurementContext }: Props) {
     }
     activateQuestionnaire()
   }, [measurementContext])
+
+  useEffect(() => { onAnswersChange?.(answers) }, [answers, onAnswersChange])
 
   const reset = () => {
     setAnswers([])
