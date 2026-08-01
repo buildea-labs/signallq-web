@@ -209,6 +209,7 @@ export default function Home() {
   const isProblem = PROBLEM_PHASES.includes(phase as ProblemPhase);
   const showDial = isIdle || isRunning;
   const shellAlign = isRunning || isProblem ? "center" : "start";
+  const shouldCollectContextualQuestions = isResult && measurementContext?.entry === "problem";
 
   useEffect(() => {
     const registrarAbandono = () => {
@@ -699,9 +700,9 @@ export default function Home() {
             </button>
           </div>
 
-          {phase === "inconclusivo" && (
+          {shouldCollectContextualQuestions && (
             <div className="mt-6 pt-6 border-t border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]">
-              <GuidedDiagnosis />
+              <GuidedDiagnosis measurementContext={measurementContext} />
             </div>
           )}
         </div>
