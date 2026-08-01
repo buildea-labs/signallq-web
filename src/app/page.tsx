@@ -606,8 +606,10 @@ export default function Home() {
             <div className="mt-4"><FaixaMetricas items={resultadoTrio} variant="resultado" /></div>
           </div>
 
-          <details className="py-7 border-b border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]">
-            <summary className="cursor-pointer"><h2 className="m-0 inline font-semibold text-[16px] leading-[1.38] text-[color:var(--text-primary)]">Detalhes por tipo de uso e técnicos</h2></summary>
+          <section className="py-7 border-b border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]">
+            <h2 className="m-0 font-semibold text-[16px] leading-[1.38] text-[color:var(--text-primary)]">Detalhes por tipo de uso e técnicos</h2>
+            <details className="mt-3">
+            <summary className="cursor-pointer font-medium text-[14px] text-[color:var(--accent)]">Mostrar detalhes técnicos</summary>
             <div className="mt-[18px] grid grid-cols-2 sm:grid-cols-4">
               {(Object.keys(USE_CASE_ICONS) as Array<keyof typeof USE_CASE_ICONS>).map((key) => {
                 const veredictoCaso = useCases[key];
@@ -664,7 +666,8 @@ export default function Home() {
             />
             <p className="sm:col-span-2 mt-1 mb-0 font-normal text-[12px] leading-[1.33] text-[color:var(--text-tertiary)]">O navegador não confirma provedor, localização, nem lê sinal Wi-Fi ou 4G/5G.</p>
           </div>
-          </details>
+            </details>
+          </section>
 
           <a
             href="/como-medimos"
