@@ -1,11 +1,12 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { fractionForGaugeScale, gaugeScaleForThroughputPhase, gaugeScaleLabelPositions, latencyGaugeLabelPositions, movingAverage } from "@/lib/gaugeMath";
 
 const CX = 180, CY = 186, R = 136;
 const ARC_LEN = Math.PI * R;
 const ARC_PATH = `M ${CX - R} ${CY} A ${R} ${R} 0 0 1 ${CX + R} ${CY}`;
-const SCALE = ["0", "1", "5", "10", "20", "30", "50", "75", "100"];
+const VISUAL_SAMPLE_WINDOW = 4;
 
 function point(radius: number, fraction: number) {
   const rad = ((180 - fraction * 180) * Math.PI) / 180;
@@ -29,32 +30,78 @@ const TICKS = Array.from({ length: 49 }, (_, i) => {
   };
 });
 
-const SCALE_LABELS = SCALE.map((text, i) => {
-  const p = point(R + 36, i / 8);
+function scaleLabels(scale: Array<{ text: string; fraction: number }>) {
+  return scale.map(({ text, fraction }) => {
+  const p = point(R + 36, fraction);
   return {
     text,
     left: `${(p.x / 360) * 100}%`,
     top: `${(p.y / 210) * 100}%`,
   };
-});
+  });
+}
 
 export function Velocimetro({
   fraction,
   phaseColor,
   isRunning,
+  phase,
+  liveValue,
+  value,
+  unit,
+  phaseLabel,
+  narrative,
+  compact = false,
   children,
 }: {
   fraction: number;
   phaseColor: string;
   isRunning: boolean;
+  phase: string;
+  liveValue: number;
+  value?: string;
+  unit?: string;
+  phaseLabel?: string;
+  narrative?: string;
+  compact?: boolean;
   children?: React.ReactNode;
 }) {
-  const needle = point(R - 2, fraction);
-  const needleFrom = point(R - 36, fraction);
-  const dashOffset = ARC_LEN * (1 - fraction);
+  const [throughputScale, setThroughputScale] = useState(100);
+  const [smoothedThroughput, setSmoothedThroughput] = useState(0);
+  const activeThroughputPhase = useRef<string | null>(null);
+  const visualSamples = useRef<number[]>([]);
+  useEffect(() => {
+    if (phase === "download" || phase === "upload") {
+      const startsPhase = activeThroughputPhase.current !== phase;
+      activeThroughputPhase.current = phase;
+      visualSamples.current = startsPhase
+        ? [liveValue]
+        : [...visualSamples.current, liveValue].slice(-VISUAL_SAMPLE_WINDOW);
+      setSmoothedThroughput(movingAverage(visualSamples.current));
+      setThroughputScale((current) => gaugeScaleForThroughputPhase(liveValue, current, startsPhase));
+    } else {
+      activeThroughputPhase.current = null;
+      visualSamples.current = [];
+      setSmoothedThroughput(0);
+      setThroughputScale(100);
+    }
+  }, [liveValue, phase]);
+  const isThroughput = phase === "download" || phase === "upload";
+  const labels = useMemo(
+    () => scaleLabels(isThroughput ? gaugeScaleLabelPositions(throughputScale) : latencyGaugeLabelPositions()),
+    [isThroughput, throughputScale],
+  );
+  const visualFraction = isThroughput ? fractionForGaugeScale(smoothedThroughput, throughputScale) : fraction;
+  const needle = point(R - 2, visualFraction);
+  const needleFrom = point(R - 36, visualFraction);
+  const dashOffset = ARC_LEN * (1 - visualFraction);
+  const showMeasurement = isRunning || compact;
+
+  const showCenter = Boolean(value && (isRunning || compact));
 
   return (
-    <div className="relative aspect-[360/210] w-full sm:w-[440px]">
+    <div className={`relative aspect-[360/210] ${compact ? "w-[280px]" : "w-full"} transition-[width,transform] duration-500 ease-out motion-reduce:transition-none ${compact ? "" : isRunning ? "sm:w-[520px]" : "sm:w-[440px]"}`}>
+      {phaseLabel && <span className="sr-only" role="status" aria-live="polite">{phaseLabel}{narrative ? `. ${narrative}` : ""}</span>}
       {children}
       
       {/* Glow effect when running or idle */}
@@ -62,7 +109,7 @@ export function Velocimetro({
         className="absolute left-[50%] top-[62%] w-[60%] aspect-square rounded-full pointer-events-none sq-gauge-glow"
         style={{
           background:
-            "radial-gradient(circle, color-mix(in srgb, var(--accent) 30%, transparent), transparent 72%)",
+            `radial-gradient(circle, color-mix(in srgb, ${phaseColor} 30%, transparent), transparent 72%)`,
         }}
       />
 
@@ -93,7 +140,7 @@ export function Velocimetro({
         />
 
         {/* Active Arc & Needle (only when running) */}
-        {isRunning && (
+        {showMeasurement && (
           <>
             <path
               d={ARC_PATH}
@@ -103,7 +150,7 @@ export function Velocimetro({
               strokeLinecap="round"
               strokeDasharray={ARC_LEN}
               strokeDashoffset={dashOffset}
-              className="transition-[stroke-dashoffset] duration-100 ease-out"
+              className="transition-[stroke-dashoffset] duration-100 ease-out motion-reduce:transition-none"
             />
             <line
               x1={needleFrom.x}
@@ -113,14 +160,25 @@ export function Velocimetro({
               stroke={phaseColor}
               strokeWidth="4"
               strokeLinecap="round"
-              className="transition-[x2,y2,x1,y1] duration-100 ease-out"
+              className="transition-[x2,y2,x1,y1] duration-100 ease-out motion-reduce:transition-none"
             />
           </>
         )}
       </svg>
 
+      {showCenter && (
+        <div className={`absolute inset-x-0 top-[42%] -translate-y-1/2 flex flex-col items-center text-center ${compact ? "gap-0" : "gap-1"}`}>
+          <div className={`${compact ? "text-[34px]" : "text-[48px] sm:text-[58px]"} font-bold leading-none tabular-nums`} style={{ color: phaseColor }}>
+            {value}
+          </div>
+          {unit && <div className="font-medium text-[12px] leading-[1.33] tracking-[.5px] text-[color:var(--text-tertiary)]">{unit}</div>}
+          {phaseLabel && <div className="mt-2 font-semibold text-[11px] leading-[1.45] tracking-[1px]" style={{ color: phaseColor }}>{phaseLabel}</div>}
+          {!compact && narrative && <div className="mt-1 max-w-[260px] text-[12px] leading-[1.33] text-[color:var(--text-secondary)]">{narrative}</div>}
+        </div>
+      )}
+
       {/* Scale Labels */}
-      {SCALE_LABELS.map((l, i) => (
+      {labels.map((l, i) => (
         <div
           key={i}
           className="absolute -translate-x-1/2 -translate-y-1/2 font-medium text-[12px] leading-[1] text-[color:var(--text-tertiary)]"
