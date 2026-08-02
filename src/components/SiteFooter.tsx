@@ -46,8 +46,8 @@ export function SiteFooter() {
             </Link>
           ))}
         </div>
-        <div className="ml-auto font-normal text-[11px] leading-[1.45] text-[color:var(--text-tertiary)]">
-          © 2026 SignallQ · by Buildea. Produto em fase Beta.
+        <div className="ml-auto font-normal text-[11px] leading-[1.45] text-[color:var(--text-tertiary)] text-right">
+          © 2026 SignallQ · by Buildea. O teste web está disponível em beta; o aplicativo Android está em teste fechado.
         </div>
       </div>
 
@@ -113,13 +113,13 @@ export function SiteFooter() {
               <Link href="/app" className="relative inline-flex no-underline">
                 <Image
                   src="/assets/google-play-badge-transparent.png"
-                  alt="Em breve no Google Play"
+                  alt="Disponível no Google Play"
                   width={182}
                   height={71}
-                  className="block opacity-55 grayscale-[0.4]"
+                  className="block opacity-80"
                 />
                 <span className="absolute -top-[8px] -right-[10px] rounded-full py-[2px] px-[8px] font-bold text-[10px] leading-[1.4] tracking-[.04em] uppercase text-[color:var(--on-accent)] bg-[color:var(--accent)] whitespace-nowrap">
-                  Em breve
+                  Teste fechado
                 </span>
               </Link>
               <div className="font-normal text-[12px] leading-[1.4] text-[color:var(--text-secondary)] max-w-[220px]">
@@ -131,7 +131,7 @@ export function SiteFooter() {
 
         <div className="max-w-[1280px] mx-auto flex flex-wrap justify-between gap-2 border-t border-[color-mix(in_srgb,_var(--border)_18%,_transparent)] pt-4 px-5 pb-[28px] box-border">
           <div className="font-normal text-[12px] leading-[1.33] text-[color:var(--text-tertiary)]">
-            © 2026 SignallQ · by Buildea. Produto em fase Beta.
+            © 2026 SignallQ · by Buildea. O teste web está disponível em beta; o aplicativo Android está em teste fechado.
           </div>
         </div>
       </div>
