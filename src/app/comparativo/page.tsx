@@ -1,8 +1,10 @@
-"use client";
+import type { Metadata } from 'next'
 import { DocPage, type DocSection } from '../../components/DocPage'
 import { PageShell } from '../../components/PageShell'
-import { useDocumentMeta } from '../../hooks/useDocumentMeta'
 import { PAGE_META } from '../../lib/pageMetaCatalog'
+import { routeMetadata } from '../../lib/routeMetadata'
+
+export const metadata: Metadata = routeMetadata(PAGE_META['/comparativo'])
 
 const SECTIONS: DocSection[] = [
   { title: 'Só Mbps x veredito completo', text: 'Testes tradicionais mostram download e upload soltos. O SignallQ classifica cada métrica (Excelente/Bom/Regular/Fraco) e explica o que ela significa no uso real: streaming, videochamada, jogos.' },
@@ -13,7 +15,6 @@ const SECTIONS: DocSection[] = [
 ]
 
 export default function Page() {
-  useDocumentMeta(PAGE_META['/comparativo'])
 
   return (
     <PageShell align="center" mobilePadding="pt-7 px-5 pb-10">
