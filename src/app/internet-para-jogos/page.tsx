@@ -22,8 +22,8 @@ export default function Page() {
         title="Que internet você precisa para jogar online sem travar"
         intro="Não é só velocidade: latência baixa e estável importa mais que Mbps para a maioria dos jogos competitivos."
         sections={SECTIONS}
-        ctaLabel="Testar minha conexão"
-        ctaTo="/?context=jogos-ou-chamadas-ruins"
+        ctaLabel="Testar latência nos servidores de jogos"
+        ctaTo="/jogos"
       />
     </PageShell>
   )
