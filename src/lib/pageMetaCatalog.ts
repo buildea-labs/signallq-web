@@ -64,18 +64,19 @@ export const PAGE_META: Record<string, PageMeta> = {
     description: 'O app que não para no número: descobre por que sua internet está ruim. Em teste fechado.',
     path: '/app',
   },
-  // As 2 rotas abaixo são placeholder ("Em breve") pros diagnósticos
-  // dedicados linkados pelos chips da Home (`DIAG_ITEMS`, `src/app/page.tsx`)
-  // — ainda não implementados, `noindex` até terem conteúdo real.
   // /velocidade-e-latencia e /latencia-sob-carga foram eliminadas (#97): a
   // jornada real já existe no fluxo de teste principal e nos detalhes
   // técnicos do resultado completo — ver redirects em `next.config.ts`.
-  '/servidores-dns': {
-    title: 'Servidores DNS — em breve — SignallQ',
-    description: 'Diagnóstico dedicado de servidores DNS, em construção.',
-    path: '/servidores-dns',
-    robots: 'noindex,follow',
+  // #98 — /servidores-dns virou /dns: ferramenta real de comparação de
+  // resolvedores DNS via DoH, chip "Servidores DNS" da Home aponta pra cá.
+  '/dns': {
+    title: 'Comparar servidores DNS — SignallQ',
+    description: 'Compare o tempo de resposta dos resolvedores DNS públicos da Cloudflare e do Google direto do seu navegador.',
+    path: '/dns',
   },
+  // Placeholder ("Em breve") pro diagnóstico dedicado linkado pelo chip
+  // "Modo gamer" da Home (`DIAG_ITEMS`, `src/app/page.tsx`) — ainda não
+  // implementado, `noindex` até ter conteúdo real.
   '/modo-gamer': {
     title: 'Modo gamer — em breve — SignallQ',
     description: 'Diagnóstico dedicado de modo gamer por jogo, em construção.',
