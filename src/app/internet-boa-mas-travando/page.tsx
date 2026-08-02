@@ -23,7 +23,7 @@ const SECTIONS: DocSection[] = [
   },
   {
     title: 'Como saber se o problema é esse',
-    text: 'Um indício forte é a internet funcionar bem quando só uma coisa está sendo usada, mas travar, engasgar ou dar lag assim que mais de uma atividade disputa a rede ao mesmo tempo. Isso não confirma o diagnóstico por si só: sinal Wi-Fi fraco, interferência e problemas na operadora também podem causar lentidão. Mas, quando o atraso aparece sob uso simultâneo e melhora ao terminar o download, a fila excessiva merece investigação.',
+    text: 'Um indício forte é a internet funcionar bem quando só uma coisa está sendo usada, mas travar, engasgar ou dar lag assim que mais de uma atividade disputa a rede ao mesmo tempo. Isso aponta causas prováveis, mas não é a única explicação: sinal Wi-Fi fraco, interferência e problemas na operadora também podem causar lentidão. Mas, quando o atraso aparece sob uso simultâneo e melhora ao terminar o download, a fila excessiva (bufferbloat) é uma hipótese que merece investigação.',
   },
   {
     title: 'O que fazer',
@@ -39,7 +39,7 @@ export default function Page() {
       <DocPage
         overline="Diagnóstico"
         title="Internet boa mas travando? Veja por que isso acontece"
-        intro="Se o Wi-Fi está com sinal forte e o teste de velocidade mostra número alto, mas a internet ainda trava ou engasga quando mais de uma coisa usa a rede ao mesmo tempo, o motivo normalmente não é velocidade — é latência sob carga, um efeito chamado bufferbloat."
+        intro="Se o Wi-Fi está com sinal forte e o teste de velocidade mostra número alto, mas a internet ainda trava ou engasga quando mais de uma coisa usa a rede ao mesmo tempo, uma das causas possíveis não é falta de velocidade, mas sim a latência sob carga, um efeito conhecido como bufferbloat."
         sections={SECTIONS}
         ctaLabel="Testar minha conexão"
         ctaTo="/?context=travando"

@@ -1,17 +1,26 @@
+#!/bin/bash
+git fetch
+git checkout main
+git reset --hard origin/main
+git checkout -b fix/issue-58-absolute-claims-final
+
+sed -i 's/O app que não para no número: descobre por que sua internet está ruim/O app que não para no número: aponta causas prováveis da sua internet ruim/g' src/app/app/AppLandingComponents.tsx
+
+sed -i 's/descobre por que sua internet está ruim/aponta causas prováveis da sua internet ruim/g' src/lib/pageMetaCatalog.ts
+
+sed -i 's/revela bufferbloat, a causa mais comum/ajuda a identificar bufferbloat, uma causa comum/g' src/app/comparativo/page.tsx
+sed -i 's/aponta a causa mais provável/aponta causas prováveis/g' src/app/comparativo/page.tsx
+
+sed -i 's/Isso não confirma o diagnóstico por si só/Isso aponta causas prováveis, mas não é a única explicação/g' src/app/internet-boa-mas-travando/InternetBoaMasTravandoClient.tsx
+sed -i 's/a fila excessiva merece investigação/a fila excessiva (bufferbloat) é uma hipótese que merece investigação/g' src/app/internet-boa-mas-travando/InternetBoaMasTravandoClient.tsx
+sed -i 's/o motivo normalmente não é velocidade — é latência sob carga, um efeito chamado bufferbloat/uma das causas possíveis não é falta de velocidade, mas sim a latência sob carga, um efeito conhecido como bufferbloat/g' src/app/internet-boa-mas-travando/InternetBoaMasTravandoClient.tsx
+
+cat << 'INNER_EOF' > src/app/lag-em-jogos-online/LagEmJogosOnlineClient.tsx
 "use client";
 import Link from 'next/link'
 import { DocPage, type DocSection } from '../../components/DocPage'
 import { PageShell } from '../../components/PageShell'
-import { useDocumentMeta } from '../../hooks/useDocumentMeta'
-import { PAGE_META } from '../../lib/pageMetaCatalog'
 
-// Conteúdo de SEO long-tail (issue #1399, consultoria de marketing registrada em #1374).
-// Tema fora da lista original de 11 termos, sem grande portal dominando ainda --
-// encaixa direto no posicionamento do SignallQ de explicar a causa, não só medir.
-// Cada seção segue "resposta primeiro": a(s) primeira(s) frase(s) já respondem a
-// pergunta do título, o resto elabora o mecanismo. Copy preservado 1:1 na
-// reconstrução v2 (README, "só a moldura visual muda") — só a composição
-// (SiteNav/SiteFooter, via DocPage/PageShell) mudou.
 const SECTIONS: DocSection[] = [
   {
     title: 'Por que o jogo trava se a internet parece rápida?',
@@ -39,9 +48,7 @@ const SECTIONS: DocSection[] = [
   },
 ]
 
-export default function Page() {
-  useDocumentMeta(PAGE_META['/lag-em-jogos-online'])
-
+export function LagEmJogosOnlineClient() {
   return (
     <PageShell align="center" mobilePadding="pt-7 px-5 pb-10">
       <DocPage
@@ -59,3 +66,11 @@ export default function Page() {
     </PageShell>
   )
 }
+INNER_EOF
+
+sed -i 's/para confirmar se o sinal se repete/para verificar se o sinal se repete/g' src/lib/webDiagnosticResponse.ts
+
+git add .
+git commit -m "fix: remove afirmações absolutas e de causalidade não comprovada (#58)"
+git push -u origin fix/issue-58-absolute-claims-final
+gh pr create --title "fix: corrige afirmações técnicas absolutas e causalidade não comprovada" --body "Closes #58. Remove ou suaviza afirmações que tratam hipóteses como certezas técnicas absolutas."

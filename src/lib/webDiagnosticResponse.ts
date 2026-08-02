@@ -65,7 +65,7 @@ export function createWebDiagnosticResponse(
     conclusion: 'Há um sinal de atenção nesta medição, mas não uma causa confirmada.',
     impact: 'Algumas atividades podem ficar menos estáveis dependendo do horário e do uso da rede.',
     confidence: hasDeclaredContext ? 'Confiança moderada: esta é uma hipótese baseada na medição e no contexto declarado.' : 'Confiança moderada: a medição indica atenção, sem confirmar a origem.',
-    nextAction: 'Faça um novo teste nas mesmas condições para confirmar se o sinal se repete.',
+    nextAction: 'Faça um novo teste nas mesmas condições para verificar se o sinal se repete.',
     ...(needsAndroidContext(context) ? { androidCta: { reason: 'Para verificar sinal, canais e alcance do Wi-Fi, são necessários dados que o navegador não consegue ler.' } } : {}),
   }
   return {
