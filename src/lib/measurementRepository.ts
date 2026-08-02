@@ -90,6 +90,30 @@ export async function deleteRecord(id: string): Promise<void> {
   })
 }
 
+/** Apaga uma conexão declarada e todos os vínculos antes/depois que a citam. */
+export async function deleteConnection(connectionId: string): Promise<void> {
+  const db = await openDB()
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction([STORE, COMPARISON_STORE], 'readwrite')
+    const measurements = tx.objectStore(STORE)
+    const request = measurements.getAll()
+    request.onsuccess = () => {
+      const ids = new Set((request.result as MedicaoRegistro[])
+        .filter((record) => record.userMetadata?.connectionId === connectionId).map((record) => record.id))
+      ids.forEach((id) => measurements.delete(id))
+      const comparisons = tx.objectStore(COMPARISON_STORE)
+      const comparisonRequest = comparisons.getAll()
+      comparisonRequest.onsuccess = () => {
+        for (const comparison of comparisonRequest.result as ComparacaoRegistro[]) {
+          if (ids.has(comparison.beforeId) || ids.has(comparison.afterId)) comparisons.delete(comparison.id)
+        }
+      }
+    }
+    tx.oncomplete = () => resolve()
+    tx.onerror = () => reject(tx.error)
+  })
+}
+
 export async function updateRecordMetadata(id: string, metadata: HistoryUserMetadata): Promise<MedicaoRegistro | null> {
   const db = await openDB()
   return new Promise((resolve, reject) => {

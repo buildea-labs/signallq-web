@@ -2,8 +2,7 @@ import 'fake-indexeddb/auto'
 import { describe, expect, it } from 'vitest'
 import { addComparison, listComparisons } from './comparisonRepository'
 import { DB_NAME } from './historyDatabase'
-import { deleteConnection } from './historySelectors'
-import { addRecord, listRecords, updateRecordMetadata, type MedicaoRegistro } from './measurementRepository'
+import { addRecord, deleteConnection, listRecords, updateRecordMetadata, type MedicaoRegistro } from './measurementRepository'
 
 const record = (id: string, timestamp: number, metadata?: MedicaoRegistro['userMetadata']): MedicaoRegistro => ({
   id, timestamp, download: 100, upload: 40, latency: 12, jitter: null, connectionType: null,

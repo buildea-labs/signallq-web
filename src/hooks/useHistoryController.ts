@@ -4,9 +4,10 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { listComparisons, type ComparacaoRegistro } from "@/lib/comparisonRepository";
 import { createHistoryExport } from "@/lib/historyExport";
-import { deleteConnection, groupRecordsByConnection } from "@/lib/historySelectors";
+import { groupRecordsByConnection } from "@/lib/historySelectors";
 import {
   clearAll,
+  deleteConnection,
   deleteRecord,
   listRecords,
   updateRecordMetadata,
