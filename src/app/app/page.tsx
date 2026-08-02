@@ -101,7 +101,7 @@ export default function AppLandingPage() {
               <span className="font-semibold text-[12px] leading-[1.3] text-[color:var(--accent)] tracking-[.02em]">Em teste fechado · vagas limitadas</span>
             </span>
             <h1 className="m-0 max-w-[560px] font-bold text-[30px] sm:text-[42px] leading-[1.12] text-[color:var(--text-primary)] text-pretty">
-              O app que não para no número: descobre por que sua internet está ruim
+              O app que não para no número: aponta causas prováveis da sua internet ruim
             </h1>
             <p className="m-0 max-w-[480px] font-normal text-[16px] leading-[1.5] text-[color:var(--text-secondary)] text-pretty">
               Wi-Fi cômodo a cômodo, sinal 4G/5G real e diagnóstico por IA: o que nenhum teste de velocidade tradicional consegue ver.

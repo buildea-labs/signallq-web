@@ -1,3 +1,8 @@
+(Get-Content src/app/app/page.tsx -Encoding UTF8) -replace 'descobre por que sua internet está ruim', 'aponta causas prováveis da sua internet ruim' | Set-Content src/app/app/page.tsx -Encoding UTF8
+
+(Get-Content src/app/internet-boa-mas-travando/page.tsx -Encoding UTF8) -replace 'Isso não confirma o diagnóstico por si só', 'Isso aponta causas prováveis, mas não é a única explicação' -replace 'a fila excessiva merece investigação', 'a fila excessiva (bufferbloat) é uma hipótese que merece investigação' -replace 'o motivo normalmente não é velocidade — é latência sob carga, um efeito chamado bufferbloat', 'uma das causas possíveis não é falta de velocidade, mas sim a latência sob carga, um efeito conhecido como bufferbloat' | Set-Content src/app/internet-boa-mas-travando/page.tsx -Encoding UTF8
+
+@"
 "use client";
 import Link from 'next/link'
 import { DocPage, type DocSection } from '../../components/DocPage'
@@ -48,3 +53,9 @@ export default function Page() {
     </PageShell>
   )
 }
+"@ > src/app/lag-em-jogos-online/page.tsx
+rm src/app/lag-em-jogos-online/LagEmJogosOnlineClient.tsx
+
+git add .
+git commit --amend --no-edit
+git push -f origin fix/issue-58-absolute-claims-final
