@@ -17,7 +17,7 @@ import { PwaUpdatePrompt } from './PwaUpdatePrompt'
 export function PwaToastStack() {
   return (
     <div
-      className="pwa-toast-stack fixed inset-x-0 z-[1000] flex flex-col-reverse items-center gap-2 px-4"
+      className="pwa-toast-stack fixed bottom-[1rem] left-1/2 -translate-x-1/2 z-[1000] flex flex-col-reverse items-center gap-2 pointer-events-none"
       style={{
         bottom: '1rem',
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',

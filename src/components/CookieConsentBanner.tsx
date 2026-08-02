@@ -23,7 +23,7 @@ export function CookieConsentBanner() {
     <div
       role="dialog"
       aria-label="Consentimento de cookies"
-      className="fixed inset-x-0 bottom-0 z-[40] box-border w-full border-t border-[color-mix(in_srgb,_var(--border)_25%,_transparent)] bg-[color:var(--bg-card)] p-4 lg:p-5"
+      className="fixed inset-x-0 bottom-0 z-[1010] box-border w-full border-t border-[color-mix(in_srgb,_var(--border)_25%,_transparent)] bg-[color:var(--bg-card)] p-4 lg:p-5"
     >
       <div className="mx-auto flex w-full max-w-[1280px] flex-wrap items-center justify-between gap-4">
         <p className="m-0 max-w-[640px] font-normal text-[13px] leading-[1.45] text-[color:var(--text-secondary)]">
@@ -38,14 +38,14 @@ export function CookieConsentBanner() {
           <button
             type="button"
             onClick={() => decide(false)}
-            className="h-[40px] rounded-[var(--radius-button)] border border-[color:var(--border)] px-4 font-medium text-[13px] leading-[1.3] text-[color:var(--text-primary)]"
+            className="h-[40px] rounded-[var(--radius-button)] border border-[color:var(--border)] px-4 font-medium text-[13px] leading-[1.3] text-[color:var(--text-primary)] cursor-pointer relative z-10"
           >
             Recusar
           </button>
           <button
             type="button"
             onClick={() => decide(true)}
-            className="h-[40px] rounded-[var(--radius-button)] bg-[color:var(--accent)] px-4 font-medium text-[13px] leading-[1.3] text-[color:var(--on-accent)]"
+            className="h-[40px] rounded-[var(--radius-button)] bg-[color:var(--accent)] px-4 font-medium text-[13px] leading-[1.3] text-[color:var(--on-accent)] cursor-pointer relative z-10"
           >
             Aceitar
           </button>

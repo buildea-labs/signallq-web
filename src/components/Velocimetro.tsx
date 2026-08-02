@@ -105,7 +105,7 @@ export function Velocimetro({
     <div className={`flex flex-col items-center ${compact ? "w-[280px]" : "w-full"} transition-[width,transform] duration-500 ease-out motion-reduce:transition-none ${compact ? "" : isRunning ? "sm:w-[520px]" : "sm:w-[440px]"}`}>
       <div className="relative aspect-[360/210] w-full">
         {phaseLabel && <span className="sr-only" role="status" aria-live="polite">{phaseLabel}{narrative ? `. ${narrative}` : ""}</span>}
-        {children}
+        
         {/* Glow effect when running or idle */}
         <div
           className="absolute left-[50%] top-[62%] w-[60%] aspect-square rounded-full pointer-events-none sq-gauge-glow"
@@ -117,7 +117,7 @@ export function Velocimetro({
 
       <svg
         viewBox="0 0 360 210"
-        className="absolute inset-0 w-full h-full block pointer-events-none"
+        className="absolute inset-0 w-full h-full block pointer-events-none z-0"
       >
         {TICKS.map((t, i) => (
           <line
@@ -190,6 +190,8 @@ export function Velocimetro({
           {l.text}
         </div>
       ))}
+      
+      {children}
       </div>
 
       {/* Details Below Gauge */}

@@ -443,11 +443,11 @@ export default function Home() {
             </div>
           )}
           
-          <div className="w-full max-w-[520px] flex flex-col md:flex-row items-center justify-between gap-8 mt-4">
-            <div className="flex-shrink-0 scale-[1.15] md:scale-[1.2] transform origin-top md:origin-left mt-2">
+          <div className="w-full max-w-[520px] flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8 mt-4">
+            <div className="w-full sm:w-auto flex justify-center sm:block flex-shrink-0 md:scale-[1.2] transform origin-top md:origin-left mt-2">
               <Velocimetro fraction={fraction} phaseColor={speedometerIdentity.color} isRunning={isRunning} phase={result ? "download" : phase} liveValue={result ? result.download.mbps : liveValue} value={dialNumber} unit={dialUnit} metricLabel={result ? "Download" : undefined} phaseLabel={isRunning || (isProblem && terminalOutcome === null) ? speedometerIdentity.label : undefined} narrative={isRunning || (isProblem && terminalOutcome === null) ? speedometerIdentity.narrative : undefined} compact={terminalOutcome !== null || isProblem}>
                 {isIdle && (
-                  <div className="absolute left-1/2 bottom-[26px] -translate-x-1/2 flex flex-col items-center gap-[10px]">
+                  <div className="absolute left-1/2 bottom-[26px] -translate-x-1/2 flex flex-col items-center gap-[10px] z-10">
                     <button
                       onClick={iniciarTesteDireto}
                       className="h-[44px] px-[26px] rounded-full flex items-center gap-2 border-none bg-[color:var(--accent)] shadow-[0_14px_30px_color-mix(in_srgb,_var(--accent)_45%,_transparent),_0_2px_6px_rgba(0,0,0,.25)] whitespace-nowrap cursor-pointer hover:scale-105 active:scale-95 transition-transform"
@@ -467,7 +467,7 @@ export default function Home() {
 
             {/* PAINEL LATERAL DE MÉTRICAS */}
             {painelLateral && (
-              <div className="flex flex-col gap-2 w-full max-w-[140px]">
+              <div className="grid grid-cols-3 md:flex md:flex-col gap-1 sm:gap-2 w-full md:max-w-[140px]">
                 {painelLateral.map((item) => (
                   <div key={item.label} className="flex flex-col items-center justify-center p-3 relative">
                     <div className="flex items-center gap-1">

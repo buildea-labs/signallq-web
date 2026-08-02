@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "../index.css";
 import { AdSenseScript } from "../components/AdSenseScript";
 import { CookieConsentBanner } from "../components/CookieConsentBanner";
@@ -18,10 +18,20 @@ export const metadata: Metadata = {
     ],
     apple: [{ url: "/assets/signallq-icon-512-play-store.png", sizes: "1024x1024", type: "image/png" }],
   },
+  appleWebApp: {
+    capable: true,
+    title: "SignallQ",
+    statusBarStyle: "black-translucent",
+  },
 };
 
-export const viewport = {
+export const viewport: Viewport = {
   themeColor: "#131217",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -47,7 +57,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="overflow-x-hidden bg-[radial-gradient(circle_at_50%_0%,_color-mix(in_srgb,_var(--accent)_10%,_transparent),_transparent_55%),_linear-gradient(180deg,_var(--bg-primary)_0%,_color-mix(in_srgb,_var(--bg-secondary)_55%,_var(--bg-primary))_100%)] text-[color:var(--text-primary)]">
+      <body className="bg-[#0B1120] text-[color:var(--text-primary)]">
         {/* SiteNav + miolo em min-h-screen própria (não a <body> inteira, que
             também engloba o SiteFooter abaixo) — garante que o rodapé nunca
             apareça na primeira vista, mesmo em telas com pouco conteúdo
@@ -61,7 +71,6 @@ export default function RootLayout({
           <main className="w-full">{children}</main>
         </div>
         <SiteFooter />
-        <CookieConsentBanner />
         <AdSenseScript />
         <PwaToastStack />
       </body>

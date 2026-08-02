@@ -25,11 +25,22 @@ interface EventoAnalytics {
   duration_ms?: number
 }
 
+function generateId(): string {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    try {
+      return crypto.randomUUID()
+    } catch {
+      // Falha silenciosa no Safari via HTTP
+    }
+  }
+  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+}
+
 function getSessionId(): string {
   try {
     let id = sessionStorage.getItem(SESSION_KEY)
     if (!id) {
-      id = crypto.randomUUID()
+      id = generateId()
       sessionStorage.setItem(SESSION_KEY, id)
     }
     return id
@@ -40,7 +51,7 @@ function getSessionId(): string {
 
 function baseEvent(): Pick<EventoAnalytics, 'id' | 'timestamp' | 'session_id' | 'platform' | 'app_version'> {
   return {
-    id: crypto.randomUUID(),
+    id: generateId(),
     timestamp: Date.now(),
     session_id: getSessionId(),
     platform: 'web',

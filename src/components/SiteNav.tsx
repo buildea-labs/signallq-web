@@ -46,11 +46,24 @@ export function SiteNav() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [hidden, setHidden] = useState(false);
 
   useEffect(() => {
+    let lastScrollY = window.scrollY;
+    
     const handleScroll = () => {
-      setScrolled(window.scrollY > 10);
+      const currentScrollY = window.scrollY;
+      setScrolled(currentScrollY > 10);
+      
+      // Esconde a barra se rolar para baixo (passando do topo), revela se rolar para cima
+      if (currentScrollY > lastScrollY && currentScrollY > 80) {
+        setHidden(true);
+      } else if (currentScrollY < lastScrollY) {
+        setHidden(false);
+      }
+      lastScrollY = currentScrollY;
     };
+    
     handleScroll(); // Verifica no primeiro render
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
@@ -89,9 +102,10 @@ export function SiteNav() {
   }, [menuOpen]);
 
   return (
-    <div className={clsx(
-      "sticky top-0 z-[3] w-full box-border transition-colors duration-200",
-      scrolled ? "bg-[color:var(--bg-primary)]" : "bg-transparent"
+    <header className={clsx(
+      "sticky top-0 z-[3] w-full box-border transition-all duration-300",
+      scrolled ? "bg-[color:var(--bg-card)] border-b border-[color-mix(in_srgb,_var(--border)_25%,_transparent)] shadow-[0_4px_24px_rgba(0,0,0,0.2)]" : "bg-transparent border-b border-transparent",
+      hidden ? "-translate-y-full" : "translate-y-0"
     )}>
       <div className="relative mx-auto max-w-[1280px] min-h-[76px] flex items-center justify-between gap-4 py-[14px] px-[20px] box-border">
         <Link href="/" aria-label="Página inicial SignallQ">
@@ -209,11 +223,6 @@ export function SiteNav() {
           </>
         )}
       </div>
-
-      <div className={clsx(
-        "absolute left-0 right-0 -bottom-[16px] h-[16px] pointer-events-none bg-gradient-to-b from-[color-mix(in_srgb,_var(--bg-primary)_92%,_transparent)] to-transparent transition-opacity duration-200",
-        scrolled ? "opacity-100" : "opacity-0"
-      )} />
-    </div>
+    </header>
   );
 }

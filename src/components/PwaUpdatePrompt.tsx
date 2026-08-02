@@ -57,7 +57,7 @@ export function PwaUpdatePrompt() {
 
   return (
     <div
-      className="sq-fade-up flex items-center gap-1.5 rounded-full border py-2 pl-3.5 pr-2"
+      className="sq-fade-up flex items-center gap-1.5 rounded-full border py-2 pl-3.5 pr-2 pointer-events-auto"
       style={{ borderColor: 'color-mix(in srgb, var(--border) 40%, transparent)', background: 'var(--bg-card)' }}
       role="status"
       aria-live="polite"
