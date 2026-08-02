@@ -20,7 +20,7 @@ export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
 
       {statusMensagem && (
         <div className="flex items-start justify-center gap-2 py-4 border-b border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]">
-          <span className="material-symbols-outlined text-[16px] text-[color:var(--warning)]">
+          <span aria-hidden="true" className="material-symbols-outlined text-[16px] text-[color:var(--warning)]">
             warning
           </span>
           <div className="font-normal text-[12px] leading-[1.4] text-[color:var(--text-secondary)]">
@@ -66,7 +66,7 @@ export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
           onClick={statusCompleto ? journey.iniciarReteste : journey.retry}
           className="flex-1 h-[46px] flex items-center justify-center gap-2 rounded-[var(--radius-button)] border-none bg-[color:var(--accent)] hover:brightness-110 transition-all cursor-pointer"
         >
-          <span className="material-symbols-outlined text-[20px] text-[color:var(--on-accent)]">refresh</span>
+          <span aria-hidden="true" className="material-symbols-outlined text-[20px] text-[color:var(--on-accent)]">refresh</span>
           <span className="font-medium text-[14px] leading-[1.43] text-[color:var(--on-accent)]">
             {statusCompleto ? "Fazer e testar novamente" : "Testar novamente"}
           </span>
@@ -75,7 +75,7 @@ export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
           href="/historico"
           className="flex-1 h-[46px] flex items-center justify-center gap-2 rounded-[var(--radius-button)] border border-[color:var(--border)] no-underline hover:bg-[color:var(--bg-secondary)] transition-colors"
         >
-          <span className="material-symbols-outlined text-[20px] text-[color:var(--accent)]">history</span>
+          <span aria-hidden="true" className="material-symbols-outlined text-[20px] text-[color:var(--accent)]">history</span>
           <span className="font-medium text-[14px] leading-[1.43] text-[color:var(--accent)]">Ver histórico</span>
         </a>
       </div>
@@ -85,14 +85,14 @@ export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
           onClick={journey.compartilhar}
           className="flex items-center gap-[6px] h-[36px] px-2 border-none bg-transparent cursor-pointer hover:bg-[color:var(--bg-secondary)] rounded-full transition-colors"
         >
-          <span className="material-symbols-outlined text-[16px] text-[color:var(--accent)]">share</span>
+          <span aria-hidden="true" className="material-symbols-outlined text-[16px] text-[color:var(--accent)]">share</span>
           <span className="font-medium text-[12px] leading-[1.33] text-[color:var(--accent)]">Compartilhar</span>
         </button>
         <button
           onClick={journey.copiarResumo}
           className="flex items-center gap-[6px] h-[36px] px-2 border-none bg-transparent cursor-pointer hover:bg-[color:var(--bg-secondary)] rounded-full transition-colors"
         >
-          <span className="material-symbols-outlined text-[16px] text-[color:var(--accent)]">content_copy</span>
+          <span aria-hidden="true" className="material-symbols-outlined text-[16px] text-[color:var(--accent)]">content_copy</span>
           <span className="font-medium text-[12px] leading-[1.33] text-[color:var(--accent)]">
             {journey.copiado ? "Copiado!" : "Copiar resumo"}
           </span>

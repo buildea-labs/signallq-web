@@ -39,7 +39,7 @@ export function QuickTestJourney({ journey }: { journey: SpeedTestJourney }) {
               
               {isProblem && problema && (
                 <div className="mt-4 p-4 rounded-xl bg-[color-mix(in_srgb,_var(--alert-error)_15%,_transparent)] flex flex-col items-center text-center gap-2 max-w-[400px]">
-                   <span className="material-symbols-outlined text-[24px] text-[color:var(--alert-error)]">{problema.icon}</span>
+                   <span aria-hidden="true" className="material-symbols-outlined text-[24px] text-[color:var(--alert-error)]">{problema.icon}</span>
                    <span className="font-semibold text-[14px] text-[color:var(--text-primary)]">{problema.title}</span>
                    <span className="text-[13px] text-[color:var(--text-secondary)]">{problema.message}</span>
                 </div>

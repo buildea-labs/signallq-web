@@ -47,7 +47,7 @@ export function MetricSidePanel({ result, ajudaEstabilidadeAberta, onToggleAjuda
       {painelLateral.map((item) => (
         <div key={item.label} className="flex flex-col items-center justify-center p-3 relative">
           <div className="flex items-center gap-1">
-            {item.icon && <span className="material-symbols-outlined text-[16px]" style={{ color: item.color }}>{item.icon}</span>}
+            {item.icon && <span aria-hidden="true" className="material-symbols-outlined text-[16px]" style={{ color: item.color }}>{item.icon}</span>}
             <span className="font-semibold text-[10px] uppercase tracking-wide text-[color:var(--text-secondary)]">{item.label}</span>
             {item.hasHelp && (
               <button
@@ -55,7 +55,7 @@ export function MetricSidePanel({ result, ajudaEstabilidadeAberta, onToggleAjuda
                 className="ml-1 flex items-center justify-center border-none bg-transparent cursor-pointer hover:opacity-80 transition-opacity p-0"
                 aria-label="O que é Estabilidade?"
               >
-                <span className="material-symbols-outlined text-[13px] text-[color:var(--text-tertiary)]">help</span>
+                <span aria-hidden="true" className="material-symbols-outlined text-[13px] text-[color:var(--text-tertiary)]">help</span>
               </button>
             )}
           </div>

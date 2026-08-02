@@ -28,7 +28,7 @@ export function TestRunning({ journey }: { journey: SpeedTestJourney }) {
         onClick={journey.cancelTest}
         className="h-[40px] flex items-center gap-[6px] border-none bg-transparent cursor-pointer"
       >
-        <span className="material-symbols-outlined text-[18px] text-[color:var(--text-primary)]">close</span>
+        <span aria-hidden="true" className="material-symbols-outlined text-[18px] text-[color:var(--text-primary)]">close</span>
         <span className="font-medium text-[14px] leading-[1.43] text-[color:var(--text-primary)]">
           Cancelar teste
         </span>

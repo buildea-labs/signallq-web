@@ -61,6 +61,7 @@ export function FaixaMetricas({
           <div className="flex items-center gap-[6px]">
             {item.icon && (
               <span
+                aria-hidden="true"
                 className="material-symbols-outlined text-[16px]"
                 style={{ color: item.color ?? "var(--success)" }}
               >

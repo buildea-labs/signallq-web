@@ -62,7 +62,7 @@ export function PwaUpdatePrompt() {
       role="status"
       aria-live="polite"
     >
-      <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--accent)' }}>
+      <span aria-hidden="true" className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--accent)' }}>
         sync
       </span>
       <span className="label-medium" style={{ color: 'var(--text-primary)' }}>
@@ -90,7 +90,7 @@ export function PwaUpdatePrompt() {
         className="flex h-5 w-5 items-center justify-center border-none bg-transparent p-0"
         style={{ color: 'var(--text-tertiary)' }}
       >
-        <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+        <span aria-hidden="true" className="material-symbols-outlined" style={{ fontSize: 16 }}>
           close
         </span>
       </button>

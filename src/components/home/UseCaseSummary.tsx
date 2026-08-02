@@ -17,6 +17,7 @@ export function UseCaseSummary({ result }: { result: SpeedTestResult }) {
     <div className="w-full flex flex-col items-center gap-4 mt-2">
       <div className="flex items-center justify-center gap-2">
         <span
+          aria-hidden="true"
           className="material-symbols-outlined text-[16px]"
           style={{ color: statusCompleto ? "var(--success)" : "var(--warning)" }}
         >
@@ -41,6 +42,7 @@ export function UseCaseSummary({ result }: { result: SpeedTestResult }) {
             className={`flex flex-col items-center justify-center gap-1 p-3 ${index > 0 ? "border-l border-[color-mix(in_srgb,_var(--border)_14%,_transparent)]" : ""}`}
           >
             <span
+              aria-hidden="true"
               className="material-symbols-outlined text-[20px]"
               style={{ color: NIVEL_COR[veredictoCaso.nivel] }}
             >

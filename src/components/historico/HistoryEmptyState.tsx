@@ -6,7 +6,7 @@ import { EstadoVazio } from "@/components/EstadoVazio";
 export function HistoryLoadingState() {
   return (
     <div className="flex w-full flex-1 flex-col items-center justify-center gap-3">
-      <span className="material-symbols-outlined text-[28px] text-[color:var(--text-tertiary)]">
+      <span aria-hidden="true" className="material-symbols-outlined text-[28px] text-[color:var(--text-tertiary)]">
         hourglass_top
       </span>
       <div className="font-normal text-[16px] leading-[1.5] text-[color:var(--text-primary)]">Carregando histórico…</div>

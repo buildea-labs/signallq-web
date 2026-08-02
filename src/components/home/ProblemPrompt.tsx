@@ -36,7 +36,7 @@ export function ProblemPrompt({ journey }: { journey: SpeedTestJourney }) {
           className="h-9 w-9 shrink-0 border-none bg-transparent cursor-pointer text-[color:var(--text-secondary)]"
           aria-label="Fechar opções de problema"
         >
-          <span className="material-symbols-outlined text-[20px]">close</span>
+          <span aria-hidden="true" className="material-symbols-outlined text-[20px]">close</span>
         </button>
       </div>
       <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">

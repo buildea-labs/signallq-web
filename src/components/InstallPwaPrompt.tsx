@@ -42,7 +42,7 @@ export function InstallPwaPrompt() {
         style={{ borderColor: 'color-mix(in srgb, var(--border) 40%, transparent)', background: 'var(--bg-card)' }}
       >
         <button onClick={handleClick} className="flex items-center gap-1.5 border-none bg-transparent p-0">
-          <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--accent)' }}>
+          <span aria-hidden="true" className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--accent)' }}>
             install_mobile
           </span>
           <span className="label-medium" style={{ color: 'var(--text-primary)' }}>
@@ -55,7 +55,7 @@ export function InstallPwaPrompt() {
           className="flex h-5 w-5 items-center justify-center border-none bg-transparent p-0"
           style={{ color: 'var(--text-tertiary)' }}
         >
-          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+          <span aria-hidden="true" className="material-symbols-outlined" style={{ fontSize: 16 }}>
             close
           </span>
         </button>

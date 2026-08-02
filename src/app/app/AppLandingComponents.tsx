@@ -34,7 +34,7 @@ export function AppLandingHero({ onEntrar }: { onEntrar: () => void }) {
       <div className="relative w-full max-w-[1080px] flex items-center gap-[48px] flex-wrap">
         <div className="flex-[1_1_420px] flex flex-col items-center sm:items-start gap-4 text-center sm:text-left">
           <span className="flex items-center gap-[6px] rounded-full py-[6px] px-[14px] bg-[color-mix(in_srgb,_var(--accent)_16%,_transparent)]">
-            <span className="material-symbols-outlined text-[16px] text-[color:var(--accent)]">science</span>
+            <span aria-hidden="true" className="material-symbols-outlined text-[16px] text-[color:var(--accent)]">science</span>
             <span className="font-semibold text-[12px] leading-[1.3] text-[color:var(--accent)] tracking-[.02em]">Em teste fechado · vagas limitadas</span>
           </span>
           <h1 className="m-0 max-w-[560px] font-bold text-[30px] sm:text-[42px] leading-[1.12] text-[color:var(--text-primary)] text-pretty">
@@ -49,7 +49,7 @@ export function AppLandingHero({ onEntrar }: { onEntrar: () => void }) {
               onClick={onEntrar}
               className="h-[48px] flex items-center gap-2 px-6 rounded-full border-none bg-[color:var(--accent)] shadow-[0_14px_30px_color-mix(in_srgb,_var(--accent)_40%,_transparent)] cursor-pointer hover:brightness-110 transition-all"
             >
-              <span className="material-symbols-outlined text-[20px] text-[color:var(--on-accent)]">how_to_reg</span>
+              <span aria-hidden="true" className="material-symbols-outlined text-[20px] text-[color:var(--on-accent)]">how_to_reg</span>
               <span className="font-semibold text-[15px] leading-[1.2] text-[color:var(--on-accent)]">Entrar na lista de teste</span>
             </button>
             <Link href="/" className="h-[48px] flex items-center px-[22px] rounded-full border border-[color:var(--border)] no-underline hover:bg-[color:var(--bg-secondary)] transition-colors cursor-pointer">
@@ -76,7 +76,7 @@ export function AppLandingHero({ onEntrar }: { onEntrar: () => void }) {
       </div>
 
       <div className="sq-app-bounce absolute left-1/2 bottom-2 -translate-x-1/2 hidden sm:block">
-        <span className="material-symbols-outlined text-[24px] text-[color:var(--text-tertiary)]">expand_more</span>
+        <span aria-hidden="true" className="material-symbols-outlined text-[24px] text-[color:var(--text-tertiary)]">expand_more</span>
       </div>
     </div>
   )
@@ -91,8 +91,10 @@ export function AppLandingFeatures() {
       <div className="sq-app-scroller w-full overflow-hidden">
         <div className="sq-app-track">
           {FEATURES_LOOP.map((f, i) => (
-            <div key={i} className="flex-none w-[240px] flex flex-col gap-2 rounded-[20px] p-5 box-border bg-[color:var(--bg-secondary)] shadow-[0_10px_26px_rgba(0,0,0,.16)]">
-              <span className="material-symbols-outlined text-[22px] text-[color:var(--accent)]">{f.icon}</span>
+            // i >= FEATURES.length: itens duplicados para o loop infinito do carrossel — ocultos
+            // da árvore acessível para evitar conteúdo duplicado (issue #57).
+            <div key={i} aria-hidden={i >= FEATURES.length || undefined} className="flex-none w-[240px] flex flex-col gap-2 rounded-[20px] p-5 box-border bg-[color:var(--bg-secondary)] shadow-[0_10px_26px_rgba(0,0,0,.16)]">
+              <span aria-hidden="true" className="material-symbols-outlined text-[22px] text-[color:var(--accent)]">{f.icon}</span>
               <div className="font-semibold text-[15px] leading-[1.3] text-[color:var(--text-primary)]">{f.title}</div>
               <div className="font-normal text-[13px] leading-[1.45] text-[color:var(--text-secondary)]">{f.text}</div>
             </div>
@@ -142,10 +144,10 @@ export function AppLandingCompare() {
               {r.label}
             </div>
             <div className="p-[12px_18px] border-t border-[color-mix(in_srgb,_var(--border)_18%,_transparent)] flex items-center justify-center">
-              <span className="material-symbols-outlined text-[18px] text-[color:var(--text-tertiary)]">close</span>
+              <span aria-hidden="true" className="material-symbols-outlined text-[18px] text-[color:var(--text-tertiary)]">close</span>
             </div>
             <div className="p-[12px_18px] border-t border-[color-mix(in_srgb,_var(--border)_18%,_transparent)] flex items-center justify-center">
-              <span className="material-symbols-outlined text-[18px] text-[color:var(--success)]">check_circle</span>
+              <span aria-hidden="true" className="material-symbols-outlined text-[18px] text-[color:var(--success)]">check_circle</span>
             </div>
           </div>
         ))}
@@ -171,7 +173,7 @@ export function AppLandingCTA({ onEntrar }: { onEntrar: () => void }) {
         onClick={onEntrar}
         className="relative h-[48px] flex items-center gap-2 px-6 rounded-full border-none bg-[color:var(--accent)] shadow-[0_14px_30px_color-mix(in_srgb,_var(--accent)_40%,_transparent)] shrink-0 cursor-pointer hover:brightness-110 transition-all"
       >
-        <span className="material-symbols-outlined text-[20px] text-[color:var(--on-accent)]">how_to_reg</span>
+        <span aria-hidden="true" className="material-symbols-outlined text-[20px] text-[color:var(--on-accent)]">how_to_reg</span>
         <span className="font-semibold text-[15px] leading-[1.2] text-[color:var(--on-accent)] whitespace-nowrap">Entrar na lista de teste</span>
       </button>
     </div>
