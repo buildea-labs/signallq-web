@@ -40,15 +40,15 @@ const SECTIONS = [
   },
   {
     title: '7. Propriedade intelectual',
-    text: 'O SignallQ, incluindo código, design, marca e conteúdo, é propriedade da 7Agents Tecnologia. Todos os direitos reservados.',
+    text: 'O SignallQ, incluindo código, design, marca e conteúdo, é propriedade da Buildea. Todos os direitos reservados.',
   },
   {
     title: '8. Limitação de responsabilidade',
-    text: 'A 7Agents não se responsabiliza por danos decorrentes do uso do site, de decisões tomadas com base nos resultados ou de indisponibilidade temporária.',
+    text: 'A Buildea não se responsabiliza por danos decorrentes do uso do site, de decisões tomadas com base nos resultados ou de indisponibilidade temporária.',
   },
   {
     title: '9. Alterações nos termos',
-    text: 'A 7Agents pode atualizar estes Termos a qualquer momento. O uso continuado após alterações implica aceitação.',
+    text: 'A Buildea pode atualizar estes Termos a qualquer momento. O uso continuado após alterações implica aceitação.',
   },
   {
     title: '10. Legislação aplicável',
@@ -56,7 +56,7 @@ const SECTIONS = [
   },
   {
     title: '11. Contato',
-    text: 'Para dúvidas sobre estes Termos: suporte@signallq.com (7Agents Tecnologia).',
+    text: 'Para dúvidas sobre estes Termos: suporte@signallq.com (Buildea).',
   },
 ]
 

@@ -220,7 +220,7 @@ export function SiteNav() {
                 </div>
               ))}
               <div className="mt-1 border-t border-[color-mix(in_srgb,_var(--border)_18%,_transparent)] p-3 font-normal text-[11px] leading-[1.4] text-[color:var(--text-tertiary)]">
-                © 2026 SignallQ · by Buildea. Beta.
+                © 2026 SignallQ · by Buildea. O teste web está disponível em beta; o aplicativo Android está em teste fechado.
               </div>
             </nav>
           </>
