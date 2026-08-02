@@ -13,7 +13,7 @@ export const MODO_EXPLICACAO = {
 } as const;
 
 export const DIAG_ITEMS = [
-  { icon: "dns", label: "Servidores DNS", href: "/servidores-dns" },
+  { icon: "dns", label: "Servidores DNS", href: "/dns" },
   { icon: "sports_esports", label: "Modo gamer", href: "/modo-gamer" },
 ];
 

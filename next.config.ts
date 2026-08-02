@@ -33,6 +33,9 @@ const nextConfig: NextConfig = {
       // nos detalhes técnicos do resultado completo, ambos em "/".
       { source: "/velocidade-e-latencia", destination: "/", permanent: true },
       { source: "/latencia-sob-carga", destination: "/", permanent: true },
+      // #98 — /servidores-dns era placeholder "Em breve"; a comparação real
+      // de resolvedores DNS agora vive em /dns.
+      { source: "/servidores-dns", destination: "/dns", permanent: true },
     ];
   },
 };
