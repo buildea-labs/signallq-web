@@ -175,10 +175,32 @@ export function useSpeedTestJourney() {
     }
   };
 
+  const autoStartDisparado = useRef(false);
+  const [isAutoStarting, setIsAutoStarting] = useState(true);
+
+  useEffect(() => {
+    if (modo === "rapido" && !problemaPercebido && isIdle && !autoStartDisparado.current) {
+      if (typeof window !== "undefined" && !window.location.search.includes("problem=")) {
+        autoStartDisparado.current = true;
+        // Espera um tick para garantir que react renderize
+        setTimeout(() => {
+          iniciarTesteDireto();
+          setIsAutoStarting(false);
+        }, 0);
+      } else {
+        setIsAutoStarting(false);
+      }
+    } else if (isIdle && isAutoStarting) {
+      setIsAutoStarting(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [modo, problemaPercebido, isIdle]);
+
   return {
     modo, setModo, copiado,
     phase, liveValue, phaseResults, result, measurementContext,
     isIdle, isRunning, isResult, isProblem, hasVisibleResult, terminalOutcome, showDial, shellAlign,
+    isAutoStarting,
     shouldCollectContextualQuestions, shouldResumeContextualQuestions,
     entradaProblemaAberta, problemaPercebido, respostaDiagnostica,
     retesteBase, comparacaoReteste, comparacaoNaoSalva,

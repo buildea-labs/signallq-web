@@ -97,12 +97,12 @@ export function Velocimetro({
   const needle = point(R - 11, visualFraction);
   const needleFrom = point(R - 40, visualFraction);
   const dashOffset = ARC_LEN * (1 - visualFraction);
-  const showMeasurement = isRunning || compact;
-
-  const showCenter = Boolean(value && (isRunning || compact));
+  const hasValue = value !== undefined;
+  const showMeasurement = isRunning || hasValue;
+  const showCenter = hasValue;
 
   return (
-    <div className={`flex flex-col items-center ${compact ? "w-[280px]" : "w-full"} transition-[width,transform] duration-500 ease-out motion-reduce:transition-none ${compact ? "" : isRunning ? "sm:w-[520px]" : "sm:w-[440px]"}`}>
+    <div className={`flex flex-col items-center ${compact ? "w-[280px]" : "w-full"} transition-[max-width,width,transform] duration-500 ease-out motion-reduce:transition-none`}>
       <div className="relative aspect-[360/210] w-full">
         {phaseLabel && <span className="sr-only" role="status" aria-live="polite">{phaseLabel}{narrative ? `. ${narrative}` : ""}</span>}
         

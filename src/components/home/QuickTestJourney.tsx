@@ -1,6 +1,5 @@
 "use client";
 
-import { EstadoVazio } from "@/components/EstadoVazio";
 import { SegmentedControl } from "@/components/SegmentedControl";
 import { GuidedDiagnosis } from "@/components/speedtest/GuidedDiagnosis";
 import type { ProblemPhase } from "@/hooks/useSpeedTest";
@@ -18,17 +17,6 @@ export function QuickTestJourney({ journey }: { journey: SpeedTestJourney }) {
 
   return (
     <>
-      {isIdle && (
-        <div className="flex flex-col items-center gap-[6px] text-center">
-          <h1 className="m-0 font-bold text-[26px] sm:text-[30px] leading-[1.2] text-[color:var(--text-primary)]">
-            Teste de velocidade
-          </h1>
-          <p className="m-0 max-w-[460px] font-normal text-[14px] leading-[1.43] text-[color:var(--text-secondary)]">
-            Download, upload e latência medidos no seu navegador.
-          </p>
-        </div>
-      )}
-
       {journey.shouldResumeContextualQuestions && (
         <div className="w-full max-w-[640px] mt-6 pt-6 border-t border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]">
           <GuidedDiagnosis measurementContext={journey.measurementContext} onAnswersChange={journey.setRespostasContextuais} />
@@ -39,7 +27,7 @@ export function QuickTestJourney({ journey }: { journey: SpeedTestJourney }) {
         <div className="w-full flex flex-col items-center gap-5">
           <QuickResult journey={journey} />
 
-          {isIdle && (
+          {(isIdle || isProblem) && (
             <>
               <ProblemPrompt journey={journey} />
               <div className="w-full max-w-[220px] flex justify-center">
@@ -48,29 +36,19 @@ export function QuickTestJourney({ journey }: { journey: SpeedTestJourney }) {
               <p className="m-0 max-w-[360px] text-center font-normal text-[12px] leading-[1.4] text-[color:var(--text-secondary)]">
                 {MODO_EXPLICACAO[modo]}
               </p>
-              <a
-                href="/como-medimos"
-                className="font-medium text-[12px] leading-[1.33] text-[color:var(--accent)] no-underline hover:underline"
-              >
-                Como medimos sua conexão
-              </a>
+              
+              {isProblem && problema && (
+                <div className="mt-4 p-4 rounded-xl bg-[color-mix(in_srgb,_var(--alert-error)_15%,_transparent)] flex flex-col items-center text-center gap-2 max-w-[400px]">
+                   <span className="material-symbols-outlined text-[24px] text-[color:var(--alert-error)]">{problema.icon}</span>
+                   <span className="font-semibold text-[14px] text-[color:var(--text-primary)]">{problema.title}</span>
+                   <span className="text-[13px] text-[color:var(--text-secondary)]">{problema.message}</span>
+                </div>
+              )}
             </>
           )}
 
           {isRunning && <TestRunning journey={journey} />}
         </div>
-      )}
-
-      {isProblem && problema && (
-        <EstadoVazio
-          icon={problema.icon}
-          title={problema.title}
-          message={problema.message}
-          actionIcon={problema.actionIcon}
-          actionLabel={problema.actionLabel}
-          color={problema.color}
-          onAction={phase === "bloqueado-outra-aba" ? journey.iniciarTesteDireto : journey.retry}
-        />
       )}
     </>
   );

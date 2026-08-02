@@ -64,17 +64,23 @@ export function createSpeedTest(mode: SpeedTestMode = 'rapido') {
     const latency = await collectLatency(config.latencySampleCount, token, onLatencySample)
     onPhase('download')
     const download = await runThroughput('download', config, token, (instantMbps) => onTick({ phase: 'download', instantMbps, elapsedMs: 0 }), observeColo)
-    onPhase('upload')
     const dnsPromise = measureDns()
-    const upload = await runThroughput('upload', config, token, (instantMbps) => onTick({ phase: 'upload', instantMbps, elapsedMs: 0 }), observeColo)
+    
+    let upload = { throughput: { mbps: 0, peakMbps: 0, endedBy: 'time_elapsed', samples: [], requestErrors: 0 }, loadLatencyMs: 0 } as Awaited<ReturnType<typeof runThroughput>>
+    if (singleMode !== 'rapido') {
+      onPhase('upload')
+      upload = await runThroughput('upload', config, token, (instantMbps) => onTick({ phase: 'upload', instantMbps, elapsedMs: 0 }), observeColo)
+    }
+
     const dns = await dnsPromise
     if (token.cancelled) throw new SpeedTestError('cancelled')
     onPhase('processando')
     const bufferbloatMs = Math.max(download.loadLatencyMs, upload.loadLatencyMs) - latency.ms
+    
+    const uploadComplete = singleMode === 'rapido' || (upload.throughput.endedBy === 'time_elapsed' && upload.throughput.mbps > 0)
     const throughputComplete = download.throughput.endedBy === 'time_elapsed'
-      && upload.throughput.endedBy === 'time_elapsed'
       && download.throughput.mbps > 0
-      && upload.throughput.mbps > 0
+      && uploadComplete
     const status = measurementStatus(config, {
       validLatencySamples: latency.validSamples,
       throughputComplete,
