@@ -24,7 +24,7 @@ export default function Page() {
           illustration={<ConnectionIllustration />}
         />
         <HighlightSection title="O que fazemos">
-          <p>O SignallQ é gratuito e está em fase Beta. Ele ajuda qualquer pessoa a medir e entender a própria conexão: Wi‑Fi, fibra, DNS ou sinal móvel.</p>
+          <p>O SignallQ é gratuito. O teste web está disponível em beta; o aplicativo Android está em teste fechado. Ele ajuda qualquer pessoa a medir e entender a própria conexão: Wi‑Fi, fibra, DNS ou sinal móvel.</p>
         </HighlightSection>
         <section className="flex flex-col gap-3" aria-labelledby="approach-title">
           <h2 id="approach-title" className="title-large m-0">Da medida para a ação</h2>
