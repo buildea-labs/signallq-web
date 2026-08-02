@@ -13,8 +13,6 @@ export const MODO_EXPLICACAO = {
 } as const;
 
 export const DIAG_ITEMS = [
-  { icon: "speed", label: "Velocidade e latência", href: "/velocidade-e-latencia" },
-  { icon: "hourglass_bottom", label: "Latência sob carga", href: "/latencia-sob-carga" },
   { icon: "dns", label: "Servidores DNS", href: "/servidores-dns" },
   { icon: "sports_esports", label: "Modo gamer", href: "/modo-gamer" },
 ];

@@ -64,21 +64,12 @@ export const PAGE_META: Record<string, PageMeta> = {
     description: 'O app que não para no número: descobre por que sua internet está ruim. Em teste fechado.',
     path: '/app',
   },
-  // As 4 rotas abaixo são placeholder ("Em breve") pros diagnósticos
+  // As 2 rotas abaixo são placeholder ("Em breve") pros diagnósticos
   // dedicados linkados pelos chips da Home (`DIAG_ITEMS`, `src/app/page.tsx`)
   // — ainda não implementados, `noindex` até terem conteúdo real.
-  '/velocidade-e-latencia': {
-    title: 'Velocidade e latência — em breve — SignallQ',
-    description: 'Diagnóstico dedicado de velocidade e latência, em construção.',
-    path: '/velocidade-e-latencia',
-    robots: 'noindex,follow',
-  },
-  '/latencia-sob-carga': {
-    title: 'Latência sob carga — em breve — SignallQ',
-    description: 'Diagnóstico dedicado de latência sob carga (bufferbloat), em construção.',
-    path: '/latencia-sob-carga',
-    robots: 'noindex,follow',
-  },
+  // /velocidade-e-latencia e /latencia-sob-carga foram eliminadas (#97): a
+  // jornada real já existe no fluxo de teste principal e nos detalhes
+  // técnicos do resultado completo — ver redirects em `next.config.ts`.
   '/servidores-dns': {
     title: 'Servidores DNS — em breve — SignallQ',
     description: 'Diagnóstico dedicado de servidores DNS, em construção.',

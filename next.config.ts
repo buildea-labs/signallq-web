@@ -28,6 +28,11 @@ const nextConfig: NextConfig = {
       { source: "/quem-somos", destination: "/sobre", permanent: true },
       // #96 — /brand removida da superfície pública.
       { source: "/brand", destination: "/", permanent: true },
+      // #97 — /velocidade-e-latencia e /latencia-sob-carga eram placeholders
+      // "Em breve"; a jornada real já existe no fluxo de teste principal e
+      // nos detalhes técnicos do resultado completo, ambos em "/".
+      { source: "/velocidade-e-latencia", destination: "/", permanent: true },
+      { source: "/latencia-sob-carga", destination: "/", permanent: true },
     ];
   },
 };
