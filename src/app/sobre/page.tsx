@@ -11,7 +11,7 @@ import { ConnectionIllustration } from '../../components/institutional/Instituti
 import { PAGE_META } from '../../lib/pageMetaCatalog'
 import { routeMetadata } from '../../lib/routeMetadata'
 
-export const metadata: Metadata = routeMetadata(PAGE_META['/quem-somos'])
+export const metadata: Metadata = routeMetadata(PAGE_META['/sobre'])
 
 export default function Page() {
   return (
@@ -42,5 +42,3 @@ export default function Page() {
     </PageShell>
   )
 }
-
-

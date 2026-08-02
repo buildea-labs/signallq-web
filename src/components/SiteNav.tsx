@@ -10,7 +10,7 @@ const ITENS = [
   { key: "home", label: "Velocidade", href: "/" },
   { key: "historico", label: "Histórico", href: "/historico" },
   { key: "como-medimos", label: "Como funciona", href: "/como-medimos" },
-  { key: "sobre", label: "Quem somos", href: "/quem-somos" },
+  { key: "sobre", label: "Quem somos", href: "/sobre" },
   { key: "privacidade", label: "Privacidade", href: "/privacidade" },
 ];
 
@@ -35,7 +35,7 @@ const MENU_GROUPS = [
   {
     title: "Institucional",
     items: [
-      { key: "sobre", label: "Quem somos", href: "/quem-somos" },
+      { key: "sobre", label: "Quem somos", href: "/sobre" },
       { key: "brand", label: "Marca", href: "/brand" },
       { key: "privacidade", label: "Política de Privacidade", href: "/privacidade" },
       { key: "termos", label: "Termos de Uso", href: "/termos" },
@@ -82,7 +82,7 @@ export function SiteNav() {
   let active = "home";
   if (pathname?.includes("/historico")) active = "historico";
   else if (pathname?.includes("/como-medimos")) active = "como-medimos";
-  else if (pathname?.includes("/quem-somos")) active = "sobre";
+  else if (pathname?.includes("/sobre")) active = "sobre";
   else if (pathname?.includes("/privacidade")) active = "privacidade";
   else if (pathname?.includes("/termos")) active = "termos";
   else if (pathname?.includes("/brand")) active = "brand";
