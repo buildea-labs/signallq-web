@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Link from 'next/link'
 
 // Topo mínimo do fluxo do PWA (telas Velocidade/Resultado/Histórico) — sem o
@@ -14,7 +15,7 @@ export function FlowTopBar({ onHistoryClick }: FlowTopBarProps) {
   return (
     <div className="flex w-full items-center justify-between px-5 py-3.5 box-border">
       <Link href="/" className="flex items-center" aria-label="SignallQ">
-        <img src="/signallq-symbol.png" alt="" height={26} style={{ height: 26, width: 'auto', display: 'block' }} />
+        <Image src="/signallq-symbol.png" alt="" width={26} height={26} />
       </Link>
       <nav className="hidden items-center gap-5 sm:flex" aria-label="Navegação principal">
         <Link href="/" className="label-medium no-underline" style={{ color: 'var(--text-primary)' }}>Teste</Link>

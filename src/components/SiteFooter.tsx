@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Link from 'next/link'
 
 export function SiteFooter() {
@@ -17,17 +18,21 @@ export function SiteFooter() {
     <div className="hidden sm:block relative z-[2] w-full box-border bg-transparent border-t border-[color-mix(in_srgb,_var(--border)_14%,_transparent)]">
       {/* Compact */}
       <div className="hidden sm:flex lg:hidden flex-wrap items-center gap-x-5 gap-y-[10px] py-[14px] px-5 box-border max-w-[1280px] mx-auto">
-        <img
-          className="sq-logo-light h-[22px] w-auto object-contain block"
+        <Image
+          className="sq-logo-light object-contain block"
           src="/assets/signallq-lockup-light-bg-v5.png"
           alt=""
           aria-hidden="true"
+          width={88}
+          height={22}
         />
-        <img
-          className="sq-logo-dark h-[22px] w-auto object-contain hidden"
+        <Image
+          className="sq-logo-dark object-contain hidden"
           src="/assets/signallq-lockup-dark-bg-v5.png"
           alt=""
           aria-hidden="true"
+          width={88}
+          height={22}
         />
         <span className="rounded-full py-[1px] px-[8px] font-medium text-[11px] leading-[1.6] font-sans text-[color:var(--on-accent)] bg-[color:var(--accent)]">
           Beta
@@ -48,17 +53,21 @@ export function SiteFooter() {
       <div className="hidden lg:block">
         <div className="max-w-[1280px] mx-auto flex flex-wrap justify-between gap-[40px] pt-[48px] px-5 pb-[28px] box-border">
           <div className="max-w-[320px] flex flex-col gap-3">
-            <img
-              className="sq-logo-light self-start h-[32px] w-auto object-contain block"
+            <Image
+              className="sq-logo-light self-start object-contain block"
               src="/assets/signallq-lockup-light-bg-v5.png"
               alt=""
               aria-hidden="true"
+              width={128}
+              height={32}
             />
-            <img
-              className="sq-logo-dark self-start h-[32px] w-auto object-contain hidden"
+            <Image
+              className="sq-logo-dark self-start object-contain hidden"
               src="/assets/signallq-lockup-dark-bg-v5.png"
               alt=""
               aria-hidden="true"
+              width={128}
+              height={32}
             />
             <div className="font-normal text-[12px] leading-[1.33] text-[color:var(--text-secondary)]">
               Teste de velocidade e diagnóstico de conexão.
@@ -99,10 +108,12 @@ export function SiteFooter() {
                 Baixe o app
               </div>
               <Link href="/app" className="relative inline-flex no-underline">
-                <img
+                <Image
                   src="/assets/google-play-badge-transparent.png"
                   alt="Em breve no Google Play"
-                  className="h-[44px] w-auto block opacity-55 grayscale-[0.4]"
+                  width={182}
+                  height={44}
+                  className="block opacity-55 grayscale-[0.4]"
                 />
                 <span className="absolute -top-[8px] -right-[10px] rounded-full py-[2px] px-[8px] font-bold text-[10px] leading-[1.4] tracking-[.04em] uppercase text-[color:var(--on-accent)] bg-[color:var(--accent)] whitespace-nowrap">
                   Em breve

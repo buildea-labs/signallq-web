@@ -14,7 +14,6 @@ import { useSpeedTest, FasePainel, ProblemPhase } from "@/hooks/useSpeedTest";
 import { useDocumentMeta } from "@/hooks/useDocumentMeta";
 import { PAGE_META } from "@/lib/pageMetaCatalog";
 import {
-  classifyDownload,
   classifyLatency,
   classifyUpload,
   interpretUseCases,
@@ -322,7 +321,6 @@ export default function Home() {
 
   const problema = isProblem ? PROBLEMAS[phase as ProblemPhase] : null;
 
-  const downloadVerdict = result ? classifyDownload(result.download.mbps) : null;
   const uploadVerdict = result ? classifyUpload(result.upload.mbps) : null;
   const latencyVerdict = result ? classifyLatency(result.latency.ms) : null;
   const useCases = result

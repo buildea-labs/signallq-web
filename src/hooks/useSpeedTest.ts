@@ -252,6 +252,7 @@ export function useSpeedTest(modo: SpeedTestMode) {
       if (engineRef.current) engineRef.current.cancel()
     }
     // roda uma única vez ao montar — comportamento equivalente ao componentDidMount original
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const cancelTest = useCallback(() => {
