@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { isIos, isStandalone } from '../hooks/usePwaInstall'
 
 const UPDATE_CHECK_INTERVAL_MS = 60_000
 
@@ -14,11 +15,24 @@ export function PwaUpdatePrompt() {
     let registration: ServiceWorkerRegistration | undefined
     const observe = (candidate: ServiceWorkerRegistration) => {
       registration = candidate
-      if (candidate.waiting) setNeedRefresh(true)
+      const handleInstalledWorker = (worker: ServiceWorker) => {
+        if (isIos() && isStandalone()) {
+          updateConfirmed.current = true
+          worker.postMessage({ type: 'SKIP_WAITING' })
+        } else {
+          setNeedRefresh(true)
+        }
+      }
+
+      if (candidate.waiting) {
+        handleInstalledWorker(candidate.waiting)
+      }
       candidate.addEventListener('updatefound', () => {
         const worker = candidate.installing
         worker?.addEventListener('statechange', () => {
-          if (worker.state === 'installed' && navigator.serviceWorker.controller) setNeedRefresh(true)
+          if (worker.state === 'installed' && navigator.serviceWorker.controller) {
+            handleInstalledWorker(worker)
+          }
         })
       })
     }

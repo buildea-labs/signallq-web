@@ -4,6 +4,7 @@ import { AdSenseScript } from "../components/AdSenseScript";
 import { CookieConsentBanner } from "../components/CookieConsentBanner";
 import { SiteNav } from "../components/SiteNav";
 import { SiteFooter } from "../components/SiteFooter";
+import { PwaToastStack } from "../components/PwaToastStack";
 import { SITE_ORIGIN } from "../lib/routeMetadata";
 
 export const metadata: Metadata = {
@@ -62,6 +63,7 @@ export default function RootLayout({
         <SiteFooter />
         <CookieConsentBanner />
         <AdSenseScript />
+        <PwaToastStack />
       </body>
     </html>
   );
