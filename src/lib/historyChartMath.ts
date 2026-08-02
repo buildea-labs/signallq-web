@@ -1,7 +1,7 @@
 // Matemática do gráfico "Evolução das medições" do Histórico.
 // Porte da curva suave (Catmull-Rom → Bézier) e do layout SVG do `<script
 // data-dc-script>` do protótipo, adaptado para consumir `MedicaoRegistro[]`
-// real (`historyStore.ts`) em vez da constante `SERIES` de exemplo.
+// real (`measurementRepository.ts`) em vez da constante `SERIES` de exemplo.
 //
 // Divergências deliberadas do protótipo (documentadas aqui, não escondidas):
 // - `MAX_CHART_POINTS = 12`: o protótipo mostra 4 pontos a título de exemplo;
@@ -14,7 +14,7 @@
 // - Rótulos do eixo X são amostrados (`sampleLabelIndexes`) em vez de 1
 //   rótulo por ponto — com até 12 pontos, rotular todos empilharia texto
 //   ilegível; sempre inclui o primeiro e o último ponto.
-import type { MedicaoRegistro } from './historyStore'
+import type { MedicaoRegistro } from './measurementRepository'
 import { formatarTempoRelativo } from './relativeTime'
 
 export const MAX_CHART_POINTS = 12

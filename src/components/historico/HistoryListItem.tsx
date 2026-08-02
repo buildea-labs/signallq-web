@@ -1,5 +1,6 @@
 import { HistoryRecordCard } from "@/components/historico/HistoryRecordCard";
-import type { HistoryConnectionGroup, MedicaoRegistro } from "@/lib/historyStore";
+import type { HistoryConnectionGroup } from "@/lib/historySelectors";
+import type { MedicaoRegistro } from "@/lib/measurementRepository";
 
 interface HistoryListItemProps {
   group: HistoryConnectionGroup

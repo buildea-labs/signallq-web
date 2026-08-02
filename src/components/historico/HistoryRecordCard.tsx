@@ -1,7 +1,7 @@
 import { classifyDownload } from '../../lib/classification'
 import { iconeConexao, labelConexao } from '../../lib/connection'
 import { formatarTempoRelativo } from '../../lib/relativeTime'
-import type { MedicaoRegistro } from '../../lib/historyStore'
+import type { MedicaoRegistro } from '../../lib/measurementRepository'
 
 const NIVEL_COR: Record<string, string> = { success: 'var(--success)', warning: 'var(--warning)', error: 'var(--error)', indisponivel: 'var(--text-tertiary)' }
 

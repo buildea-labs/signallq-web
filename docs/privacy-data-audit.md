@@ -7,7 +7,7 @@ Data da auditoria: 1º de agosto de 2026. Fontes: código atual de `signallq-web
 | Área | Evidência no código | Tratamento confirmado |
 | --- | --- | --- |
 | Medição | `src/lib/config.ts`, `src/lib/speedEngine.ts` | O navegador chama `speed.cloudflare.com`, `cloudflare-dns.com` e, quando configurado, Worker de latência. A infraestrutura que responde recebe IP e metadados técnicos da requisição. |
-| Histórico | `src/lib/historyStore.ts` | IndexedDB `signallq-site-history`, versão 3: medições, metadados declarados e comparações. Sem sincronização. Exclusão, limpeza e exportação são locais. |
+| Histórico | `src/lib/historyDatabase.ts`, `src/lib/measurementRepository.ts`, `src/lib/comparisonRepository.ts`, `src/lib/historyExport.ts`, `src/lib/historySelectors.ts` | IndexedDB `signallq-site-history`, versão 3: medições, metadados declarados e comparações. Sem sincronização. Exclusão, limpeza e exportação são locais. |
 | Navegador | `src/lib/adConsent.ts`, `src/hooks/usePwaInstall.ts`, `src/hooks/useSpeedTest.ts`, `src/lib/telemetry.ts`, `src/lib/measurementSessionStore.ts` | localStorage: consentimento de anúncios, descarte do prompt PWA e lock temporário; sessionStorage: UUID de telemetria e `signallq_measurement_session_v1` (contexto de entrada, respostas e estado do questionário da medição atual). |
 | Telemetria | `src/lib/telemetry.ts`, `src/app/api/track/route.ts` | Eventos de uso seguem para `/api/track`; se `SITE_INGEST_KEY` existir, Vercel encaminha ao Worker administrativo Cloudflare. |
 | Publicidade | `src/components/AdSenseScript.tsx` | Google AdSense só é carregado se houver ID público configurado e consentimento aceito. Não há cookie próprio identificado no código. |

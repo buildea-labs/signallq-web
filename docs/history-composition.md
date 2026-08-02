@@ -38,7 +38,9 @@ exportação, exclusão (registro, conexão e tudo), agrupamento por conexão, c
 edição de metadados, foco/Escape do modal e navegação para o teste. Nenhum componente da tela
 acessa IndexedDB diretamente — todos consomem o hook.
 
-`historyStore.ts` foi consumido como está; sua divisão é o item 14 do mesmo plano.
+`historyStore.ts` foi consumido como está nesta decomposição; sua divisão em `historyDatabase.ts`,
+`measurementRepository.ts`, `comparisonRepository.ts`, `historyExport.ts` e `historySelectors.ts`
+foi feita no item 14 do mesmo plano (issue #90).
 
 ## Regra permanente
 

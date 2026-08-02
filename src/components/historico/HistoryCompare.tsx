@@ -1,4 +1,5 @@
-import type { ComparacaoRegistro, MedicaoRegistro } from "@/lib/historyStore";
+import type { ComparacaoRegistro } from "@/lib/comparisonRepository";
+import type { MedicaoRegistro } from "@/lib/measurementRepository";
 
 interface HistoryCompareProps {
   comparisons: ComparacaoRegistro[]

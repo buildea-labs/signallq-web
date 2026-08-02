@@ -2,19 +2,17 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { listComparisons, type ComparacaoRegistro } from "@/lib/comparisonRepository";
+import { createHistoryExport } from "@/lib/historyExport";
+import { deleteConnection, groupRecordsByConnection } from "@/lib/historySelectors";
 import {
   clearAll,
-  createHistoryExport,
-  deleteConnection,
   deleteRecord,
-  groupRecordsByConnection,
-  listComparisons,
   listRecords,
   updateRecordMetadata,
-  type ComparacaoRegistro,
   type HistoryUserMetadata,
   type MedicaoRegistro,
-} from "@/lib/historyStore";
+} from "@/lib/measurementRepository";
 import { shareMeasurement } from "@/lib/sharing";
 
 export type HistoryStatus = "loading" | "loaded" | "unavailable";
