@@ -1,3 +1,5 @@
+'use client'
+
 import { InstallPwaPrompt } from './InstallPwaPrompt'
 import { PwaUpdatePrompt } from './PwaUpdatePrompt'
 

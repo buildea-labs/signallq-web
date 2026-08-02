@@ -10,12 +10,12 @@ interface BeforeInstallPromptEvent extends Event {
 
 const DISMISSED_KEY = 'signallq_pwa_install_dismissed'
 
-function isIos(): boolean {
+export function isIos(): boolean {
   if (typeof navigator === 'undefined') return false
   return /iphone|ipad|ipod/i.test(navigator.userAgent) && !('MSStream' in window)
 }
 
-function isStandalone(): boolean {
+export function isStandalone(): boolean {
   if (typeof window === 'undefined') return false
   const nav = navigator as Navigator & { standalone?: boolean }
   return window.matchMedia?.('(display-mode: standalone)').matches === true || nav.standalone === true
