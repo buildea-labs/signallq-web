@@ -30,6 +30,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
+  // maximumScale e userScalable removidos intencionalmente para permitir zoom (Acessibilidade)
 };
 
 export default function RootLayout({
