@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useSpeedTest, type FasePainel, type ProblemPhase } from "@/hooks/useSpeedTest";
+import { useSpeedTest, type ProblemPhase } from "@/hooks/useSpeedTest";
 import { contextualProblemFromSearch } from "@/lib/contextualEntry";
 import type { ContextualAnswer } from "@/lib/contextualQuestionFlow";
 import { addComparison, updateRecordDiagnostic } from "@/lib/historyStore";
@@ -11,6 +11,7 @@ import type { ProblemaPercebido } from "@/lib/problemEntry";
 import { compareRetest, comparisonMode, type RetestComparison } from "@/lib/retestComparison";
 import { copyMeasurement, shareMeasurement } from "@/lib/sharing";
 import type { SpeedTestResult } from "@/lib/speedEngine";
+import { RUNNING_PHASES } from "@/lib/speedTestPhase";
 import type { SpeedometerOutcome } from "@/lib/speedometerIdentity";
 import {
   FEATURE_SPEEDTEST_COMPARTILHOU,
@@ -22,13 +23,6 @@ import {
 } from "@/lib/telemetry";
 import { createWebDiagnosticResponse } from "@/lib/webDiagnosticResponse";
 
-export const RUNNING_PHASES: FasePainel[] = [
-  "preparando",
-  "latencia",
-  "download",
-  "upload",
-  "processando",
-];
 export const PROBLEM_PHASES: ProblemPhase[] = [
   "sem-conexao",
   "conexao-interrompida",

@@ -9,6 +9,7 @@
 // (functions/api/track.ts) que guarda a INGEST_KEY como secret do Pages,
 // nunca exposta ao cliente.
 import { TELEMETRY_ENDPOINT } from './config'
+import { generateId } from './id'
 
 const SESSION_KEY = 'signallq_site_session_id'
 const APP_VERSION = 'site'
@@ -23,17 +24,6 @@ interface EventoAnalytics {
   feature_id?: string
   screen_name?: string
   duration_ms?: number
-}
-
-function generateId(): string {
-  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-    try {
-      return crypto.randomUUID()
-    } catch {
-      // Falha silenciosa no Safari via HTTP
-    }
-  }
-  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
 }
 
 function getSessionId(): string {

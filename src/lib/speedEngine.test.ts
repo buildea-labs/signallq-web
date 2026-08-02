@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import { bytesToMbps, cloudflareColo, measurementServerLabel, measurementStatus, meanAbsJitter, median, SPEED_TEST_MODE_CONFIG, summarizeLatency } from './speedEngine'
+import { measurementStatus, SPEED_TEST_MODE_CONFIG } from './speedTestConfig'
+import { bytesToMbps, cloudflareColo, measurementServerLabel, meanAbsJitter, median, summarizeLatency } from './speedTestStats'
 
 describe('speed measurement calculations', () => {
   it('calculates median and jitter deterministically', () => {

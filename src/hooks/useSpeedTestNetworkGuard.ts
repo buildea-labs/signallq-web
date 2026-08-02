@@ -11,7 +11,6 @@ export interface SpeedTestNetworkGuard {
   // no chip da tela de Resultado e salvo no registro do Histórico. Distinto
   // de `result.connectionType` (effectiveType da Network Information API).
   connectionKind: TipoRede | null
-  connectionKindRef: { current: TipoRede | null }
   capturarRedeInicial: () => Promise<EstadoRede>
   redeMudouDuranteOTeste: () => Promise<boolean>
 }
@@ -62,5 +61,5 @@ export function useSpeedTestNetworkGuard(onNetworkChange: () => void): SpeedTest
     }
   }, [])
 
-  return { connectionKind, connectionKindRef, capturarRedeInicial, redeMudouDuranteOTeste }
+  return { connectionKind, capturarRedeInicial, redeMudouDuranteOTeste }
 }
