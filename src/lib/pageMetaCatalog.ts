@@ -64,11 +64,6 @@ export const PAGE_META: Record<string, PageMeta> = {
     description: 'O app que não para no número: descobre por que sua internet está ruim. Em teste fechado.',
     path: '/app',
   },
-  '/brand': {
-    title: 'Identidade visual do SignallQ',
-    description: 'Logotipo, variações de cor e paleta oficial para uso consistente.',
-    path: '/brand',
-  },
   // As 4 rotas abaixo são placeholder ("Em breve") pros diagnósticos
   // dedicados linkados pelos chips da Home (`DIAG_ITEMS`, `src/app/page.tsx`)
   // — ainda não implementados, `noindex` até terem conteúdo real.

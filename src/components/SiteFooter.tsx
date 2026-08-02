@@ -99,7 +99,6 @@ export function SiteFooter() {
                 Institucional
               </div>
               <Link href="/sobre" className="font-normal text-[14px] text-[color:var(--text-primary)] no-underline hover:underline">Quem somos</Link>
-              <Link href="/brand" className="font-normal text-[14px] text-[color:var(--text-primary)] no-underline hover:underline">Marca</Link>
               <Link href="/privacidade" className="font-normal text-[14px] text-[color:var(--text-primary)] no-underline hover:underline">Política de Privacidade</Link>
               <Link href="/termos" className="font-normal text-[14px] text-[color:var(--text-primary)] no-underline hover:underline">Termos de Uso</Link>
             </div>

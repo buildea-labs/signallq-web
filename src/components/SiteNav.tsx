@@ -36,7 +36,6 @@ const MENU_GROUPS = [
     title: "Institucional",
     items: [
       { key: "sobre", label: "Quem somos", href: "/sobre" },
-      { key: "brand", label: "Marca", href: "/brand" },
       { key: "privacidade", label: "Política de Privacidade", href: "/privacidade" },
       { key: "termos", label: "Termos de Uso", href: "/termos" },
     ],
@@ -85,7 +84,6 @@ export function SiteNav() {
   else if (pathname?.includes("/sobre")) active = "sobre";
   else if (pathname?.includes("/privacidade")) active = "privacidade";
   else if (pathname?.includes("/termos")) active = "termos";
-  else if (pathname?.includes("/brand")) active = "brand";
   else if (pathname?.includes("/internet-boa-mas-travando")) active = "bufferbloat";
   else if (pathname?.includes("/lag-em-jogos-online")) active = "cgnat";
   else if (pathname?.includes("/comparativo")) active = "comparativo";

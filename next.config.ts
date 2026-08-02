@@ -26,6 +26,8 @@ const nextConfig: NextConfig = {
       { source: "/teste", destination: "/app", permanent: true },
       // #95 — /quem-somos virou /sobre; preserva link antigo indexado.
       { source: "/quem-somos", destination: "/sobre", permanent: true },
+      // #96 — /brand removida da superfície pública.
+      { source: "/brand", destination: "/", permanent: true },
     ];
   },
 };
