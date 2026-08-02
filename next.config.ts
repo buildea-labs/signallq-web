@@ -26,7 +26,7 @@ const nextConfig: NextConfig = {
       { source: "/teste", destination: "/app", permanent: true },
       // #95 — /quem-somos virou /sobre; preserva link antigo indexado.
       { source: "/quem-somos", destination: "/sobre", permanent: true },
-      // #96 — /brand removida da superfície pública.
+      // #66 — /brand removida da superfície pública.
       { source: "/brand", destination: "/", permanent: true },
       // #97 — /velocidade-e-latencia e /latencia-sob-carga eram placeholders
       // "Em breve"; a jornada real já existe no fluxo de teste principal e
