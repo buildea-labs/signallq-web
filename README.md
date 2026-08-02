@@ -19,7 +19,7 @@ Site público do SignallQ para medição de qualidade da conexão, histórico lo
 
 ## Rotas
 
-`/` executa o teste de velocidade. O site também oferece `/historico`, `/como-medimos`, `/comparativo`, `/app`, `/brand`, `/privacidade`, `/termos`, `/quem-somos` e páginas editoriais para diagnóstico e jogos. As APIs internas são `POST /api/track` e `POST /api/waitlist`.
+`/` executa o teste de velocidade. O site também oferece `/historico`, `/como-medimos`, `/comparativo`, `/app`, `/brand`, `/privacidade`, `/termos`, `/sobre` e páginas editoriais para diagnóstico e jogos. As APIs internas são `POST /api/track` e `POST /api/waitlist`.
 
 ## Variáveis de ambiente
 

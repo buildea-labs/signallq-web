@@ -24,6 +24,8 @@ const nextConfig: NextConfig = {
       },
       { source: "/pro", destination: "/", permanent: true },
       { source: "/teste", destination: "/app", permanent: true },
+      // #95 — /quem-somos virou /sobre; preserva link antigo indexado.
+      { source: "/quem-somos", destination: "/sobre", permanent: true },
     ];
   },
 };

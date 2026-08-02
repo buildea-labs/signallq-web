@@ -9,7 +9,7 @@ export function SiteFooter() {
     { label: "Internet boa mas travando", href: "/internet-boa-mas-travando" },
     { label: "Lag em jogos online", href: "/lag-em-jogos-online" },
     { label: "Comparativo", href: "/comparativo" },
-    { label: "Quem somos", href: "/quem-somos" },
+    { label: "Quem somos", href: "/sobre" },
     { label: "Política de Privacidade", href: "/privacidade" },
     { label: "Termos de Uso", href: "/termos" },
   ];
@@ -98,7 +98,7 @@ export function SiteFooter() {
               <div className="font-medium text-[11px] leading-[1.45] text-[color:var(--text-tertiary)] tracking-[.3px] uppercase">
                 Institucional
               </div>
-              <Link href="/quem-somos" className="font-normal text-[14px] text-[color:var(--text-primary)] no-underline hover:underline">Quem somos</Link>
+              <Link href="/sobre" className="font-normal text-[14px] text-[color:var(--text-primary)] no-underline hover:underline">Quem somos</Link>
               <Link href="/brand" className="font-normal text-[14px] text-[color:var(--text-primary)] no-underline hover:underline">Marca</Link>
               <Link href="/privacidade" className="font-normal text-[14px] text-[color:var(--text-primary)] no-underline hover:underline">Política de Privacidade</Link>
               <Link href="/termos" className="font-normal text-[14px] text-[color:var(--text-primary)] no-underline hover:underline">Termos de Uso</Link>
