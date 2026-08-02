@@ -132,7 +132,7 @@ export default function AppLandingPage() {
               src="/assets/teste-01-home-dark.png"
               alt="Tela Início do SignallQ em modo escuro, mostrando o caminho da conexão entre aparelho, roteador e provedor, o resultado da última medição de velocidade e o status do Wi-Fi."
               width={380}
-              height={380}
+              height={854}
               className="block rounded-[22px]"
             />
           </div>

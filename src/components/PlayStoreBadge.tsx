@@ -15,7 +15,7 @@ export function PlayStoreBadge({ height = 44, source }: PlayStoreBadgeProps) {
     window.open(SIGNALLQ_TEST_GROUP_URL, '_blank', 'noopener,noreferrer')
   }
 
-  const aspectRatio = 248 / 60
+  const aspectRatio = 866 / 650
   const width = Math.round(height * aspectRatio)
 
   return (

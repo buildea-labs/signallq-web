@@ -112,7 +112,7 @@ export function SiteFooter() {
                   src="/assets/google-play-badge-transparent.png"
                   alt="Em breve no Google Play"
                   width={182}
-                  height={44}
+                  height={71}
                   className="block opacity-55 grayscale-[0.4]"
                 />
                 <span className="absolute -top-[8px] -right-[10px] rounded-full py-[2px] px-[8px] font-bold text-[10px] leading-[1.4] tracking-[.04em] uppercase text-[color:var(--on-accent)] bg-[color:var(--accent)] whitespace-nowrap">
