@@ -62,7 +62,7 @@ export default function RootLayout({
         {/* SiteNav + miolo em min-h-screen própria (não a <body> inteira, que
             também engloba o SiteFooter abaixo) — garante que o rodapé nunca
             apareça na primeira vista, mesmo em telas com pouco conteúdo
-            (ex.: 404, Marca): é preciso rolar pra passar da altura de uma
+            (ex.: 404): é preciso rolar pra passar da altura de uma
             viewport antes de alcançá-lo. SiteNav/SiteFooter vivem aqui, no
             layout raiz, pra persistir entre navegações (guia §1) — mover
             página não deve remontar o header/rodapé (achado 01/08/2026,
