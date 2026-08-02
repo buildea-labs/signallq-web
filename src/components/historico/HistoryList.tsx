@@ -1,5 +1,6 @@
 import { HistoryListItem } from "@/components/historico/HistoryListItem";
-import type { HistoryConnectionGroup, MedicaoRegistro } from "@/lib/historyStore";
+import type { HistoryConnectionGroup } from "@/lib/historySelectors";
+import type { MedicaoRegistro } from "@/lib/measurementRepository";
 
 interface HistoryListProps {
   groups: HistoryConnectionGroup[]

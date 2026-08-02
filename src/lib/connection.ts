@@ -1,5 +1,5 @@
 // Vocabulário de tipo de conexão compartilhado entre o hook de estado de rede
-// (hooks/useEstadoRede.ts) e o histórico local (lib/historyStore.ts) — vive em
+// (hooks/useEstadoRede.ts) e o histórico local (lib/measurementRepository.ts) — vive em
 // lib/ (não em hooks/) para não inverter a direção de dependência: lib/ não
 // deve importar de hooks/.
 export type TipoRede = 'wifi' | 'celular' | 'ethernet' | 'nenhuma' | 'desconhecida'

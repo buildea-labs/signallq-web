@@ -1,5 +1,6 @@
 import type { Dispatch, RefObject, SetStateAction } from "react";
-import type { HistoryConnectionGroup, HistoryUserMetadata, MedicaoRegistro } from "@/lib/historyStore";
+import type { HistoryConnectionGroup } from "@/lib/historySelectors";
+import type { HistoryUserMetadata, MedicaoRegistro } from "@/lib/measurementRepository";
 
 interface HistoryEditDialogProps {
   record: MedicaoRegistro

@@ -1,17 +1,13 @@
-// Histórico local — IndexedDB. Nenhuma sincronização entre aparelhos, nenhum
-// envio para o servidor (fica só neste navegador). Porte 1:1 de
-// shared/history-store.js do protótipo — implementação real já usava
-// IndexedDB, não localStorage (README do protótipo mencionava localStorage,
-// era o texto que estava desatualizado, não o código).
+// CRUD de medições e associação de diagnóstico. Porte 1:1 da parte de
+// medições que antes vivia em shared/history-store.js do protótipo.
+// Uma nova fonte de dado (US #89, ex. resultado de outra ferramenta) ganha
+// seu próprio `xResultToRecord` aqui, ao lado de `resultToRecord`,
+// reaproveitando addRecord/listRecords sem alterar o schema.
+import type { ComparacaoRegistro } from './comparisonRepository'
 import type { TipoRede } from './connection'
+import { COMPARISON_STORE, openDB, STORE } from './historyDatabase'
 import type { SpeedTestMode, SpeedTestResult } from './speedEngine'
 
-export const DB_NAME = 'signallq-site-history'
-const STORE = 'measurements'
-/** v3 acrescenta índices para agrupamento local; registros v1/v2 continuam
- * válidos porque os metadados novos são opcionais. */
-export const DB_VERSION = 3
-const COMPARISON_STORE = 'comparisons'
 // A avaliação ocorre após `setResult`, enquanto o IndexedDB ainda pode estar
 // concluindo `addRecord`. Mantemos somente o snapshot da mesma sessão até o
 // registro existir; nada é enviado nem sobrevive à recarga antes da medição.
@@ -53,60 +49,6 @@ export interface HistoryDiagnosticSnapshot {
   confidence: string
   nextAction: string
   contractVersion: number
-}
-
-export interface HistoryConnectionGroup {
-  id: string
-  name: string
-  records: MedicaoRegistro[]
-}
-
-export interface HistoryExport {
-  schemaVersion: number
-  exportedAt: string
-  records: MedicaoRegistro[]
-  comparisons: ComparacaoRegistro[]
-}
-
-/** Vínculo local entre duas medições; não contém diagnóstico nem é enviado ao servidor. */
-export interface ComparacaoRegistro {
-  id: string
-  createdAt: number
-  beforeId: string
-  afterId: string
-  mode: Exclude<SpeedTestMode, 'triplo'>
-}
-
-function openDB(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
-    if (typeof indexedDB === 'undefined') {
-      reject(new Error('indexeddb-unavailable'))
-      return
-    }
-    const req = indexedDB.open(DB_NAME, DB_VERSION)
-    req.onupgradeneeded = () => {
-      const db = req.result
-      if (!db.objectStoreNames.contains(STORE)) {
-        const store = db.createObjectStore(STORE, { keyPath: 'id' })
-        store.createIndex('timestamp', 'timestamp')
-      }
-      if (!db.objectStoreNames.contains(COMPARISON_STORE)) {
-        const store = db.createObjectStore(COMPARISON_STORE, { keyPath: 'id' })
-        store.createIndex('createdAt', 'createdAt')
-        store.createIndex('beforeId', 'beforeId')
-        store.createIndex('afterId', 'afterId')
-      }
-      // IndexedDB mantém os objetos antigos sem transformação destrutiva. Os
-      // campos adicionados são opcionais, portanto abrir v1/v2 em v3 é
-      // reversível para a leitura: a migração não reescreve nenhuma medição.
-      const measurements = req.transaction!.objectStore(STORE)
-      if (!measurements.indexNames.contains('connectionId')) {
-        measurements.createIndex('connectionId', 'userMetadata.connectionId')
-      }
-    }
-    req.onsuccess = () => resolve(req.result)
-    req.onerror = () => reject(req.error || new Error('indexeddb-open-failed'))
-  })
 }
 
 export async function addRecord(record: MedicaoRegistro): Promise<MedicaoRegistro> {
@@ -186,30 +128,6 @@ export async function updateRecordDiagnostic(id: string, diagnostic: HistoryDiag
   })
 }
 
-/** Apaga uma conexão declarada e todos os vínculos antes/depois que a citam. */
-export async function deleteConnection(connectionId: string): Promise<void> {
-  const db = await openDB()
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction([STORE, COMPARISON_STORE], 'readwrite')
-    const measurements = tx.objectStore(STORE)
-    const request = measurements.getAll()
-    request.onsuccess = () => {
-      const ids = new Set((request.result as MedicaoRegistro[])
-        .filter((record) => record.userMetadata?.connectionId === connectionId).map((record) => record.id))
-      ids.forEach((id) => measurements.delete(id))
-      const comparisons = tx.objectStore(COMPARISON_STORE)
-      const comparisonRequest = comparisons.getAll()
-      comparisonRequest.onsuccess = () => {
-        for (const comparison of comparisonRequest.result as ComparacaoRegistro[]) {
-          if (ids.has(comparison.beforeId) || ids.has(comparison.afterId)) comparisons.delete(comparison.id)
-        }
-      }
-    }
-    tx.oncomplete = () => resolve()
-    tx.onerror = () => reject(tx.error)
-  })
-}
-
 export function sanitizeMetadata(metadata: HistoryUserMetadata): HistoryUserMetadata {
   const text = (value: unknown) => typeof value === 'string' ? value.trim().slice(0, 120) : undefined
   const speed = typeof metadata.contractedSpeedMbps === 'number' && Number.isFinite(metadata.contractedSpeedMbps) && metadata.contractedSpeedMbps > 0
@@ -220,27 +138,6 @@ export function sanitizeMetadata(metadata: HistoryUserMetadata): HistoryUserMeta
   }
 }
 
-/** Agrupa sem ocultar registros antigos: os que não têm metadado ficam em um
- * grupo explícito, determinístico, baseado no tipo técnico detectado. */
-export function groupRecordsByConnection(records: MedicaoRegistro[]): HistoryConnectionGroup[] {
-  const groups = new Map<string, HistoryConnectionGroup>()
-  for (const record of records) {
-    const metadata = record.userMetadata
-    const id = metadata?.connectionId || `legacy:${record.connectionKind || 'desconhecida'}`
-    const name = metadata?.connectionName || (record.connectionKind ? `Conexão ${record.connectionKind}` : 'Medições sem local informado')
-    const group = groups.get(id) || { id, name, records: [] }
-    group.records.push(record)
-    groups.set(id, group)
-  }
-  return [...groups.values()].sort((a, b) => b.records[0].timestamp - a.records[0].timestamp)
-}
-
-export function createHistoryExport(records: MedicaoRegistro[], comparisons: ComparacaoRegistro[]): HistoryExport {
-  const ids = new Set(records.map((record) => record.id))
-  return { schemaVersion: DB_VERSION, exportedAt: new Date().toISOString(), records,
-    comparisons: comparisons.filter((comparison) => ids.has(comparison.beforeId) && ids.has(comparison.afterId)) }
-}
-
 export async function clearAll(): Promise<void> {
   const db = await openDB()
   return new Promise((resolve, reject) => {
@@ -249,26 +146,6 @@ export async function clearAll(): Promise<void> {
     tx.objectStore(COMPARISON_STORE).clear()
     tx.oncomplete = () => resolve()
     tx.onerror = () => reject(tx.error)
-  })
-}
-
-export async function addComparison(record: ComparacaoRegistro): Promise<ComparacaoRegistro> {
-  const db = await openDB()
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(COMPARISON_STORE, 'readwrite')
-    tx.objectStore(COMPARISON_STORE).put(record)
-    tx.oncomplete = () => resolve(record)
-    tx.onerror = () => reject(tx.error)
-  })
-}
-
-export async function listComparisons(): Promise<ComparacaoRegistro[]> {
-  const db = await openDB()
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(COMPARISON_STORE, 'readonly')
-    const req = tx.objectStore(COMPARISON_STORE).getAll()
-    req.onsuccess = () => resolve(((req.result as ComparacaoRegistro[]) || []).sort((a, b) => b.createdAt - a.createdAt))
-    req.onerror = () => reject(req.error)
   })
 }
 

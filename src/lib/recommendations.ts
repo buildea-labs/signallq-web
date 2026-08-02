@@ -4,10 +4,10 @@
 //
 // Adaptado do motor equivalente do repo antecessor `linka-speedtest`
 // (src/utils/recommendations.ts) para os tipos reais do Site
-// (lib/classification.ts / lib/historyStore.ts) — sem "Prova Real"/modo
+// (lib/classification.ts / lib/measurementRepository.ts) — sem "Prova Real"/modo
 // prova, feature que não existe aqui.
 import { classifyDownload, classifyJitter, classifyLatency, classifyUpload } from './classification'
-import type { MedicaoRegistro } from './historyStore'
+import type { MedicaoRegistro } from './measurementRepository'
 import type { SpeedTestResult } from './speedEngine'
 
 export type RecommendationPriority = 'high' | 'medium' | 'low'

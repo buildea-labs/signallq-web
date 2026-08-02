@@ -1,5 +1,5 @@
 import { buildChartGeometry, buildEvolutionSeries } from '../../lib/historyChartMath'
-import type { MedicaoRegistro } from '../../lib/historyStore'
+import type { MedicaoRegistro } from '../../lib/measurementRepository'
 
 interface HistoryEvolutionChartProps {
   /** Registros na ordem de `listRecords()` (mais recente primeiro). */
