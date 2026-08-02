@@ -15,8 +15,8 @@ export default function Home() {
   return (
     <PageShell align={journey.shellAlign}>
       <QuickTestJourney journey={journey} />
-      <CompleteDiagnosis journey={journey} />
-      <HomeProductContext visible={journey.isIdle} />
+      {!journey.isProblem && <CompleteDiagnosis journey={journey} />}
+      <HomeProductContext visible={journey.isIdle && !journey.isProblem} />
     </PageShell>
   );
 }

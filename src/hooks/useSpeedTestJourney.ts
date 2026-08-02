@@ -175,6 +175,19 @@ export function useSpeedTestJourney() {
     }
   };
 
+  const autoStartDisparado = useRef(false);
+
+  useEffect(() => {
+    if (modo === "rapido" && !problemaPercebido && isIdle && !autoStartDisparado.current) {
+      if (typeof window !== "undefined" && !window.location.search.includes("problem=")) {
+        autoStartDisparado.current = true;
+        // Espera um tick para garantir que react renderize
+        setTimeout(() => iniciarTesteDireto(), 0);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [modo, problemaPercebido, isIdle]);
+
   return {
     modo, setModo, copiado,
     phase, liveValue, phaseResults, result, measurementContext,
