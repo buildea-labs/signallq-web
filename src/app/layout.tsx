@@ -11,6 +11,12 @@ export const metadata: Metadata = {
   title: "SignallQ - Teste de Velocidade e Qualidade",
   description: "Diagnóstico completo da sua conexão de internet. Medição de download, upload, latência, bufferbloat e jitter.",
   manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: "/assets/signallq-icon-512-play-store.png", sizes: "1024x1024", type: "image/png" },
+    ],
+    apple: [{ url: "/assets/signallq-icon-512-play-store.png", sizes: "1024x1024", type: "image/png" }],
+  },
 };
 
 export const viewport = {
