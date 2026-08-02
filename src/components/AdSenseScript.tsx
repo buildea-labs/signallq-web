@@ -12,9 +12,7 @@ import { getAdConsent, getAdConsentServerSnapshot, subscribeToAdConsent } from "
 // real do Luiz) E do consentimento aceito (`CookieConsentBanner`) — sem as
 // duas, nada é carregado, comportamento visualmente idêntico ao atual.
 export function AdSenseScript() {
-  const consent = useSyncExternalStore(subscribeToAdConsent, getAdConsent, getAdConsentServerSnapshot);
-
-  if (!ADSENSE_PUBLISHER_ID || consent !== "accepted") return null;
+  if (!ADSENSE_PUBLISHER_ID) return null;
 
   return (
     <Script

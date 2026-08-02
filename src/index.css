@@ -21,7 +21,6 @@
    scrollbar overlay do macOS). Achado 01/08/2026, distinto do bug de
    remontagem do SiteNav (já corrigido movendo-o pro layout raiz). */
 html {
-  scrollbar-gutter: stable;
 }
 
 :root {
@@ -42,7 +41,6 @@ html.dark .sq-logo-dark {
 body {
   margin: 0;
   background: radial-gradient(circle at top center, #0B1120 0%, var(--bg-primary) 100%);
-  background-attachment: fixed;
   font-family: var(--font-sans);
   color: var(--text-primary);
 }

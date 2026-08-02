@@ -381,8 +381,15 @@ export function createSpeedTest(mode: SpeedTestMode = 'rapido') {
       throughputComplete,
       contaminated: token.contaminated,
     })
+    const generateId = () => {
+      if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        try { return crypto.randomUUID() } catch { /* falha no Safari HTTP */ }
+      }
+      return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+    }
+    
     return {
-      id: crypto.randomUUID(), timestamp: Date.now(), mode: singleMode, status,
+      id: generateId(), timestamp: Date.now(), mode: singleMode, status,
       download: { mbps: download.throughput.mbps, peakMbps: download.throughput.peakMbps },
       upload: { mbps: upload.throughput.mbps, peakMbps: upload.throughput.peakMbps },
       latency: { ms: latency.ms, samples: latency.totalSamples, validSamples: latency.validSamples, timeouts: latency.timeouts, maxMs: latency.maxMs, p95Ms: latency.p95Ms, peaks: latency.peaks },

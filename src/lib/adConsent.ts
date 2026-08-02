@@ -18,21 +18,24 @@ function isValidStatus(value: string | null): value is AdConsentStatus {
   return value === "accepted" || value === "declined";
 }
 
+let fallbackConsent: AdConsentStatus | null = null;
+
 /** Lê o consentimento salvo. `null` = usuário ainda não decidiu. */
 export function getAdConsent(): AdConsentStatus | null {
   if (typeof window === "undefined") return null;
   try {
     const value = window.localStorage.getItem(STORAGE_KEY);
-    return isValidStatus(value) ? value : null;
+    return isValidStatus(value) ? value : fallbackConsent;
   } catch {
-    // localStorage indisponível (ex. modo privado) — trata como "não decidiu".
-    return null;
+    // localStorage indisponível (ex. modo privado) — usa fallback de memória.
+    return fallbackConsent;
   }
 }
 
 /** Persiste a decisão e notifica assinantes na mesma aba (ex.: `AdSenseScript`). */
 export function setAdConsent(status: AdConsentStatus): void {
   if (typeof window === "undefined") return;
+  fallbackConsent = status;
   try {
     window.localStorage.setItem(STORAGE_KEY, status);
   } catch {

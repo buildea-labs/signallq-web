@@ -14,38 +14,7 @@ export function SiteFooter() {
   ];
 
   return (
-    <div className="relative z-[2] w-full box-border bg-transparent border-t border-[color-mix(in_srgb,_var(--border)_14%,_transparent)]">
-      {/* Mobile */}
-      <div className="flex sm:hidden flex-col gap-4 py-6 px-5 box-border">
-        <div className="flex items-center gap-[10px]">
-          <img
-            className="sq-logo-light h-[24px] w-auto object-contain block"
-            src="/assets/signallq-lockup-light-bg-v5.png"
-            alt=""
-            aria-hidden="true"
-          />
-          <img
-            className="sq-logo-dark h-[24px] w-auto object-contain hidden"
-            src="/assets/signallq-lockup-dark-bg-v5.png"
-            alt=""
-            aria-hidden="true"
-          />
-          <span className="rounded-full py-[1px] px-[8px] font-medium text-[11px] leading-[1.6] font-sans text-[color:var(--on-accent)] bg-[color:var(--accent)]">
-            Beta
-          </span>
-        </div>
-        <div className="grid grid-cols-2 gap-x-3 gap-y-[2px]">
-          {links.map((l, i) => (
-            <Link key={i} href={l.href} className="min-h-[44px] flex items-center font-normal text-[14px] leading-[1.43] text-[color:var(--text-primary)] no-underline hover:underline">
-              {l.label}
-            </Link>
-          ))}
-        </div>
-        <div className="font-normal text-[12px] leading-[1.33] text-[color:var(--text-tertiary)]">
-          © 2026 SignallQ · by Buildea. Produto em fase Beta.
-        </div>
-      </div>
-
+    <div className="hidden sm:block relative z-[2] w-full box-border bg-transparent border-t border-[color-mix(in_srgb,_var(--border)_14%,_transparent)]">
       {/* Compact */}
       <div className="hidden sm:flex lg:hidden flex-wrap items-center gap-x-5 gap-y-[10px] py-[14px] px-5 box-border max-w-[1280px] mx-auto">
         <img
