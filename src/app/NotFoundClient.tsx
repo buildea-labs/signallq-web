@@ -1,7 +1,6 @@
 "use client";
 import Link from 'next/link'
 import { PageShell } from '../components/PageShell'
-import { NOT_FOUND_META } from '../lib/pageMetaCatalog'
 
 export function NotFoundClient() {
 

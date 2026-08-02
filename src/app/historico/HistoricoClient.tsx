@@ -9,7 +9,6 @@ import { HistoryList } from "@/components/historico/HistoryList";
 import { HistoryDiagnosticTip, HistoryToolbar } from "@/components/historico/HistoryToolbar";
 ;
 import { useHistoryController } from "@/hooks/useHistoryController";
-import { PAGE_META } from "@/lib/pageMetaCatalog";
 
 export function HistoricoClient() {
   const history = useHistoryController()

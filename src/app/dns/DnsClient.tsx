@@ -4,7 +4,6 @@ import { DnsResolverRow } from '@/components/dns/DnsResolverRow'
 import { NoticeBar } from '@/components/NoticeBar'
 import { PageShell } from '@/components/PageShell'
 import { useDnsCompare } from '@/hooks/useDnsCompare'
-import { PAGE_META } from '@/lib/pageMetaCatalog'
 
 // Comparação de resolvedores DNS públicos (issue #98) — substitui o
 // placeholder "Em breve" de `/servidores-dns` (redirect 301 em

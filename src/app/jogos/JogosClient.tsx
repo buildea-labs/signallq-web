@@ -4,7 +4,6 @@ import { GameLatencyRow } from '@/components/jogos/GameLatencyRow'
 import { NoticeBar } from '@/components/NoticeBar'
 import { PageShell } from '@/components/PageShell'
 import { useGameLatency } from '@/hooks/useGameLatency'
-import { PAGE_META } from '@/lib/pageMetaCatalog'
 
 // Medição real de latência de infraestrutura de jogos (issue #99) —
 // substitui o placeholder "Em breve" de `/modo-gamer` (redirect 301 em

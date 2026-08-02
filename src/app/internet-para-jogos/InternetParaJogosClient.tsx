@@ -1,7 +1,6 @@
 "use client";
 import { DocPage, type DocSection } from '../../components/DocPage'
 import { PageShell } from '../../components/PageShell'
-import { PAGE_META } from '../../lib/pageMetaCatalog'
 
 const SECTIONS: DocSection[] = [
   { title: 'Velocidade não é o gargalo', text: 'A maioria dos jogos online usa pouca banda: poucos Mbps já bastam. O que derruba a experiência é latência alta ou instável, não a velocidade contratada.' },
