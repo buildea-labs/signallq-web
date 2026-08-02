@@ -61,7 +61,7 @@ export const PAGE_META: Record<string, PageMeta> = {
   },
   '/app': {
     title: 'App SignallQ',
-    description: 'O app que não para no número: descobre por que sua internet está ruim. Em teste fechado.',
+    description: 'O app que não para no número: aponta causas prováveis da sua internet ruim. Em teste fechado.',
     path: '/app',
   },
   // /velocidade-e-latencia e /latencia-sob-carga foram eliminadas (#97): a
