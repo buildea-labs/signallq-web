@@ -11,6 +11,12 @@ Este repositório contém somente o site Next.js. Leia a skill aplicável em `sk
 
 - Não altere layout, textos, UX, rotas, escopo ou arquitetura sem instrução explícita do Luiz.
 - Preserve variáveis secretas no servidor; nunca versione `.env` nem use `NEXT_PUBLIC_` para segredos.
-- Toda implementação relevante requer revisão de Caio antes de merge.
+- Toda implementação relevante requer revisão de Caio antes de merge, incluindo o gate de arquitetura em `skills/architecture-guardrails/`.
 - Execute os gates definidos em `skills/quality-gates/` antes de publicar uma mudança.
-- Sempre crie e utilize uma nova branch antes de iniciar qualquer desenvolvimento ou alteração no código (não desenvolva diretamente na main).
+
+## Branch e PR
+
+- **Não precisa de branch/PR**: atualização de documentação (`.md`, changelogs, comentários de contexto) e ajustes finos de layout (espaçamento, cor, texto de um elemento isolado — sem mudar estrutura, hierarquia ou comportamento). Commit direto na main, com mensagem descritiva.
+- **Precisa de branch + PR**: qualquer mudança de código com lógica, estado, rotas, componentes novos ou alterados estruturalmente, hooks, stores, engine — e qualquer mudança de layout que altere estrutura, hierarquia ou comportamento (não apenas ajuste visual pontual).
+- Na dúvida entre os dois casos, tratar como mudança maior e abrir branch/PR.
+- PR de código passa pelo gate de arquitetura e revisão de Caio antes de merge.
