@@ -13,7 +13,7 @@ export default function Home() {
   const journey = useSpeedTestJourney();
 
   return (
-    <PageShell align={journey.shellAlign}>
+    <PageShell align={journey.shellAlign} contentMax={journey.modo === "rapido" ? "1200px" : "860px"}>
       <QuickTestJourney journey={journey} />
       {!journey.isProblem && <CompleteDiagnosis journey={journey} />}
       <HomeProductContext visible={journey.isIdle && !journey.isProblem} />

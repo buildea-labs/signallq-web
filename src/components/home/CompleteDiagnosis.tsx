@@ -9,8 +9,8 @@ import { STATUS_LABEL, STATUS_MESSAGE } from "./homeCopy";
 
 /** Leitura completa do resultado: ação, comparação, detalhes e ações finais. */
 export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
-  const { result, hasVisibleResult, respostaDiagnostica, retesteBase, comparacaoReteste } = journey;
-  if (!hasVisibleResult || !result) return null;
+  const { result, hasVisibleResult, respostaDiagnostica, retesteBase, comparacaoReteste, modo } = journey;
+  if (!hasVisibleResult || !result || modo === "rapido") return null;
 
   const statusCompleto = result.status === "complete";
   const statusMensagem = STATUS_MESSAGE[result.status];
