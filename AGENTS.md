@@ -13,3 +13,4 @@ Este repositório contém somente o site Next.js. Leia a skill aplicável em `sk
 - Preserve variáveis secretas no servidor; nunca versione `.env` nem use `NEXT_PUBLIC_` para segredos.
 - Toda implementação relevante requer revisão de Caio antes de merge.
 - Execute os gates definidos em `skills/quality-gates/` antes de publicar uma mudança.
+- Sempre crie e utilize uma nova branch antes de iniciar qualquer desenvolvimento ou alteração no código (não desenvolva diretamente na main).
