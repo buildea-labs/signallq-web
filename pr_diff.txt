@@ -1,0 +1,386 @@
+diff --git a/run_fixes.ps1 b/run_fixes.ps1
+new file mode 100644
+index 0000000..92d6ed9
+--- /dev/null
++++ b/run_fixes.ps1
+@@ -0,0 +1,72 @@
++git fetch
++git checkout main
++git reset --hard origin/main
++git checkout -b fix/issue-58-absolute-claims-final
++
++(Get-Content src/app/app/AppLandingComponents.tsx -Encoding UTF8) -replace 'descobre por que sua internet está ruim', 'aponta causas prováveis da sua internet ruim' | Set-Content src/app/app/AppLandingComponents.tsx -Encoding UTF8
++
++(Get-Content src/lib/pageMetaCatalog.ts -Encoding UTF8) -replace 'descobre por que sua internet está ruim', 'aponta causas prováveis da sua internet ruim' | Set-Content src/lib/pageMetaCatalog.ts -Encoding UTF8
++
++(Get-Content src/app/comparativo/page.tsx -Encoding UTF8) -replace 'revela bufferbloat, a causa mais comum', 'ajuda a identificar bufferbloat, uma causa comum' -replace 'aponta a causa mais provável', 'aponta causas prováveis' | Set-Content src/app/comparativo/page.tsx -Encoding UTF8
++
++(Get-Content src/app/internet-boa-mas-travando/InternetBoaMasTravandoClient.tsx -Encoding UTF8) -replace 'Isso não confirma o diagnóstico por si só', 'Isso aponta causas prováveis, mas não é a única explicação' -replace 'a fila excessiva merece investigação', 'a fila excessiva (bufferbloat) é uma hipótese que merece investigação' -replace 'o motivo normalmente não é velocidade — é latência sob carga, um efeito chamado bufferbloat', 'uma das causas possíveis não é falta de velocidade, mas sim a latência sob carga, um efeito conhecido como bufferbloat' | Set-Content src/app/internet-boa-mas-travando/InternetBoaMasTravandoClient.tsx -Encoding UTF8
++
++@"
++"use client";
++import Link from 'next/link'
++import { DocPage, type DocSection } from '../../components/DocPage'
++import { PageShell } from '../../components/PageShell'
++
++const SECTIONS: DocSection[] = [
++  {
++    title: 'Por que o jogo trava se a internet parece rápida?',
++    text: 'A velocidade de download importa pouco para jogos online. O que define uma partida fluida é a qualidade da comunicação: latência, jitter e perda de pacotes. Se a internet for rápida para baixar arquivos, mas a comunicação com o servidor do jogo for instável ou bloqueada, haverá lag.',
++  },
++  {
++    title: 'Latência, Jitter e Perda de Pacotes',
++    text: 'A latência (ping) é o tempo que a informação leva para ir ao servidor e voltar. O jitter é a variação dessa latência: se o ping pula de 20ms para 150ms imprevisivelmente, o jogo engasga. A perda de pacotes ocorre quando as informações não chegam ao destino, causando "teleportes".',
++  },
++  {
++    title: 'Wi-Fi e Interferência',
++    text: 'O sinal Wi-Fi sofre interferência de paredes e outros eletrônicos, causando oscilações de latência (jitter) e perda de pacotes. Para jogos, uma conexão cabeada é sempre a opção mais estável.',
++  },
++  {
++    title: 'Congestionamento e Bufferbloat',
++    text: 'Se o ping sobe quando alguém na casa assiste a um vídeo ou faz download, uma causa provável é o bufferbloat — a fila de dados no roteador que atrasa os pacotes do jogo. Roteadores que gerenciam bem o tráfego ajudam a evitar esse problema.',
++  },
++  {
++    title: 'Rota e Servidor do Jogo',
++    text: 'O problema pode estar na rota que a operadora usa até o servidor do jogo, ou no próprio servidor. Se apenas um jogo específico trava, a investigação deve focar na rota para aquele destino.',
++  },
++  {
++    title: 'NAT Restrito e CGNAT: Hospedagem e P2P',
++    text: 'Se a dificuldade for hospedar partidas ou conectar-se com amigos, o problema costuma ser NAT Restrito (Strict). Uma das causas possíveis é o CGNAT (quando a operadora compartilha um IP público). O CGNAT não causa aumento de ping sozinho, mas dificulta conexões diretas entre jogadores.',
++  },
++]
++
++export function LagEmJogosOnlineClient() {
++  return (
++    <PageShell align="center" mobilePadding="pt-7 px-5 pb-10">
++      <DocPage
++        overline="Diagnóstico"
++        title="O que causa lag em jogos online?"
++        intro="Se a internet parece boa em qualquer outro uso, mas você tem dificuldade para jogar, o problema pode estar na qualidade da comunicação (ping, jitter, perda) ou em bloqueios de portas e NAT."
++        sections={SECTIONS}
++        ctaLabel="Testar latência nos servidores de jogos"
++        ctaTo="/jogos"
++      >
++        <p className="body-medium m-0">
++          Se a internet trava também fora de jogos — por exemplo, engasga em chamadas de vídeo quando outra pessoa está baixando algo — veja sobre <Link href="/internet-boa-mas-travando">internet boa mas travando e o bufferbloat</Link>.
++        </p>
++      </DocPage>
++    </PageShell>
++  )
++}
++"@ > src/app/lag-em-jogos-online/LagEmJogosOnlineClient.tsx
++
++(Get-Content src/lib/webDiagnosticResponse.ts -Encoding UTF8) -replace 'para confirmar se o sinal se repete', 'para verificar se o sinal se repete' | Set-Content src/lib/webDiagnosticResponse.ts -Encoding UTF8
++
++git add .
++git commit -m "fix: remove afirmações absolutas e de causalidade não comprovada (#58)"
++git push -u origin fix/issue-58-absolute-claims-final
++gh pr create --title "fix: corrige afirmações técnicas absolutas e causalidade não comprovada" --body "Closes #58. Remove ou suaviza afirmações que tratam hipóteses como certezas técnicas absolutas."
+diff --git a/run_fixes.sh b/run_fixes.sh
+new file mode 100644
+index 0000000..8fd3184
+--- /dev/null
++++ b/run_fixes.sh
+@@ -0,0 +1,76 @@
++#!/bin/bash
++git fetch
++git checkout main
++git reset --hard origin/main
++git checkout -b fix/issue-58-absolute-claims-final
++
++sed -i 's/O app que não para no número: descobre por que sua internet está ruim/O app que não para no número: aponta causas prováveis da sua internet ruim/g' src/app/app/AppLandingComponents.tsx
++
++sed -i 's/descobre por que sua internet está ruim/aponta causas prováveis da sua internet ruim/g' src/lib/pageMetaCatalog.ts
++
++sed -i 's/revela bufferbloat, a causa mais comum/ajuda a identificar bufferbloat, uma causa comum/g' src/app/comparativo/page.tsx
++sed -i 's/aponta a causa mais provável/aponta causas prováveis/g' src/app/comparativo/page.tsx
++
++sed -i 's/Isso não confirma o diagnóstico por si só/Isso aponta causas prováveis, mas não é a única explicação/g' src/app/internet-boa-mas-travando/InternetBoaMasTravandoClient.tsx
++sed -i 's/a fila excessiva merece investigação/a fila excessiva (bufferbloat) é uma hipótese que merece investigação/g' src/app/internet-boa-mas-travando/InternetBoaMasTravandoClient.tsx
++sed -i 's/o motivo normalmente não é velocidade — é latência sob carga, um efeito chamado bufferbloat/uma das causas possíveis não é falta de velocidade, mas sim a latência sob carga, um efeito conhecido como bufferbloat/g' src/app/internet-boa-mas-travando/InternetBoaMasTravandoClient.tsx
++
++cat << 'INNER_EOF' > src/app/lag-em-jogos-online/LagEmJogosOnlineClient.tsx
++"use client";
++import Link from 'next/link'
++import { DocPage, type DocSection } from '../../components/DocPage'
++import { PageShell } from '../../components/PageShell'
++
++const SECTIONS: DocSection[] = [
++  {
++    title: 'Por que o jogo trava se a internet parece rápida?',
++    text: 'A velocidade de download importa pouco para jogos online. O que define uma partida fluida é a qualidade da comunicação: latência, jitter e perda de pacotes. Se a internet for rápida para baixar arquivos, mas a comunicação com o servidor do jogo for instável ou bloqueada, haverá lag.',
++  },
++  {
++    title: 'Latência, Jitter e Perda de Pacotes',
++    text: 'A latência (ping) é o tempo que a informação leva para ir ao servidor e voltar. O jitter é a variação dessa latência: se o ping pula de 20ms para 150ms imprevisivelmente, o jogo engasga. A perda de pacotes ocorre quando as informações não chegam ao destino, causando "teleportes".',
++  },
++  {
++    title: 'Wi-Fi e Interferência',
++    text: 'O sinal Wi-Fi sofre interferência de paredes e outros eletrônicos, causando oscilações de latência (jitter) e perda de pacotes. Para jogos, uma conexão cabeada é sempre a opção mais estável.',
++  },
++  {
++    title: 'Congestionamento e Bufferbloat',
++    text: 'Se o ping sobe quando alguém na casa assiste a um vídeo ou faz download, uma causa provável é o bufferbloat — a fila de dados no roteador que atrasa os pacotes do jogo. Roteadores que gerenciam bem o tráfego ajudam a evitar esse problema.',
++  },
++  {
++    title: 'Rota e Servidor do Jogo',
++    text: 'O problema pode estar na rota que a operadora usa até o servidor do jogo, ou no próprio servidor. Se apenas um jogo específico trava, a investigação deve focar na rota para aquele destino.',
++  },
++  {
++    title: 'NAT Restrito e CGNAT: Hospedagem e P2P',
++    text: 'Se a dificuldade for hospedar partidas ou conectar-se com amigos, o problema costuma ser NAT Restrito (Strict). Uma das causas possíveis é o CGNAT (quando a operadora compartilha um IP público). O CGNAT não causa aumento de ping sozinho, mas dificulta conexões diretas entre jogadores.',
++  },
++]
++
++export function LagEmJogosOnlineClient() {
++  return (
++    <PageShell align="center" mobilePadding="pt-7 px-5 pb-10">
++      <DocPage
++        overline="Diagnóstico"
++        title="O que causa lag em jogos online?"
++        intro="Se a internet parece boa em qualquer outro uso, mas você tem dificuldade para jogar, o problema pode estar na qualidade da comunicação (ping, jitter, perda) ou em bloqueios de portas e NAT."
++        sections={SECTIONS}
++        ctaLabel="Testar latência nos servidores de jogos"
++        ctaTo="/jogos"
++      >
++        <p className="body-medium m-0">
++          Se a internet trava também fora de jogos — por exemplo, engasga em chamadas de vídeo quando outra pessoa está baixando algo — veja sobre <Link href="/internet-boa-mas-travando">internet boa mas travando e o bufferbloat</Link>.
++        </p>
++      </DocPage>
++    </PageShell>
++  )
++}
++INNER_EOF
++
++sed -i 's/para confirmar se o sinal se repete/para verificar se o sinal se repete/g' src/lib/webDiagnosticResponse.ts
++
++git add .
++git commit -m "fix: remove afirmações absolutas e de causalidade não comprovada (#58)"
++git push -u origin fix/issue-58-absolute-claims-final
++gh pr create --title "fix: corrige afirmações técnicas absolutas e causalidade não comprovada" --body "Closes #58. Remove ou suaviza afirmações que tratam hipóteses como certezas técnicas absolutas."
+diff --git a/run_fixes_2.ps1 b/run_fixes_2.ps1
+new file mode 100644
+index 0000000..dba9720
+--- /dev/null
++++ b/run_fixes_2.ps1
+@@ -0,0 +1,61 @@
++(Get-Content src/app/app/page.tsx -Encoding UTF8) -replace 'descobre por que sua internet está ruim', 'aponta causas prováveis da sua internet ruim' | Set-Content src/app/app/page.tsx -Encoding UTF8
++
++(Get-Content src/app/internet-boa-mas-travando/page.tsx -Encoding UTF8) -replace 'Isso não confirma o diagnóstico por si só', 'Isso aponta causas prováveis, mas não é a única explicação' -replace 'a fila excessiva merece investigação', 'a fila excessiva (bufferbloat) é uma hipótese que merece investigação' -replace 'o motivo normalmente não é velocidade — é latência sob carga, um efeito chamado bufferbloat', 'uma das causas possíveis não é falta de velocidade, mas sim a latência sob carga, um efeito conhecido como bufferbloat' | Set-Content src/app/internet-boa-mas-travando/page.tsx -Encoding UTF8
++
++@"
++"use client";
++import Link from 'next/link'
++import { DocPage, type DocSection } from '../../components/DocPage'
++import { PageShell } from '../../components/PageShell'
++
++const SECTIONS: DocSection[] = [
++  {
++    title: 'Por que o jogo trava se a internet parece rápida?',
++    text: 'A velocidade de download importa pouco para jogos online. O que define uma partida fluida é a qualidade da comunicação: latência, jitter e perda de pacotes. Se a internet for rápida para baixar arquivos, mas a comunicação com o servidor do jogo for instável ou bloqueada, haverá lag.',
++  },
++  {
++    title: 'Latência, Jitter e Perda de Pacotes',
++    text: 'A latência (ping) é o tempo que a informação leva para ir ao servidor e voltar. O jitter é a variação dessa latência: se o ping pula de 20ms para 150ms imprevisivelmente, o jogo engasga. A perda de pacotes ocorre quando as informações não chegam ao destino, causando "teleportes".',
++  },
++  {
++    title: 'Wi-Fi e Interferência',
++    text: 'O sinal Wi-Fi sofre interferência de paredes e outros eletrônicos, causando oscilações de latência (jitter) e perda de pacotes. Para jogos, uma conexão cabeada é sempre a opção mais estável.',
++  },
++  {
++    title: 'Congestionamento e Bufferbloat',
++    text: 'Se o ping sobe quando alguém na casa assiste a um vídeo ou faz download, uma causa provável é o bufferbloat — a fila de dados no roteador que atrasa os pacotes do jogo. Roteadores que gerenciam bem o tráfego ajudam a evitar esse problema.',
++  },
++  {
++    title: 'Rota e Servidor do Jogo',
++    text: 'O problema pode estar na rota que a operadora usa até o servidor do jogo, ou no próprio servidor. Se apenas um jogo específico trava, a investigação deve focar na rota para aquele destino.',
++  },
++  {
++    title: 'NAT Restrito e CGNAT: Hospedagem e P2P',
++    text: 'Se a dificuldade for hospedar partidas ou conectar-se com amigos, o problema costuma ser NAT Restrito (Strict). Uma das causas possíveis é o CGNAT (quando a operadora compartilha um IP público). O CGNAT não causa aumento de ping sozinho, mas dificulta conexões diretas entre jogadores.',
++  },
++]
++
++export default function Page() {
++  return (
++    <PageShell align="center" mobilePadding="pt-7 px-5 pb-10">
++      <DocPage
++        overline="Diagnóstico"
++        title="O que causa lag em jogos online?"
++        intro="Se a internet parece boa em qualquer outro uso, mas você tem dificuldade para jogar, o problema pode estar na qualidade da comunicação (ping, jitter, perda) ou em bloqueios de portas e NAT."
++        sections={SECTIONS}
++        ctaLabel="Testar latência nos servidores de jogos"
++        ctaTo="/jogos"
++      >
++        <p className="body-medium m-0">
++          Se a internet trava também fora de jogos — por exemplo, engasga em chamadas de vídeo quando outra pessoa está baixando algo — veja sobre <Link href="/internet-boa-mas-travando">internet boa mas travando e o bufferbloat</Link>.
++        </p>
++      </DocPage>
++    </PageShell>
++  )
++}
++"@ > src/app/lag-em-jogos-online/page.tsx
++rm src/app/lag-em-jogos-online/LagEmJogosOnlineClient.tsx
++
++git add .
++git commit --amend --no-edit
++git push -f origin fix/issue-58-absolute-claims-final
+diff --git a/src/app/app/page.tsx b/src/app/app/page.tsx
+index e6a6028..01307f8 100644
+--- a/src/app/app/page.tsx
++++ b/src/app/app/page.tsx
+@@ -101,7 +101,7 @@ export default function AppLandingPage() {
+               <span className="font-semibold text-[12px] leading-[1.3] text-[color:var(--accent)] tracking-[.02em]">Em teste fechado · vagas limitadas</span>
+             </span>
+             <h1 className="m-0 max-w-[560px] font-bold text-[30px] sm:text-[42px] leading-[1.12] text-[color:var(--text-primary)] text-pretty">
+-              O app que não para no número: descobre por que sua internet está ruim
++              O app que não para no número: aponta causas prováveis da sua internet ruim
+             </h1>
+             <p className="m-0 max-w-[480px] font-normal text-[16px] leading-[1.5] text-[color:var(--text-secondary)] text-pretty">
+               Wi-Fi cômodo a cômodo, sinal 4G/5G real e diagnóstico por IA: o que nenhum teste de velocidade tradicional consegue ver.
+diff --git a/src/app/comparativo/page.tsx b/src/app/comparativo/page.tsx
+index 7b4e554..35aa9f6 100644
+--- a/src/app/comparativo/page.tsx
++++ b/src/app/comparativo/page.tsx
+@@ -6,9 +6,9 @@ import { PAGE_META } from '../../lib/pageMetaCatalog'
+ 
+ const SECTIONS: DocSection[] = [
+   { title: 'Só Mbps x veredito completo', text: 'Testes tradicionais mostram download e upload soltos. O SignallQ classifica cada métrica (Excelente/Bom/Regular/Fraco) e explica o que ela significa no uso real: streaming, videochamada, jogos.' },
+-  { title: 'Latência sob carga', text: 'A maioria dos testes só mede latência em repouso. O SignallQ também mede sob download e upload simultâneos, o que revela bufferbloat, a causa mais comum de travamento com sinal forte.' },
++  { title: 'Latência sob carga', text: 'A maioria dos testes só mede latência em repouso. O SignallQ também mede sob download e upload simultâneos, o que ajuda a identificar bufferbloat, uma causa comum de travamento com sinal forte.' },
+   { title: 'DNS entra na conta', text: 'Um DNS lento atrasa toda navegação mesmo com banda de sobra. O SignallQ compara servidores DNS reais e aponta o mais rápido para a sua rede.' },
+-  { title: 'Diagnóstico, não só número', text: 'Em vez de parar no resultado, o SignallQ aponta a causa mais provável (Wi-Fi, DNS, instabilidade da rede) e o que fazer a seguir.' },
++  { title: 'Diagnóstico, não só número', text: 'Em vez de parar no resultado, o SignallQ aponta causas prováveis (Wi-Fi, DNS, instabilidade da rede) e o que fazer a seguir.' },
+   { title: 'Diagnóstico completo é no app', text: 'O navegador não lê rádio Wi-Fi, sinal 4G/5G nem o modem da operadora. O app Android SignallQ mede tudo isso, cômodo a cômodo.' },
+ ]
+ 
+diff --git a/src/app/internet-boa-mas-travando/page.tsx b/src/app/internet-boa-mas-travando/page.tsx
+index aa91623..d76240a 100644
+--- a/src/app/internet-boa-mas-travando/page.tsx
++++ b/src/app/internet-boa-mas-travando/page.tsx
+@@ -23,7 +23,7 @@ const SECTIONS: DocSection[] = [
+   },
+   {
+     title: 'Como saber se o problema é esse',
+-    text: 'Um indício forte é a internet funcionar bem quando só uma coisa está sendo usada, mas travar, engasgar ou dar lag assim que mais de uma atividade disputa a rede ao mesmo tempo. Isso não confirma o diagnóstico por si só: sinal Wi-Fi fraco, interferência e problemas na operadora também podem causar lentidão. Mas, quando o atraso aparece sob uso simultâneo e melhora ao terminar o download, a fila excessiva merece investigação.',
++    text: 'Um indício forte é a internet funcionar bem quando só uma coisa está sendo usada, mas travar, engasgar ou dar lag assim que mais de uma atividade disputa a rede ao mesmo tempo. Isso aponta causas prováveis, mas não é a única explicação: sinal Wi-Fi fraco, interferência e problemas na operadora também podem causar lentidão. Mas, quando o atraso aparece sob uso simultâneo e melhora ao terminar o download, a fila excessiva (bufferbloat) é uma hipótese que merece investigação.',
+   },
+   {
+     title: 'O que fazer',
+@@ -39,7 +39,7 @@ export default function Page() {
+       <DocPage
+         overline="Diagnóstico"
+         title="Internet boa mas travando? Veja por que isso acontece"
+-        intro="Se o Wi-Fi está com sinal forte e o teste de velocidade mostra número alto, mas a internet ainda trava ou engasga quando mais de uma coisa usa a rede ao mesmo tempo, o motivo normalmente não é velocidade — é latência sob carga, um efeito chamado bufferbloat."
++        intro="Se o Wi-Fi está com sinal forte e o teste de velocidade mostra número alto, mas a internet ainda trava ou engasga quando mais de uma coisa usa a rede ao mesmo tempo, uma das causas possíveis não é falta de velocidade, mas sim a latência sob carga, um efeito conhecido como bufferbloat."
+         sections={SECTIONS}
+         ctaLabel="Testar minha conexão"
+         ctaTo="/?context=travando"
+diff --git a/src/app/lag-em-jogos-online/page.tsx b/src/app/lag-em-jogos-online/page.tsx
+index 0a5a8ae..b4afdbb 100644
+--- a/src/app/lag-em-jogos-online/page.tsx
++++ b/src/app/lag-em-jogos-online/page.tsx
+@@ -2,60 +2,49 @@
+ import Link from 'next/link'
+ import { DocPage, type DocSection } from '../../components/DocPage'
+ import { PageShell } from '../../components/PageShell'
+-import { useDocumentMeta } from '../../hooks/useDocumentMeta'
+-import { PAGE_META } from '../../lib/pageMetaCatalog'
+ 
+-// Conteúdo de SEO long-tail (issue #1399, consultoria de marketing registrada em #1374).
+-// Tema fora da lista original de 11 termos, sem grande portal dominando ainda --
+-// encaixa direto no posicionamento do SignallQ de explicar a causa, não só medir.
+-// Cada seção segue "resposta primeiro": a(s) primeira(s) frase(s) já respondem a
+-// pergunta do título, o resto elabora o mecanismo. Copy preservado 1:1 na
+-// reconstrução v2 (README, "só a moldura visual muda") — só a composição
+-// (SiteNav/SiteFooter, via DocPage/PageShell) mudou.
+ const SECTIONS: DocSection[] = [
+   {
+-    title: 'Por que dá lag em jogos mesmo com a internet parecendo boa',
+-    text: 'Se o teste de velocidade mostra números bons mas o jogo trava, o personagem "teleporta" ou você não consegue hospedar partida, a velocidade não é o único fator a verificar. Um possível motivo é o tipo de conexão que a operadora entrega: muitas compartilham um único endereço IP público entre várias casas, numa técnica chamada CGNAT (Carrier-Grade NAT). Isso pode dificultar conexões diretas usadas por alguns jogos, mesmo quando navegação, streaming e download parecem normais.',
++    title: 'Por que o jogo trava se a internet parece rápida?',
++    text: 'A velocidade de download importa pouco para jogos online. O que define uma partida fluida é a qualidade da comunicação: latência, jitter e perda de pacotes. Se a internet for rápida para baixar arquivos, mas a comunicação com o servidor do jogo for instável ou bloqueada, haverá lag.',
+   },
+   {
+-    title: 'O que é CGNAT',
+-    text: 'CGNAT é quando a operadora coloca vários clientes atrás do mesmo endereço IP público, em vez de dar um IP exclusivo para cada conexão — prática comum porque endereços IPv4 públicos são escassos e caros. Do ponto de vista da operadora, isso economiza IP; do ponto de vista do jogo, sua conexão passa a ficar atrás de uma camada extra de tradução de endereço que a maioria dos jogos online não foi desenhada para atravessar com facilidade.',
++    title: 'Latência, Jitter e Perda de Pacotes',
++    text: 'A latência (ping) é o tempo que a informação leva para ir ao servidor e voltar. O jitter é a variação dessa latência: se o ping pula de 20ms para 150ms imprevisivelmente, o jogo engasga. A perda de pacotes ocorre quando as informações não chegam ao destino, causando "teleportes".',
+   },
+   {
+-    title: 'Por que não consigo hospedar partida ou conectar direto com amigos',
+-    text: 'Isso pode acontecer quando a conexão fica com NAT restrito (também chamado de NAT Strict ou NAT Tipo 3, dependendo da plataforma). Nesse cenário, outro jogador pode não conseguir se conectar diretamente a você; hospedar uma sala e encontrar partidas também pode falhar. CGNAT é uma causa possível, mas as configurações do roteador e as regras do próprio jogo também influenciam o tipo de NAT.',
++    title: 'Wi-Fi e Interferência',
++    text: 'O sinal Wi-Fi sofre interferência de paredes e outros eletrônicos, causando oscilações de latência (jitter) e perda de pacotes. Para jogos, uma conexão cabeada é sempre a opção mais estável.',
+   },
+   {
+-    title: 'Como saber se é isso',
+-    text: 'A maioria dos consoles (Xbox, PlayStation) e alguns jogos mostram o tipo de NAT no menu de configuração de rede — procure a nomenclatura usada pela sua plataforma, como Aberto, Moderado ou Strict. Se aparecer Strict ou Moderado junto com dificuldade recorrente de jogar com amigos específicos ou de hospedar partida, vale verificar com a operadora se a conexão usa CGNAT. O teste de velocidade do SignallQ complementa essa checagem, mas não identifica CGNAT sozinho.',
++    title: 'Congestionamento e Bufferbloat',
++    text: 'Se o ping sobe quando alguém na casa assiste a um vídeo ou faz download, uma causa provável é o bufferbloat — a fila de dados no roteador que atrasa os pacotes do jogo. Roteadores que gerenciam bem o tráfego ajudam a evitar esse problema.',
+   },
+   {
+-    title: 'O que fazer',
+-    text: 'Antes de alterar o roteador, confirme o tipo de NAT e consulte a documentação do jogo ou do console. Redirecionamento de portas pode ajudar quando o bloqueio está no roteador local, mas geralmente não resolve se a conexão estiver sob CGNAT, porque a tradução também acontece na operadora. Nesse caso, pergunte se há opção de sair do CGNAT ou obter um IPv4 público; IPv6 também pode ajudar quando o jogo, o console e a rede o suportam.',
++    title: 'Rota e Servidor do Jogo',
++    text: 'O problema pode estar na rota que a operadora usa até o servidor do jogo, ou no próprio servidor. Se apenas um jogo específico trava, a investigação deve focar na rota para aquele destino.',
++  },
++  {
++    title: 'NAT Restrito e CGNAT: Hospedagem e P2P',
++    text: 'Se a dificuldade for hospedar partidas ou conectar-se com amigos, o problema costuma ser NAT Restrito (Strict). Uma das causas possíveis é o CGNAT (quando a operadora compartilha um IP público). O CGNAT não causa aumento de ping sozinho, mas dificulta conexões diretas entre jogadores.',
+   },
+ ]
+ 
+ export default function Page() {
+-  useDocumentMeta(PAGE_META['/lag-em-jogos-online'])
+-
+   return (
+     <PageShell align="center" mobilePadding="pt-7 px-5 pb-10">
+       <DocPage
+         overline="Diagnóstico"
+-        title="Lag em jogos online mesmo com boa internet? Pode ser CGNAT"
+-        intro="Se a internet parece boa em qualquer outro uso, mas trava, dá lag ou impede de hospedar partida e jogar com amigos, o motivo mais comum é CGNAT — uma prática da operadora que resulta em NAT Strict no seu console ou PC."
++        title="O que causa lag em jogos online?"
++        intro="Se a internet parece boa em qualquer outro uso, mas você tem dificuldade para jogar, o problema pode estar na qualidade da comunicação (ping, jitter, perda) ou em bloqueios de portas e NAT."
+         sections={SECTIONS}
+         ctaLabel="Testar latência nos servidores de jogos"
+         ctaTo="/jogos"
+       >
+         <p className="body-medium m-0">
+-          Se a internet trava mesmo fora de jogos — por exemplo, engasga em chamadas de vídeo quando outra pessoa está baixando algo — a
+-          causa pode ser diferente: veja <Link href="/internet-boa-mas-travando">internet boa mas travando e o bufferbloat</Link>.
++          Se a internet trava também fora de jogos — por exemplo, engasga em chamadas de vídeo quando outra pessoa está baixando algo — veja sobre <Link href="/internet-boa-mas-travando">internet boa mas travando e o bufferbloat</Link>.
+         </p>
+       </DocPage>
+     </PageShell>
+   )
+ }
+-
+-
+-
+diff --git a/src/lib/pageMetaCatalog.ts b/src/lib/pageMetaCatalog.ts
+index b85de8d..9d85d7b 100644
+--- a/src/lib/pageMetaCatalog.ts
++++ b/src/lib/pageMetaCatalog.ts
+@@ -61,7 +61,7 @@ export const PAGE_META: Record<string, PageMeta> = {
+   },
+   '/app': {
+     title: 'App SignallQ',
+-    description: 'O app que não para no número: descobre por que sua internet está ruim. Em teste fechado.',
++    description: 'O app que não para no número: aponta causas prováveis da sua internet ruim. Em teste fechado.',
+     path: '/app',
+   },
+   // /velocidade-e-latencia e /latencia-sob-carga foram eliminadas (#97): a
+diff --git a/src/lib/webDiagnosticResponse.ts b/src/lib/webDiagnosticResponse.ts
+index bdae950..da18908 100644
+--- a/src/lib/webDiagnosticResponse.ts
++++ b/src/lib/webDiagnosticResponse.ts
+@@ -65,7 +65,7 @@ export function createWebDiagnosticResponse(
+     conclusion: 'Há um sinal de atenção nesta medição, mas não uma causa confirmada.',
+     impact: 'Algumas atividades podem ficar menos estáveis dependendo do horário e do uso da rede.',
+     confidence: hasDeclaredContext ? 'Confiança moderada: esta é uma hipótese baseada na medição e no contexto declarado.' : 'Confiança moderada: a medição indica atenção, sem confirmar a origem.',
+-    nextAction: 'Faça um novo teste nas mesmas condições para confirmar se o sinal se repete.',
++    nextAction: 'Faça um novo teste nas mesmas condições para verificar se o sinal se repete.',
+     ...(needsAndroidContext(context) ? { androidCta: { reason: 'Para verificar sinal, canais e alcance do Wi-Fi, são necessários dados que o navegador não consegue ler.' } } : {}),
+   }
+   return {
