@@ -74,14 +74,13 @@ export const PAGE_META: Record<string, PageMeta> = {
     description: 'Compare o tempo de resposta dos resolvedores DNS públicos da Cloudflare e do Google direto do seu navegador.',
     path: '/dns',
   },
-  // Placeholder ("Em breve") pro diagnóstico dedicado linkado pelo chip
-  // "Modo gamer" da Home (`DIAG_ITEMS`, `src/app/page.tsx`) — ainda não
-  // implementado, `noindex` até ter conteúdo real.
-  '/modo-gamer': {
-    title: 'Modo gamer — em breve — SignallQ',
-    description: 'Diagnóstico dedicado de modo gamer por jogo, em construção.',
-    path: '/modo-gamer',
-    robots: 'noindex,follow',
+  // #99 — /modo-gamer virou /jogos: medição real de latência até
+  // infraestrutura pública de Steam, Riot Games e Xbox Live, chip "Modo
+  // gamer" da Home aponta pra cá.
+  '/jogos': {
+    title: 'Latência até servidores de jogos — SignallQ',
+    description: 'Meça o tempo de resposta até a infraestrutura pública da Steam, Riot Games e Xbox Live direto do seu navegador.',
+    path: '/jogos',
   },
 }
 

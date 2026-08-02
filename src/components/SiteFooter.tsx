@@ -7,6 +7,7 @@ export function SiteFooter() {
     { label: "Histórico", href: "/historico" },
     { label: "Como medimos", href: "/como-medimos" },
     { label: "Comparar servidores DNS", href: "/dns" },
+    { label: "Latência para jogos", href: "/jogos" },
     { label: "Internet boa mas travando", href: "/internet-boa-mas-travando" },
     { label: "Lag em jogos online", href: "/lag-em-jogos-online" },
     { label: "Comparativo", href: "/comparativo" },
@@ -87,6 +88,7 @@ export function SiteFooter() {
               <Link href="/historico" className="font-normal text-[14px] text-[color:var(--text-primary)] no-underline hover:underline">Histórico</Link>
               <Link href="/como-medimos" className="font-normal text-[14px] text-[color:var(--text-primary)] no-underline hover:underline">Como medimos</Link>
               <Link href="/dns" className="font-normal text-[14px] text-[color:var(--text-primary)] no-underline hover:underline">Comparar servidores DNS</Link>
+              <Link href="/jogos" className="font-normal text-[14px] text-[color:var(--text-primary)] no-underline hover:underline">Latência para jogos</Link>
             </div>
             <div className="flex flex-col gap-[10px]">
               <div className="font-medium text-[11px] leading-[1.45] text-[color:var(--text-tertiary)] tracking-[.3px] uppercase">
