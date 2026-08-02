@@ -5,6 +5,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSpeedTestNetworkGuard } from './useSpeedTestNetworkGuard'
 import { useSpeedTestTabLock } from './useSpeedTestTabLock'
+import type { TipoRede } from '../lib/connection'
 import { persistSpeedTestResult } from '../lib/persistSpeedTestResult'
 import { createSpeedTest, type SpeedTestMode, type SpeedTestResult } from '../lib/speedEngine'
 import {
@@ -13,14 +14,9 @@ import {
   RUNNING_PHASES,
   STEP_PHASES,
   type FasePainel,
+  type PhaseResults,
 } from '../lib/speedTestPhase'
 import { FEATURE_SPEEDTEST_COMPLETOU, FEATURE_SPEEDTEST_INICIADO, trackFeatureUsed } from '../lib/telemetry'
-
-export interface PhaseResults {
-  latencia?: number
-  download?: number
-  upload?: number
-}
 
 export function useSpeedTestController(modo: SpeedTestMode) {
   const [phase, setPhase] = useState<FasePainel>('idle')
@@ -48,8 +44,12 @@ export function useSpeedTestController(modo: SpeedTestMode) {
   const lock = useSpeedTestTabLock()
   const { acquire, release, startHeartbeat, stopHeartbeat, hasForeignLock } = lock
   const marcarContaminado = useCallback(() => engineRef.current?.markContaminated(), [])
-  const { connectionKind, connectionKindRef, capturarRedeInicial, redeMudouDuranteOTeste } =
+  const { connectionKind, capturarRedeInicial, redeMudouDuranteOTeste } =
     useSpeedTestNetworkGuard(marcarContaminado)
+  // Espelha o tipo de rede capturado no início do teste para uso síncrono em
+  // `persistSpeedTestResult` no fim da execução, sem expor o ref interno do
+  // guard de rede na interface pública do hook.
+  const redeInicialTipoRef = useRef<TipoRede | null>(null)
 
   const aplicarFase = useCallback((novaFase: FasePainel) => {
     phaseRef.current = novaFase
@@ -75,6 +75,7 @@ export function useSpeedTestController(modo: SpeedTestMode) {
       trackFeatureUsed(FEATURE_SPEEDTEST_INICIADO)
 
       const rede = await capturarRedeInicial()
+      redeInicialTipoRef.current = rede.tipo
       if (!rede.internet) {
         aplicarFase('sem-conexao')
         release()
@@ -113,7 +114,7 @@ export function useSpeedTestController(modo: SpeedTestMode) {
         aplicarFase(phaseFromResultStatus(resultadoFinal.status))
         if (resultadoFinal.status === 'complete') {
           trackFeatureUsed(FEATURE_SPEEDTEST_COMPLETOU)
-          await persistSpeedTestResult(resultadoFinal, connectionKindRef.current)
+          await persistSpeedTestResult(resultadoFinal, redeInicialTipoRef.current)
         }
       } catch (err) {
         stopHeartbeat()
@@ -122,7 +123,7 @@ export function useSpeedTestController(modo: SpeedTestMode) {
         release()
       }
     },
-    [acquire, aplicarFase, capturarRedeInicial, connectionKindRef, redeMudouDuranteOTeste, release, startHeartbeat, stopHeartbeat]
+    [acquire, aplicarFase, capturarRedeInicial, redeMudouDuranteOTeste, release, startHeartbeat, stopHeartbeat]
   )
 
   useEffect(() => {

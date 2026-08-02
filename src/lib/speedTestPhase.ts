@@ -32,6 +32,15 @@ export const RUNNING_PHASES: FasePainel[] = ['preparando', 'latencia', 'download
 // Fases cujo valor ao vivo vira um resultado parcial fixado ao trocar de etapa.
 export const STEP_PHASES: FasePainel[] = ['latencia', 'download', 'upload']
 
+// Resultado parcial fixado por fase (latência/download/upload) enquanto a
+// medição está em andamento — irmão de tipo de FasePainel/ProblemPhase, por
+// isso vive no mesmo módulo puro em vez do módulo do hook.
+export interface PhaseResults {
+  latencia?: number
+  download?: number
+  upload?: number
+}
+
 export function problemPhaseFromError(err: unknown): ProblemPhase {
   const code = err instanceof SpeedTestError ? err.code : 'unexpected-error'
   return CODE_TO_PROBLEM_PHASE[code] ?? 'erro-inesperado'

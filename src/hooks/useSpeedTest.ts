@@ -9,8 +9,7 @@ import type { SpeedTestMode } from '../lib/speedEngine'
 import type { MeasurementSessionContext } from '../lib/measurementSessionContext'
 import { beginMeasurementSession, readMeasurementSession } from '../lib/measurementSessionStore'
 
-export type { FasePainel, ProblemPhase } from '../lib/speedTestPhase'
-export type { PhaseResults } from './useSpeedTestController'
+export type { FasePainel, PhaseResults, ProblemPhase } from '../lib/speedTestPhase'
 
 export function useSpeedTest(modo: SpeedTestMode) {
   const [measurementContext, setMeasurementContext] = useState<MeasurementSessionContext | null>(() => readMeasurementSession()?.context ?? null)

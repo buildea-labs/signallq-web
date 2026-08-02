@@ -1,48 +1,20 @@
-import { SPEEDTEST_DOWNLOAD_URL, SPEEDTEST_LATENCY_URL, SPEEDTEST_SERVER_LABEL, SPEEDTEST_UPLOAD_URL } from './config'
+// Motor de medição: orquestra transporte (speedTestTransport), estatística
+// (speedTestStats) e configuração por modo (speedTestConfig) para montar o
+// resultado final. Lógica de timing/XHR sensível vive em speedTestTransport;
+// este arquivo só decide a sequência das fases e monta o objeto de resultado.
+import { generateId } from './id'
+import { measurementStatus, SPEED_TEST_MODE_CONFIG } from './speedTestConfig'
+import { bufferbloatSeverity, measurementServerLabel, median, stability } from './speedTestStats'
+import { SpeedTestError } from './speedTestError'
+import { collectLatency, measureDns, runThroughput, type CancelToken, type DnsSummary } from './speedTestTransport'
 
 export type SpeedTestMode = 'rapido' | 'completo' | 'triplo'
 export type MeasurementStatus = 'complete' | 'partial' | 'inconclusive' | 'contaminated' | 'cancelled'
 export type SpeedTestPhase = 'preparando' | 'latencia' | 'download' | 'upload' | 'processando'
 export type BufferbloatSeverity = 'none' | 'mild' | 'moderate' | 'severe'
 
-export type SpeedTestErrorCode = 'no-connection' | 'connection-interrupted' | 'endpoint-unavailable' | 'cancelled' | 'unexpected-error'
-
-export class SpeedTestError extends Error {
-  constructor(public code: SpeedTestErrorCode, message: string = code) {
-    super(message)
-  }
-}
-
-interface CancelToken {
-  cancelled: boolean
-  contaminated: boolean
-  xhrs: Set<XMLHttpRequest>
-}
-
-interface Sample {
-  tMs: number
-  mbps: number
-}
-
-interface LatencySummary {
-  ms: number
-  jitterMs: number
-  packetLossPercent: number
-  totalSamples: number
-  validSamples: number
-  timeouts: number
-  maxMs: number
-  p95Ms: number
-  peaks: number
-}
-
-interface ThroughputSummary {
-  mbps: number
-  peakMbps: number
-  samples: number[]
-  endedBy: 'time_elapsed' | 'network_changed' | 'cancelled'
-  requestErrors: number
-}
+export { SpeedTestError }
+export type { SpeedTestErrorCode } from './speedTestError'
 
 export interface SpeedTestResult {
   id: string
@@ -57,286 +29,13 @@ export interface SpeedTestResult {
   loadedLatency: { downloadMs: number; uploadMs: number } | null
   bufferbloat: { ms: number; severity: BufferbloatSeverity }
   stabilityScore: number
-  dns: { latencyMs: number | null; resolverIp: string | null; provider: string | null }
+  dns: DnsSummary
   connectionType: string | null
   server: string
   /** Tempo efetivamente decorrido nesta rodada, medido no navegador. */
   durationMs?: number
   partial: boolean
   rounds?: Array<{ downloadMbps: number; uploadMbps: number; latencyMs: number }>
-}
-
-export interface SpeedTestModeConfig {
-  latencySampleCount: number
-  /** Amostras de latência válidas necessárias para considerar a rodada completa. */
-  minimumValidLatencySamples: number
-  downloadDurationMs: number
-  uploadDurationMs: number
-  downloadPayloadBytes: number
-  uploadPayloadBytes: number
-  downloadInitialStreams: number
-  downloadMaxStreams: number
-  uploadInitialStreams: number
-  uploadMaxStreams: number
-  warmupMs: number
-}
-
-/**
- * Parâmetros de medição, não regras de diagnóstico. O modo integra o contexto
- * da execução; somente o motor oficial, via contrato Cloudflare, conclui causas.
- */
-export const SPEED_TEST_MODE_CONFIG: Record<Exclude<SpeedTestMode, 'triplo'>, SpeedTestModeConfig> = {
-  rapido: {
-    latencySampleCount: 15, minimumValidLatencySamples: 8, downloadDurationMs: 7000, uploadDurationMs: 7000,
-    downloadPayloadBytes: 10_000_000, uploadPayloadBytes: 5_000_000,
-    downloadInitialStreams: 2, downloadMaxStreams: 4, uploadInitialStreams: 4, uploadMaxStreams: 4, warmupMs: 1000,
-  },
-  completo: {
-    latencySampleCount: 25, minimumValidLatencySamples: 18, downloadDurationMs: 18_000, uploadDurationMs: 18_000,
-    downloadPayloadBytes: 25_000_000, uploadPayloadBytes: 10_000_000,
-    downloadInitialStreams: 2, downloadMaxStreams: 8, uploadInitialStreams: 8, uploadMaxStreams: 8, warmupMs: 2000,
-  },
-}
-
-export function measurementStatus(
-  config: SpeedTestModeConfig,
-  input: { validLatencySamples: number; throughputComplete: boolean; contaminated: boolean },
-): MeasurementStatus {
-  if (input.contaminated) return 'contaminated'
-  // Menos de cinco respostas não sustenta sequer a triagem curta.
-  if (input.validLatencySamples < 5) return 'inconclusive'
-  // Cada modo declara a precisão que efetivamente conseguiu coletar.
-  if (!input.throughputComplete || input.validLatencySamples < config.minimumValidLatencySamples) return 'partial'
-  return 'complete'
-}
-
-export function median(nums: number[]): number {
-  if (!nums.length) return 0
-  const values = [...nums].sort((a, b) => a - b)
-  const middle = Math.floor(values.length / 2)
-  return values.length % 2 ? values[middle]! : (values[middle - 1]! + values[middle]!) / 2
-}
-
-export function meanAbsJitter(nums: number[]): number | null {
-  if (nums.length < 2) return null
-  return nums.slice(1).reduce((sum, value, index) => sum + Math.abs(value - nums[index]!), 0) / (nums.length - 1)
-}
-
-export function bytesToMbps(bytes: number, ms: number): number {
-  return ms > 0 ? (bytes * 8) / (ms / 1000) / 1e6 : 0
-}
-
-/**
- * O código de colo é uma informação da borda que respondeu à requisição, não
- * uma localização escolhida pelo navegador. Só aceitamos o formato IATA de
- * três letras para nunca renderizar um valor de header arbitrário.
- */
-export function cloudflareColo(value: string | null): string | null {
-  const colo = value?.trim().toUpperCase() ?? ''
-  return /^[A-Z]{3}$/.test(colo) ? colo : null
-}
-
-export function measurementServerLabel(colo: string | null): string {
-  return colo ? `Borda Cloudflare · PoP ${colo}` : SPEEDTEST_SERVER_LABEL
-}
-
-export function summarizeLatency(raw: Array<number | null>): LatencySummary {
-  const samples = raw.slice(1)
-  const timeouts = samples.filter((sample) => sample == null).length
-  const valid = samples.filter((sample): sample is number => sample != null && Number.isFinite(sample))
-  const baseMedian = median(valid)
-  const filtered = baseMedian > 0 ? valid.filter((sample) => sample <= baseMedian * 3) : valid
-  const used = filtered.length ? filtered : valid
-  const ordered = [...valid].sort((a, b) => a - b)
-  const p95Index = ordered.length ? Math.min(ordered.length - 1, Math.max(0, Math.ceil(ordered.length * 0.95) - 1)) : 0
-  return {
-    ms: median(used),
-    jitterMs: meanAbsJitter(used) ?? 0,
-    packetLossPercent: samples.length ? (timeouts / samples.length) * 100 : 0,
-    totalSamples: samples.length,
-    validSamples: used.length,
-    timeouts,
-    maxMs: ordered.at(-1) ?? 0,
-    p95Ms: ordered[p95Index] ?? 0,
-    peaks: valid.length - used.length,
-  }
-}
-
-function xhrRequest(
-  method: 'GET' | 'POST',
-  url: string,
-  body: Blob | null,
-  token: CancelToken,
-  onProgress?: (loaded: number) => void,
-  onColo?: (colo: string) => void,
-): Promise<{ bytes: number; duration: number }> {
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest()
-    token.xhrs.add(xhr)
-    xhr.open(method, url, true)
-    xhr.timeout = 20_000
-    if (method === 'GET') xhr.responseType = 'arraybuffer'
-    const startedAt = performance.now()
-    const target = method === 'POST' ? xhr.upload : xhr
-    target.onprogress = (event) => onProgress?.(event.loaded)
-    const finish = () => token.xhrs.delete(xhr)
-    xhr.onload = () => {
-      finish()
-      if (xhr.status >= 200 && xhr.status < 300) {
-        // A leitura só funciona quando o endpoint libera o header por CORS.
-        // Não lemos IP, país, cidade ou coordenadas, ainda que estejam presentes.
-        const colo = cloudflareColo(xhr.getResponseHeader('cf-meta-colo'))
-        if (colo) onColo?.(colo)
-        resolve({ bytes: body?.size ?? (xhr.response as ArrayBuffer | null)?.byteLength ?? 0, duration: performance.now() - startedAt })
-      }
-      else reject(new SpeedTestError('endpoint-unavailable', `HTTP ${xhr.status}`))
-    }
-    xhr.onerror = () => { finish(); reject(new SpeedTestError(navigator.onLine ? 'endpoint-unavailable' : 'no-connection')) }
-    xhr.ontimeout = () => { finish(); reject(new SpeedTestError('endpoint-unavailable', 'timeout')) }
-    xhr.onabort = () => { finish(); reject(new SpeedTestError('cancelled')) }
-    xhr.send(body)
-  })
-}
-
-function uploadBlob(bytes: number): Blob {
-  const chunks: Uint8Array[] = []
-  for (let remaining = bytes; remaining > 0; remaining -= 65_536) {
-    const chunk = new Uint8Array(Math.min(65_536, remaining))
-    crypto.getRandomValues(chunk)
-    chunks.push(chunk)
-  }
-  return new Blob(chunks as any)
-}
-
-async function measureLatency(token: CancelToken): Promise<number | null> {
-  const startedAt = performance.now()
-  try {
-    await xhrRequest('GET', `${SPEEDTEST_LATENCY_URL}${SPEEDTEST_LATENCY_URL.includes('?') ? '&' : '?'}_cb=${Date.now()}_${Math.random()}`, null, token)
-    return performance.now() - startedAt
-  } catch (error) {
-    if (error instanceof SpeedTestError && error.code === 'cancelled') throw error
-    return null
-  }
-}
-
-async function collectLatency(count: number, token: CancelToken, onSample: (ms: number) => void): Promise<LatencySummary> {
-  const raw: Array<number | null> = []
-  for (let index = 0; index < count; index++) {
-    if (token.cancelled) throw new SpeedTestError('cancelled')
-    const sample = await measureLatency(token)
-    raw.push(sample)
-    if (sample != null) onSample(sample)
-  }
-  return summarizeLatency(raw)
-}
-
-async function runThroughput(
-  phase: 'download' | 'upload',
-  config: SpeedTestModeConfig,
-  token: CancelToken,
-  onTick: (mbps: number) => void,
-  onColo: (colo: string) => void,
-): Promise<{ throughput: ThroughputSummary; loadLatencyMs: number }> {
-  const durationMs = phase === 'download' ? config.downloadDurationMs : config.uploadDurationMs
-  const payloadBytes = phase === 'download' ? config.downloadPayloadBytes : config.uploadPayloadBytes
-  const initialStreams = phase === 'download' ? config.downloadInitialStreams : config.uploadInitialStreams
-  const maxStreams = phase === 'download' ? config.downloadMaxStreams : config.uploadMaxStreams
-  const startedAt = performance.now()
-  const samples: Sample[] = []
-  const loadPings: number[] = []
-  let bytesTick = 0
-  let targetStreams = initialStreams
-  let requestErrors = 0
-  let lastScaleAt = 0
-  let previousAverage = 0
-  const stopAt = startedAt + durationMs
-
-  const worker = async (index: number) => {
-    if (index) await new Promise((resolve) => setTimeout(resolve, index * 200))
-    while (!token.cancelled && performance.now() < stopAt) {
-      if (index >= targetStreams) { await new Promise((resolve) => setTimeout(resolve, 120)); continue }
-      try {
-        let previousLoaded = 0
-        const onProgress = (loaded: number) => {
-          bytesTick += Math.max(0, loaded - previousLoaded)
-          previousLoaded = loaded
-        }
-        const request = phase === 'download'
-          ? xhrRequest('GET', `${SPEEDTEST_DOWNLOAD_URL}?bytes=${payloadBytes}&_cb=${Date.now()}_${Math.random()}`, null, token, onProgress, onColo)
-          : xhrRequest('POST', `${SPEEDTEST_UPLOAD_URL}?_cb=${Date.now()}_${Math.random()}`, uploadBlob(payloadBytes), token, onProgress, onColo)
-        const response = await request
-        // Alguns navegadores não emitem progresso de upload para payloads pequenos.
-        if (phase === 'upload' && previousLoaded === 0) bytesTick += response.bytes
-      } catch (error) {
-        if (error instanceof SpeedTestError && error.code === 'cancelled') return
-        requestErrors++
-        if (!navigator.onLine) { token.contaminated = true; return }
-      }
-    }
-  }
-
-  const sampler = window.setInterval(() => {
-    const elapsed = performance.now() - startedAt
-    const instant = bytesToMbps(bytesTick, 1000)
-    bytesTick = 0
-    if (instant > 0) { samples.push({ tMs: elapsed, mbps: instant }); onTick(instant) }
-    if (elapsed - lastScaleAt >= 4000 && targetStreams < maxStreams) {
-      const recent = samples.filter((sample) => sample.tMs >= Math.max(0, elapsed - 4000)).map((sample) => sample.mbps)
-      const average = recent.length ? recent.reduce((sum, value) => sum + value, 0) / recent.length : 0
-      if (!previousAverage || average >= previousAverage * 1.1) targetStreams = Math.min(maxStreams, targetStreams + 2)
-      previousAverage = average
-      lastScaleAt = elapsed
-    }
-  }, 1000)
-  const pingLoop = (async () => {
-    while (!token.cancelled && performance.now() < stopAt) {
-      const before = performance.now()
-      const ping = await measureLatency(token)
-      if (ping != null) loadPings.push(ping)
-      await new Promise((resolve) => setTimeout(resolve, Math.max(0, 1000 - (performance.now() - before))))
-    }
-  })()
-
-  await Promise.all(Array.from({ length: maxStreams }, (_, index) => worker(index)))
-  window.clearInterval(sampler)
-  await pingLoop
-  const valid = samples.filter((sample) => sample.tMs >= config.warmupMs && sample.mbps > 0)
-  const stable = valid.slice(Math.min(valid.length, Math.ceil(valid.length * 0.35)))
-  const measured = stable.length ? stable : valid
-  const endedBy = token.cancelled ? 'cancelled' : token.contaminated ? 'network_changed' : 'time_elapsed'
-  return {
-    throughput: { mbps: measured.length ? measured.reduce((sum, sample) => sum + sample.mbps, 0) / measured.length : 0, peakMbps: valid.reduce((peak, sample) => Math.max(peak, sample.mbps), 0), samples: valid.map((sample) => sample.mbps), endedBy, requestErrors },
-    loadLatencyMs: median(loadPings),
-  }
-}
-
-async function measureDns(): Promise<SpeedTestResult['dns']> {
-  const url = 'https://cloudflare-dns.com/dns-query?name=whoami.cloudflare.com&type=TXT'
-  const startedAt = performance.now()
-  try {
-    const response = await fetch(url, { headers: { accept: 'application/dns-json' }, cache: 'no-store', signal: AbortSignal.timeout(4000) })
-    if (!response.ok) return { latencyMs: null, resolverIp: null, provider: null }
-    const body = JSON.stringify(await response.json())
-    const resolverIp = body.match(/\b(?:\d{1,3}\.){3}\d{1,3}\b/)?.[0] ?? null
-    return { latencyMs: Math.round(performance.now() - startedAt), resolverIp, provider: body.toLowerCase().includes('cloudflare') ? 'cloudflare' : resolverIp ? 'desconhecido' : null }
-  } catch {
-    return { latencyMs: null, resolverIp: null, provider: null }
-  }
-}
-
-function bufferbloatSeverity(ms: number): BufferbloatSeverity {
-  if (ms < 5) return 'none'
-  if (ms <= 30) return 'mild'
-  if (ms <= 100) return 'moderate'
-  return 'severe'
-}
-
-function stability(samples: number[]): number {
-  if (samples.length < 2) return 0
-  const mean = samples.reduce((sum, sample) => sum + sample, 0) / samples.length
-  if (!mean) return 0
-  const deviation = Math.sqrt(samples.reduce((sum, sample) => sum + (sample - mean) ** 2, 0) / samples.length)
-  return Math.max(0, Math.min(100, 100 - (deviation / mean) * 100))
 }
 
 interface Callbacks {
@@ -381,13 +80,7 @@ export function createSpeedTest(mode: SpeedTestMode = 'rapido') {
       throughputComplete,
       contaminated: token.contaminated,
     })
-    const generateId = () => {
-      if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-        try { return crypto.randomUUID() } catch { /* falha no Safari HTTP */ }
-      }
-      return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
-    }
-    
+
     return {
       id: generateId(), timestamp: Date.now(), mode: singleMode, status,
       download: { mbps: download.throughput.mbps, peakMbps: download.throughput.peakMbps },
@@ -429,4 +122,3 @@ export function createSpeedTest(mode: SpeedTestMode = 'rapido') {
 
   return { run, cancel, markContaminated }
 }
-
