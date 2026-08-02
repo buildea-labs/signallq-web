@@ -2,7 +2,16 @@
 import Link from 'next/link'
 import { DocPage, type DocSection } from '../../components/DocPage'
 import { PageShell } from '../../components/PageShell'
+import { useDocumentMeta } from '../../hooks/useDocumentMeta'
+import { PAGE_META } from '../../lib/pageMetaCatalog'
 
+// Conteúdo de SEO long-tail (issue #1399, consultoria de marketing registrada em #1374).
+// Tema fora da lista original de 11 termos, sem grande portal dominando ainda --
+// encaixa direto no posicionamento do SignallQ de explicar a causa, não só medir.
+// Cada seção segue "resposta primeiro": a(s) primeira(s) frase(s) já respondem a
+// pergunta do título, o resto elabora o mecanismo. Copy preservado 1:1 na
+// reconstrução v2 (README, "só a moldura visual muda") — só a composição
+// (SiteNav/SiteFooter, via DocPage/PageShell) mudou.
 const SECTIONS: DocSection[] = [
   {
     title: 'Por que o jogo trava se a internet parece rápida?',
@@ -31,6 +40,8 @@ const SECTIONS: DocSection[] = [
 ]
 
 export default function Page() {
+  useDocumentMeta(PAGE_META['/lag-em-jogos-online'])
+
   return (
     <PageShell align="center" mobilePadding="pt-7 px-5 pb-10">
       <DocPage
