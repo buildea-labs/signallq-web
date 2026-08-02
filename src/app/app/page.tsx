@@ -1,5 +1,6 @@
 "use client";
 import { useEffect } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useDocumentMeta } from '@/hooks/useDocumentMeta'
 import { PAGE_META } from '@/lib/pageMetaCatalog'
@@ -127,10 +128,12 @@ export default function AppLandingPage() {
           </div>
 
           <div className="sq-app-float flex-none rounded-[30px] p-[6px] box-border bg-[#16181d] shadow-[0_18px_40px_-14px_rgba(0,0,0,.5)] mx-auto sm:mx-0">
-            <img
+            <Image
               src="/assets/teste-01-home-dark.png"
               alt="Tela Início do SignallQ em modo escuro, mostrando o caminho da conexão entre aparelho, roteador e provedor, o resultado da última medição de velocidade e o status do Wi-Fi."
-              className="h-[280px] sm:h-[380px] w-auto block rounded-[22px]"
+              width={380}
+              height={854}
+              className="block rounded-[22px]"
             />
           </div>
         </div>

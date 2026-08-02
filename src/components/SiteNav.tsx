@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
@@ -109,17 +110,21 @@ export function SiteNav() {
     )}>
       <div className="relative mx-auto max-w-[1280px] min-h-[76px] flex items-center justify-between gap-4 py-[14px] px-[20px] box-border">
         <Link href="/" aria-label="Página inicial SignallQ">
-          <img
-            className="sq-logo-light h-[32px] w-auto block shrink-0"
+          <Image
+            className="sq-logo-light block shrink-0"
             src="/assets/signallq-lockup-light-bg-v5.png"
             alt=""
             aria-hidden="true"
+            width={128}
+            height={32}
           />
-          <img
-            className="sq-logo-dark h-[32px] w-auto hidden shrink-0"
+          <Image
+            className="sq-logo-dark hidden shrink-0"
             src="/assets/signallq-lockup-dark-bg-v5.png"
             alt=""
             aria-hidden="true"
+            width={128}
+            height={32}
           />
         </Link>
 

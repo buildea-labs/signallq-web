@@ -1,3 +1,5 @@
+import Image from 'next/image'
+
 export type BrandEndorsementVariant = 'text' | 'symbol-text'
 export type BrandEndorsementSize = 'compact' | 'default'
 
@@ -34,9 +36,8 @@ export function BrandEndorsement({
   const showSymbol = variant === 'symbol-text'
   const resolvedSymbolSrc = symbolSrc ?? BUILDEA_SYMBOL_SRC
   const fontSize = size === 'compact' ? '10px' : '11px'
-  // Símbolo é praticamente quadrado (408x408) — altura fixa por tamanho, largura
-  // livre (`auto`) para o navegador preservar a proporção intrínseca do PNG.
-  const symbolHeight = size === 'compact' ? '14px' : '16px'
+  // Símbolo é praticamente quadrado (408x408) — altura fixa por tamanho.
+  const symbolSize = size === 'compact' ? 14 : 16
 
   return (
     <span
@@ -47,12 +48,14 @@ export function BrandEndorsement({
       {showSymbol && (
         // Decorativo — o texto ao lado já carrega o significado, então o
         // símbolo fica oculto de leitor de tela (alt vazio + aria-hidden).
-        <img
+        <Image
           src={resolvedSymbolSrc}
           alt=""
           aria-hidden="true"
+          width={symbolSize}
+          height={symbolSize}
           className="shrink-0"
-          style={{ height: symbolHeight, width: 'auto', borderRadius: '3px' }}
+          style={{ borderRadius: '3px' }}
           draggable={false}
         />
       )}

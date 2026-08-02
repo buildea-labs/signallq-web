@@ -1,4 +1,5 @@
 "use client";
+import Image from 'next/image'
 import { useDocumentMeta } from '../../hooks/useDocumentMeta'
 import { PAGE_META } from '../../lib/pageMetaCatalog'
 
@@ -47,21 +48,21 @@ export default function BrandPage() {
             <div className={CARD}>
               <span className={OVERLINE}>Logo principal</span>
               <div className="flex items-center justify-center min-h-[140px] rounded-[14px] p-6 bg-[#FFFFFF]">
-                <img src="/assets/signallq-lockup-light-bg-v5.png" alt="Logotipo SignallQ, versão para fundo claro" className="h-[44px] w-auto block" />
+                <Image src="/assets/signallq-lockup-light-bg-v5.png" alt="Logotipo SignallQ, versão para fundo claro" width={176} height={44} className="block" />
               </div>
             </div>
 
             <div className={CARD}>
               <span className={OVERLINE}>Versão em fundo escuro</span>
               <div className="flex items-center justify-center min-h-[140px] rounded-[14px] p-6 bg-[#131217]">
-                <img src="/assets/signallq-lockup-dark-bg-v5.png" alt="Logotipo SignallQ, versão para fundo escuro" className="h-[44px] w-auto block" />
+                <Image src="/assets/signallq-lockup-dark-bg-v5.png" alt="Logotipo SignallQ, versão para fundo escuro" width={176} height={44} className="block" />
               </div>
             </div>
 
             <div className={CARD}>
               <span className={OVERLINE}>Versão monocromática</span>
               <div className="flex items-center justify-center min-h-[140px] rounded-[14px] p-6 bg-[#F8F5FB]">
-                <img src="/assets/signallq-lockup-light-bg-v5.png" alt="Logotipo SignallQ, versão monocromática" className="h-[44px] w-auto block grayscale contrast-[1.05]" />
+                <Image src="/assets/signallq-lockup-light-bg-v5.png" alt="Logotipo SignallQ, versão monocromática" width={176} height={44} className="block grayscale contrast-[1.05]" />
               </div>
             </div>
 
@@ -69,11 +70,11 @@ export default function BrandPage() {
               <span className={OVERLINE}>Ícones do app</span>
               <div className="flex items-center justify-center gap-[40px] min-h-[140px] rounded-[14px]">
                 <div className="flex flex-col items-center gap-[10px]">
-                  <img src="/assets/signallq-icon-512-play-store-dark.png" alt="Ícone do aplicativo SignallQ para a Play Store" className="w-[92px] h-[92px] rounded-[22px] block shadow-[0_8px_20px_rgba(0,0,0,.2)]" />
+                  <Image src="/assets/signallq-icon-512-play-store-dark.png" alt="Ícone do aplicativo SignallQ para a Play Store" width={92} height={92} className="rounded-[22px] block shadow-[0_8px_20px_rgba(0,0,0,.2)]" />
                   <span className="font-medium text-[11px] leading-[1.3] text-[color:var(--text-tertiary)]">Google Play</span>
                 </div>
                 <div className="flex flex-col items-center gap-[10px]">
-                  <img src="/assets/signallq-icon-1024-app-store-dark.png" alt="Ícone do aplicativo SignallQ para a App Store" className="w-[92px] h-[92px] rounded-[20px] block shadow-[0_8px_20px_rgba(0,0,0,.2)]" />
+                  <Image src="/assets/signallq-icon-1024-app-store-dark.png" alt="Ícone do aplicativo SignallQ para a App Store" width={92} height={92} className="rounded-[20px] block shadow-[0_8px_20px_rgba(0,0,0,.2)]" />
                   <span className="font-medium text-[11px] leading-[1.3] text-[color:var(--text-tertiary)]">App Store</span>
                 </div>
               </div>
@@ -98,42 +99,42 @@ export default function BrandPage() {
             <div className="grid grid-cols-2 sm:grid-cols-6 gap-4">
               <div className="flex flex-col items-center gap-[10px] rounded-[20px] p-6 box-border bg-[color:var(--bg-secondary)] shadow-[0_10px_26px_rgba(0,0,0,.14)]">
                 <div className="flex items-center justify-center w-[64px] h-[64px] rounded-[16px] bg-[#FFFFFF] overflow-hidden">
-                  <img src="/assets/signallq-favicon-light-bg.png" alt="Favicon Android, versão clara" className="w-full h-full block" />
+                  <Image src="/assets/signallq-favicon-light-bg.png" alt="Favicon Android, versão clara" width={64} height={64} className="block" />
                 </div>
                 <span className="font-medium text-[11px] leading-[1.3] text-[color:var(--text-tertiary)] text-center">Android · Claro</span>
               </div>
 
               <div className="flex flex-col items-center gap-[10px] rounded-[20px] p-6 box-border bg-[color:var(--bg-secondary)] shadow-[0_10px_26px_rgba(0,0,0,.14)]">
                 <div className="flex items-center justify-center w-[64px] h-[64px] rounded-[16px] bg-[#131217] overflow-hidden">
-                  <img src="/assets/signallq-favicon-dark-bg.png" alt="Favicon Android, versão escura" className="w-full h-full block" />
+                  <Image src="/assets/signallq-favicon-dark-bg.png" alt="Favicon Android, versão escura" width={64} height={64} className="block" />
                 </div>
                 <span className="font-medium text-[11px] leading-[1.3] text-[color:var(--text-tertiary)] text-center">Android · Escuro</span>
               </div>
 
               <div className="flex flex-col items-center gap-[10px] rounded-[20px] p-6 box-border bg-[color:var(--bg-secondary)] shadow-[0_10px_26px_rgba(0,0,0,.14)]">
                 <div className="flex items-center justify-center w-[64px] h-[64px] rounded-[14px] bg-[#FFFFFF] overflow-hidden">
-                  <img src="/assets/signallq-favicon-light-bg.png" alt="Favicon iOS, versão clara" className="w-full h-full block" />
+                  <Image src="/assets/signallq-favicon-light-bg.png" alt="Favicon iOS, versão clara" width={64} height={64} className="block" />
                 </div>
                 <span className="font-medium text-[11px] leading-[1.3] text-[color:var(--text-tertiary)] text-center">iOS · Claro</span>
               </div>
 
               <div className="flex flex-col items-center gap-[10px] rounded-[20px] p-6 box-border bg-[color:var(--bg-secondary)] shadow-[0_10px_26px_rgba(0,0,0,.14)]">
                 <div className="flex items-center justify-center w-[64px] h-[64px] rounded-[14px] bg-[#131217] overflow-hidden">
-                  <img src="/assets/signallq-favicon-dark-bg.png" alt="Favicon iOS, versão escura" className="w-full h-full block" />
+                  <Image src="/assets/signallq-favicon-dark-bg.png" alt="Favicon iOS, versão escura" width={64} height={64} className="block" />
                 </div>
                 <span className="font-medium text-[11px] leading-[1.3] text-[color:var(--text-tertiary)] text-center">iOS · Escuro</span>
               </div>
 
               <div className="flex flex-col items-center gap-[10px] rounded-[20px] p-6 box-border bg-[color:var(--bg-secondary)] shadow-[0_10px_26px_rgba(0,0,0,.14)]">
                 <div className="flex items-center justify-center w-[64px] h-[64px] rounded-[12px] bg-[#F1EAFB] overflow-hidden">
-                  <img src="/assets/signallq-favicon-web-light-bg.png" alt="Favicon WebApp, versão clara" className="w-full h-full block" />
+                  <Image src="/assets/signallq-favicon-web-light-bg.png" alt="Favicon WebApp, versão clara" width={64} height={64} className="block" />
                 </div>
                 <span className="font-medium text-[11px] leading-[1.3] text-[color:var(--text-tertiary)] text-center">WebApp · Claro</span>
               </div>
 
               <div className="flex flex-col items-center gap-[10px] rounded-[20px] p-6 box-border bg-[color:var(--bg-secondary)] shadow-[0_10px_26px_rgba(0,0,0,.14)]">
                 <div className="flex items-center justify-center w-[64px] h-[64px] rounded-[12px] bg-[#1B1130] overflow-hidden">
-                  <img src="/assets/signallq-favicon-web-dark-bg.png" alt="Favicon WebApp, versão escura" className="w-full h-full block" />
+                  <Image src="/assets/signallq-favicon-web-dark-bg.png" alt="Favicon WebApp, versão escura" width={64} height={64} className="block" />
                 </div>
                 <span className="font-medium text-[11px] leading-[1.3] text-[color:var(--text-tertiary)] text-center">WebApp · Escuro</span>
               </div>
@@ -145,7 +146,7 @@ export default function BrandPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="rounded-[20px] p-6 box-border bg-[color:var(--bg-secondary)] shadow-[0_10px_26px_rgba(0,0,0,.14)]">
                 <div className="rounded-[12px] p-8 flex items-center justify-center bg-[#FFFFFF] outline-dashed outline-1 outline-[color-mix(in_srgb,_var(--accent)_45%,_transparent)] outline-offset-[-14px]">
-                  <img src="/assets/signallq-lockup-light-bg-v5.png" alt="Área de proteção do logotipo SignallQ" className="h-[32px] w-auto block" />
+                  <Image src="/assets/signallq-lockup-light-bg-v5.png" alt="Área de proteção do logotipo SignallQ" width={128} height={32} className="block" />
                 </div>
                 <p className="mt-3 mb-0 font-normal text-[12px] leading-[1.45] text-[color:var(--text-secondary)]">
                   A área de proteção garante respiro e legibilidade da marca em qualquer aplicação: nada deve invadir esse espaço ao redor do logotipo.
@@ -154,7 +155,7 @@ export default function BrandPage() {
               <div className="flex flex-col gap-3 rounded-[20px] p-6 box-border bg-[color:var(--bg-secondary)] shadow-[0_10px_26px_rgba(0,0,0,.14)]">
                 <div className={OVERLINE}>Uso em reduzidas</div>
                 <div className="flex items-center gap-2 bg-[#FFFFFF] rounded-[10px] p-[10px_14px] w-fit">
-                  <img src="/assets/signallq-lockup-light-bg-v5.png" alt="Logotipo SignallQ em tamanho reduzido" className="h-[20px] w-auto block" />
+                  <Image src="/assets/signallq-lockup-light-bg-v5.png" alt="Logotipo SignallQ em tamanho reduzido" width={80} height={20} className="block" />
                 </div>
                 <p className="m-0 font-normal text-[12px] leading-[1.45] text-[color:var(--text-secondary)]">
                   Abaixo de ~20px de altura, priorize apenas o ícone (as 4 barras): a wordmark perde legibilidade em tamanhos muito pequenos.
