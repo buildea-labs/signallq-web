@@ -193,6 +193,7 @@ export default function Home() {
   const [retesteBase, setRetesteBase] = useState<SpeedTestResult | null>(null);
   const [comparacaoReteste, setComparacaoReteste] = useState<RetestComparison | null>(null);
   const [comparacaoNaoSalva, setComparacaoNaoSalva] = useState(false);
+  const [ajudaEstabilidadeAberta, setAjudaEstabilidadeAberta] = useState(false);
   const abandonoRegistrado = useRef(false);
   const comparacaoPersistida = useRef<string | null>(null);
   const { phase, liveValue, phaseResults, result, measurementContext, cancelTest, retry, forceStart } = useSpeedTest(modo);
@@ -369,32 +370,33 @@ export default function Home() {
     },
   ];
 
-  const resultadoTrio: ItemFaixaMetricas[] | null =
-    result && downloadVerdict && uploadVerdict && latencyVerdict
-      ? [
-          {
-            icon: "arrow_downward",
-            label: "Download",
-            value: result.download.mbps.toFixed(1),
-            caption: `Mbps • ${downloadVerdict.label}`,
-            color: NIVEL_COR[downloadVerdict.nivel],
-          },
-          {
-            icon: "arrow_upward",
-            label: "Upload",
-            value: result.upload.mbps.toFixed(1),
-            caption: `Mbps • ${uploadVerdict.label}`,
-            color: NIVEL_COR[uploadVerdict.nivel],
-          },
-          {
-            icon: "network_ping",
-            label: "Latência",
-            value: Math.round(result.latency.ms).toString(),
-            caption: `ms • ${latencyVerdict.label}`,
-            color: NIVEL_COR[latencyVerdict.nivel],
-          },
-        ]
-      : null;
+
+
+  const painelLateral = result && uploadVerdict && latencyVerdict ? [
+    {
+      icon: "arrow_upward",
+      label: "Upload",
+      value: result.upload.mbps.toFixed(1),
+      caption: `Mbps • ${uploadVerdict.label}`,
+      color: NIVEL_COR[uploadVerdict.nivel],
+    },
+    {
+      icon: "network_ping",
+      label: "Latência",
+      value: Math.round(result.latency.ms).toString(),
+      caption: `ms • ${latencyVerdict.label}`,
+      color: NIVEL_COR[latencyVerdict.nivel],
+    },
+    {
+      icon: "monitoring",
+      label: "Estabilidade",
+      value: `${result.stabilityScore.toFixed(0)}`,
+      caption: `% • ${result.stabilityScore >= 90 ? "Alta" : result.stabilityScore >= 75 ? "Média" : "Baixa"}`,
+      color: result.stabilityScore >= 90 ? "var(--success)" : result.stabilityScore >= 75 ? "var(--warning)" : "var(--error)",
+      hasHelp: true,
+    }
+  ] : null;
+
 
   const compartilhar = async () => {
     if (!result) return;
@@ -433,25 +435,120 @@ export default function Home() {
 
       {showDial && (
         <div className="w-full flex flex-col items-center gap-5">
-          <Velocimetro fraction={fraction} phaseColor={speedometerIdentity.color} isRunning={isRunning} phase={result ? "download" : phase} liveValue={result ? result.download.mbps : liveValue} value={dialNumber} unit={dialUnit} phaseLabel={isRunning || terminalOutcome !== null || isProblem ? speedometerIdentity.label : undefined} narrative={isRunning || terminalOutcome !== null || isProblem ? speedometerIdentity.narrative : undefined} compact={terminalOutcome !== null || isProblem}>
-            {isIdle && (
-              <div className="absolute left-1/2 bottom-[26px] -translate-x-1/2 flex flex-col items-center gap-[10px]">
-                <button
-                  onClick={iniciarTesteDireto}
-                  className="h-[44px] px-[26px] rounded-full flex items-center gap-2 border-none bg-[color:var(--accent)] shadow-[0_14px_30px_color-mix(in_srgb,_var(--accent)_45%,_transparent),_0_2px_6px_rgba(0,0,0,.25)] whitespace-nowrap cursor-pointer hover:scale-105 active:scale-95 transition-transform"
-                >
-                  <span className="material-symbols-outlined text-[18px] text-[color:var(--on-accent)]">speed</span>
-                  <span className="font-semibold text-[16px] leading-[1.15] text-[color:var(--on-accent)]">
-                    Testar agora
-                  </span>
-                </button>
-                <span className="font-normal text-[12px] leading-[1.3] text-[color:var(--text-tertiary)]">
-                  {modo === "rapido" ? "Rápido · ~20 s" : "Completo · ~40 s"}
-                </span>
+          {respostaDiagnostica && (
+            <div className="w-full text-center max-w-[520px] pt-4">
+
+              <h1 id="resultado-conclusao" className="m-0 font-bold text-[24px] sm:text-[28px] leading-[1.25] text-[color:var(--text-primary)] tracking-tight">{respostaDiagnostica.conclusion}</h1>
+              <p className="mt-2 mb-0 font-normal text-[14px] sm:text-[15px] leading-[1.45] text-[color:var(--text-secondary)] max-w-[480px] mx-auto">{respostaDiagnostica.impact}</p>
+            </div>
+          )}
+          
+          <div className="w-full max-w-[520px] flex flex-col md:flex-row items-center justify-between gap-8 mt-4">
+            <div className="flex-shrink-0 scale-[1.15] md:scale-[1.2] transform origin-top md:origin-left mt-2">
+              <Velocimetro fraction={fraction} phaseColor={speedometerIdentity.color} isRunning={isRunning} phase={result ? "download" : phase} liveValue={result ? result.download.mbps : liveValue} value={dialNumber} unit={dialUnit} metricLabel={result ? "Download" : undefined} phaseLabel={isRunning || (isProblem && terminalOutcome === null) ? speedometerIdentity.label : undefined} narrative={isRunning || (isProblem && terminalOutcome === null) ? speedometerIdentity.narrative : undefined} compact={terminalOutcome !== null || isProblem}>
+                {isIdle && (
+                  <div className="absolute left-1/2 bottom-[26px] -translate-x-1/2 flex flex-col items-center gap-[10px]">
+                    <button
+                      onClick={iniciarTesteDireto}
+                      className="h-[44px] px-[26px] rounded-full flex items-center gap-2 border-none bg-[color:var(--accent)] shadow-[0_14px_30px_color-mix(in_srgb,_var(--accent)_45%,_transparent),_0_2px_6px_rgba(0,0,0,.25)] whitespace-nowrap cursor-pointer hover:scale-105 active:scale-95 transition-transform"
+                    >
+                      <span className="material-symbols-outlined text-[18px] text-[color:var(--on-accent)]">speed</span>
+                      <span className="font-semibold text-[16px] leading-[1.15] text-[color:var(--on-accent)]">
+                        Testar agora
+                      </span>
+                    </button>
+                    <span className="font-normal text-[12px] leading-[1.3] text-[color:var(--text-tertiary)]">
+                      {modo === "rapido" ? "Rápido · ~20 s" : "Completo · ~40 s"}
+                    </span>
+                  </div>
+                )}
+              </Velocimetro>
+            </div>
+
+            {/* PAINEL LATERAL DE MÉTRICAS */}
+            {painelLateral && (
+              <div className="flex flex-col gap-2 w-full max-w-[140px]">
+                {painelLateral.map((item) => (
+                  <div key={item.label} className="flex flex-col items-center justify-center p-3 relative">
+                    <div className="flex items-center gap-1">
+                      {item.icon && <span className="material-symbols-outlined text-[16px]" style={{ color: item.color }}>{item.icon}</span>}
+                      <span className="font-semibold text-[10px] uppercase tracking-wide text-[color:var(--text-secondary)]">{item.label}</span>
+                      {item.hasHelp && (
+                        <button
+                          onClick={() => setAjudaEstabilidadeAberta(!ajudaEstabilidadeAberta)}
+                          className="ml-1 flex items-center justify-center border-none bg-transparent cursor-pointer hover:opacity-80 transition-opacity p-0"
+                          aria-label="O que é Estabilidade?"
+                        >
+                          <span className="material-symbols-outlined text-[13px] text-[color:var(--text-tertiary)]">help</span>
+                        </button>
+                      )}
+                    </div>
+                    <div className="flex items-baseline gap-1 mt-1">
+                      <span className="font-bold text-[18px] tabular-nums leading-none" style={{ color: "var(--text-primary)" }}>{item.value}</span>
+                    </div>
+                    {item.caption && <div className="font-medium text-[11px] text-[color:var(--text-tertiary)] mt-1 text-center">{item.caption}</div>}
+                    
+                    {item.hasHelp && ajudaEstabilidadeAberta && (
+                      <div className="absolute top-10 right-0 p-2 bg-[color:var(--surface-elevated)] border border-[color:var(--border)] rounded-lg shadow-[0_4px_24px_rgba(0,0,0,0.12)] z-10 w-[180px]">
+                        <p className="m-0 text-[11px] leading-[1.4] text-[color:var(--text-primary)] text-center">Indica quão constante sua conexão se manteve durante o teste.</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
-
-          </Velocimetro>
+          </div>
+          
+          {useCases && (
+            <div className="w-full flex flex-col items-center gap-4 mt-2">
+              {result && (
+                <div className="flex items-center justify-center gap-2">
+                  <span
+                    className="material-symbols-outlined text-[16px]"
+                    style={{ color: statusCompleto ? "var(--success)" : "var(--warning)" }}
+                  >
+                    {statusCompleto ? "check_circle" : "warning"}
+                  </span>
+                  <span
+                    className="font-medium text-[12px] leading-[1.33]"
+                    style={{ color: statusCompleto ? "var(--success)" : "var(--warning)" }}
+                  >
+                    {STATUS_LABEL[result.status]}
+                  </span>
+                  <span className="font-normal text-[12px] leading-[1.33] text-[color:var(--text-tertiary)]">
+                    • {formatarDataHora(result.timestamp)}
+                  </span>
+                </div>
+              )}
+              <div className="w-full max-w-[520px] grid grid-cols-2 sm:grid-cols-4 border border-[color-mix(in_srgb,_var(--border)_14%,_transparent)] rounded-xl overflow-hidden">
+              {(Object.keys(USE_CASE_ICONS) as Array<keyof typeof USE_CASE_ICONS>).map((key, index) => {
+                const veredictoCaso = useCases[key];
+                return (
+                  <div
+                    key={key}
+                    className={`flex flex-col items-center justify-center gap-1 p-3 ${index > 0 ? "border-l border-[color-mix(in_srgb,_var(--border)_14%,_transparent)]" : ""}`}
+                  >
+                    <span
+                      className="material-symbols-outlined text-[20px]"
+                      style={{ color: NIVEL_COR[veredictoCaso.nivel] }}
+                    >
+                      {USE_CASE_ICONS[key]}
+                    </span>
+                    <span className="font-normal text-[12px] leading-[1.33] text-[color:var(--text-secondary)] text-center">
+                      {USE_CASE_LABELS[key]}
+                    </span>
+                    <span
+                      className="font-medium text-[12px] leading-[1.33]"
+                      style={{ color: NIVEL_COR[veredictoCaso.nivel] }}
+                    >
+                      {veredictoCaso.label}
+                    </span>
+                  </div>
+                );
+              })}
+              </div>
+            </div>
+          )}
 
           <div className="w-full max-w-[520px] flex">
             <div className="flex-1 flex items-center justify-center gap-[10px] py-3 px-4">
@@ -568,25 +665,8 @@ export default function Home() {
         />
       )}
 
-      {hasVisibleResult && result && resultadoTrio && useCases && (
+      {hasVisibleResult && result && painelLateral && useCases && (
         <div className="w-full max-w-[640px] flex flex-col">
-          <div className="flex items-center justify-center gap-2 pb-6">
-            <span
-              className="material-symbols-outlined text-[18px]"
-              style={{ color: statusCompleto ? "var(--success)" : "var(--warning)" }}
-            >
-              {statusCompleto ? "check_circle" : "warning"}
-            </span>
-            <span
-              className="font-medium text-[12px] leading-[1.33]"
-              style={{ color: statusCompleto ? "var(--success)" : "var(--warning)" }}
-            >
-              {STATUS_LABEL[result.status]}
-            </span>
-            <span className="font-normal text-[12px] leading-[1.33] text-[color:var(--text-tertiary)]">
-              • {formatarDataHora(result.timestamp)}
-            </span>
-          </div>
 
           {statusMensagem && (
             <div className="flex items-start justify-center gap-2 py-4 border-b border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]">
@@ -600,15 +680,8 @@ export default function Home() {
           )}
 
           {respostaDiagnostica && (
-            <section aria-labelledby="resultado-conclusao" className="py-7 border-b border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]">
-              <div className="font-medium text-[11px] leading-[1.45] text-[color:var(--accent)] tracking-[.3px] uppercase">Leitura desta medição</div>
-              <h1 id="resultado-conclusao" className="mt-[6px] mb-0 font-semibold text-[22px] leading-[1.27] text-[color:var(--text-primary)]">{respostaDiagnostica.conclusion}</h1>
-              <p className="mt-2 mb-0 font-normal text-[14px] leading-[1.43] text-[color:var(--text-secondary)]">{respostaDiagnostica.impact}</p>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <div>
-                  <h2 className="m-0 font-medium text-[11px] uppercase tracking-[.3px] text-[color:var(--text-tertiary)]">Confiança e limites</h2>
-                  <p className="mt-1 mb-0 text-[13px] leading-[1.4] text-[color:var(--text-secondary)]">{respostaDiagnostica.confidence}</p>
-                </div>
+            <section aria-labelledby="resultado-acao" className="py-7 border-b border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]">
+              <div className="grid gap-4 sm:grid-cols-1">
                 <div>
                   <h2 className="m-0 font-medium text-[11px] uppercase tracking-[.3px] text-[color:var(--text-tertiary)]">Próxima ação</h2>
                   <p className="mt-1 mb-0 text-[13px] leading-[1.4] text-[color:var(--text-secondary)]">{respostaDiagnostica.nextAction}</p>
@@ -649,41 +722,14 @@ export default function Home() {
             </section>
           )}
 
-          <div className="py-7 border-b border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]">
-            <h2 className="m-0 font-semibold text-[16px] leading-[1.38] text-[color:var(--text-primary)]">Métricas da medição</h2>
-            <div className="mt-4"><FaixaMetricas items={resultadoTrio} variant="resultado" /></div>
-          </div>
+
 
           <section className="py-7 border-b border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]">
             <h2 className="m-0 font-semibold text-[16px] leading-[1.38] text-[color:var(--text-primary)]">Detalhes por tipo de uso e técnicos</h2>
             <details className="mt-3">
             <summary className="cursor-pointer font-medium text-[14px] text-[color:var(--accent)]">Mostrar detalhes técnicos</summary>
-            <div className="mt-[18px] grid grid-cols-2 sm:grid-cols-4">
-              {(Object.keys(USE_CASE_ICONS) as Array<keyof typeof USE_CASE_ICONS>).map((key) => {
-                const veredictoCaso = useCases[key];
-                return (
-                  <div
-                    key={key}
-                    className="flex flex-col items-center justify-center gap-1 p-2 border-l border-[color-mix(in_srgb,_var(--border)_14%,_transparent)]"
-                  >
-                    <span
-                      className="material-symbols-outlined text-[20px]"
-                      style={{ color: NIVEL_COR[veredictoCaso.nivel] }}
-                    >
-                      {USE_CASE_ICONS[key]}
-                    </span>
-                    <span className="font-normal text-[12px] leading-[1.33] text-[color:var(--text-secondary)] text-center">
-                      {USE_CASE_LABELS[key]}
-                    </span>
-                    <span
-                      className="font-medium text-[12px] leading-[1.33]"
-                      style={{ color: NIVEL_COR[veredictoCaso.nivel] }}
-                    >
-                      {veredictoCaso.label}
-                    </span>
-                  </div>
-                );
-              })}
+            <div className="mt-[18px]">
+              <p className="m-0 font-normal text-[13px] leading-[1.4] text-[color:var(--text-secondary)]">O painel acima resume a capacidade da sua conexão para diferentes usos baseado na velocidade aferida. Valores individuais como Jitter e Latência abaixo complementam a visão técnica.</p>
             </div>
 
             <p className="mt-4 mb-0 font-normal text-[12px] leading-[1.33] text-[color:var(--text-tertiary)]">Esta é uma leitura das métricas desta medição, não uma certificação da velocidade contratada.</p>

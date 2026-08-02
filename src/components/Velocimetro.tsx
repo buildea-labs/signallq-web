@@ -51,6 +51,7 @@ export function Velocimetro({
   unit,
   phaseLabel,
   narrative,
+  metricLabel,
   compact = false,
   children,
 }: {
@@ -63,6 +64,7 @@ export function Velocimetro({
   unit?: string;
   phaseLabel?: string;
   narrative?: string;
+  metricLabel?: string;
   compact?: boolean;
   children?: React.ReactNode;
 }) {
@@ -92,26 +94,26 @@ export function Velocimetro({
     [isThroughput, throughputScale],
   );
   const visualFraction = isThroughput ? fractionForGaugeScale(smoothedThroughput, throughputScale) : fraction;
-  const needle = point(R - 2, visualFraction);
-  const needleFrom = point(R - 36, visualFraction);
+  const needle = point(R - 11, visualFraction);
+  const needleFrom = point(R - 40, visualFraction);
   const dashOffset = ARC_LEN * (1 - visualFraction);
   const showMeasurement = isRunning || compact;
 
   const showCenter = Boolean(value && (isRunning || compact));
 
   return (
-    <div className={`relative aspect-[360/210] ${compact ? "w-[280px]" : "w-full"} transition-[width,transform] duration-500 ease-out motion-reduce:transition-none ${compact ? "" : isRunning ? "sm:w-[520px]" : "sm:w-[440px]"}`}>
-      {phaseLabel && <span className="sr-only" role="status" aria-live="polite">{phaseLabel}{narrative ? `. ${narrative}` : ""}</span>}
-      {children}
-      
-      {/* Glow effect when running or idle */}
-      <div
-        className="absolute left-[50%] top-[62%] w-[60%] aspect-square rounded-full pointer-events-none sq-gauge-glow"
-        style={{
-          background:
-            `radial-gradient(circle, color-mix(in srgb, ${phaseColor} 30%, transparent), transparent 72%)`,
-        }}
-      />
+    <div className={`flex flex-col items-center ${compact ? "w-[280px]" : "w-full"} transition-[width,transform] duration-500 ease-out motion-reduce:transition-none ${compact ? "" : isRunning ? "sm:w-[520px]" : "sm:w-[440px]"}`}>
+      <div className="relative aspect-[360/210] w-full">
+        {phaseLabel && <span className="sr-only" role="status" aria-live="polite">{phaseLabel}{narrative ? `. ${narrative}` : ""}</span>}
+        {children}
+        {/* Glow effect when running or idle */}
+        <div
+          className="absolute left-[50%] top-[62%] w-[60%] aspect-square rounded-full pointer-events-none sq-gauge-glow"
+          style={{
+            background:
+              `radial-gradient(circle, color-mix(in srgb, ${phaseColor} 30%, transparent), transparent 72%)`,
+          }}
+        />
 
       <svg
         viewBox="0 0 360 210"
@@ -167,13 +169,14 @@ export function Velocimetro({
       </svg>
 
       {showCenter && (
-        <div className={`absolute inset-x-0 top-[42%] -translate-y-1/2 flex flex-col items-center text-center ${compact ? "gap-0" : "gap-1"}`}>
+        <div className={`absolute inset-x-0 bottom-[-16px] flex flex-col items-center text-center`}>
           <div className={`${compact ? "text-[34px]" : "text-[48px] sm:text-[58px]"} font-bold leading-none tabular-nums`} style={{ color: phaseColor }}>
             {value}
           </div>
-          {unit && <div className="font-medium text-[12px] leading-[1.33] tracking-[.5px] text-[color:var(--text-tertiary)]">{unit}</div>}
-          {phaseLabel && <div className="mt-2 font-semibold text-[11px] leading-[1.45] tracking-[1px]" style={{ color: phaseColor }}>{phaseLabel}</div>}
-          {!compact && narrative && <div className="mt-1 max-w-[260px] text-[12px] leading-[1.33] text-[color:var(--text-secondary)]">{narrative}</div>}
+          <div className="flex flex-col items-center mt-1">
+            {unit && <span className="font-medium text-[12px] leading-[1.33] tracking-[.5px] text-[color:var(--text-tertiary)]">{unit}</span>}
+            {metricLabel && <span className="font-semibold text-[13px] uppercase tracking-wide mt-1" style={{ color: phaseColor }}>{metricLabel}</span>}
+          </div>
         </div>
       )}
 
@@ -187,6 +190,15 @@ export function Velocimetro({
           {l.text}
         </div>
       ))}
+      </div>
+
+      {/* Details Below Gauge */}
+      {showCenter && (phaseLabel || narrative) && (
+        <div className={`flex flex-col items-center text-center mt-6 ${compact ? "gap-0" : "gap-1"}`}>
+          {phaseLabel && <div className="font-semibold text-[11px] leading-[1.45] tracking-[1px] uppercase" style={{ color: phaseColor }}>{phaseLabel}</div>}
+          {!compact && narrative && <div className="mt-1 max-w-[260px] text-[12px] leading-[1.33] text-[color:var(--text-secondary)]">{narrative}</div>}
+        </div>
+      )}
     </div>
   );
 }
