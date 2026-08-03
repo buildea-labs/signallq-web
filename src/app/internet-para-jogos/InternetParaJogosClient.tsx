@@ -22,7 +22,7 @@ const SECTIONS: DocSection[] = [
           <li><strong>Banda (Velocidade):</strong> Para jogar, você precisa de muito pouco. A maioria dos jogos gasta menos de 1 Mbps. A velocidade só faz diferença na hora de baixar o jogo ou atualizações grandes.</li>
           <li><strong>Latência Básica (Ping):</strong> Quanto mais perto de zero, melhor. Se a latência ficar abaixo da faixa de 40 a 60 ms, a experiência já é muito boa para a maioria dos jogos. Acima de 100 ms, o atraso começa a incomodar. <em>Lembre-se: esses números são aproximados e variam dependendo da sensibilidade e do tipo de jogo (tiro vs turno).</em></li>
           <li><strong>Consistência (Jitter baixo):</strong> É preferível jogar com 80 ms constantes do que num ping de 20 ms que fica pulando para 150 ms aleatoriamente. O cérebro acostuma com um pequeno atraso constante, mas o jitter alto destrói os reflexos.</li>
-          <li><strong>Resistência à Carga:</strong> A rede da sua casa precisa conseguir lidar com um celular puxando vídeo no quarto sem "sufocar" a conexão do videogame (bufferbloat).</li>
+          <li><strong>Resistência à Carga:</strong> A rede da sua casa precisa conseguir lidar com um celular puxando vídeo no quarto sem &quot;sufocar&quot; a conexão do videogame (bufferbloat).</li>
         </ul>
       </div>
     )
