@@ -11,13 +11,14 @@ src/app/historico/page.tsx              (89 linhas — composição + metadata)
  ├─ HistoryLoadingState                 estado de carregamento
  ├─ HistoryUnavailableState             falha de leitura do armazenamento local + "Tentar novamente"
  ├─ HistoryEmptyState                   sem medições + "Testar velocidade"
- ├─ HistoryDiagnosticTip                dica fixa de diagnóstico
  ├─ HistoryToolbar                      filtros (FILTROS), limpar histórico, exportar dados
- ├─ HistoryEvolutionChart               (já existia) gráfico de evolução
  ├─ HistoryCompare                      retestes vinculados (comparações recuperáveis)
  ├─ HistoryList                         grupos + "Nenhuma medição neste filtro" + total salvo
  │   └─ HistoryListItem                 uma conexão/local: nome, contagem, padrão local e cards
  │       └─ HistoryRecordCard           (já existia) card por medição
+ ├─ HistoryDiagnosticTip                dica de diagnóstico, depois da lista para não competir
+ │                                      com a varredura visual (mesma correção de #73/#75)
+ ├─ HistoryEvolutionChart               (já existia) gráfico de evolução, recolhido ("Ver evolução")
  ├─ ConfirmDialog                       (já existia) confirmação de limpar tudo
  └─ HistoryEditDialog                   modal de contexto da conexão (editar/excluir conexão)
 ```

@@ -52,8 +52,6 @@ export function HistoricoClient() {
 
       {history.hasRecords && (
         <div className="flex flex-col gap-[14px] w-full">
-          <HistoryDiagnosticTip />
-
           <HistoryToolbar
             filtro={history.filtro}
             onFiltroChange={history.setFiltro}
@@ -81,6 +79,15 @@ export function HistoricoClient() {
             linkedPairByAfterId={history.linkedPairByAfterId}
             byId={history.byId}
           />
+
+          {/*
+            Mesma correção de #73/#75 (achado transversal da spec de UX,
+            seção 0) aplicada à dica de diagnóstico (pedido explícito do
+            Luiz): ela não é um card grande como o gráfico de evolução, então
+            não precisa virar `<details>` recolhido — mas sair de cima da
+            lista, senão compete com a varredura visual do mesmo jeito.
+          */}
+          <HistoryDiagnosticTip />
 
           {/*
             A lista deve favorecer varredura visual e não competir com um
