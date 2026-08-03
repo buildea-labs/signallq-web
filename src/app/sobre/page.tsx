@@ -46,6 +46,14 @@ export default function Page() {
             </p>
           </div>
         </HighlightSection>
+        <HighlightSection title="Medição não é adivinhação">
+          <p>
+            O SignallQ separa o que foi medido, o que é um sinal de possível problema e quando não
+            há dados suficientes para concluir — por isso um resultado pode aparecer como parcial,
+            inconclusivo ou com confiança baixa, em vez de uma causa definitiva. Veja os detalhes em{' '}
+            <Link href="/como-medimos">Como medimos</Link>.
+          </p>
+        </HighlightSection>
         <InstitutionalCta label="Testar minha internet" href="/" supportingText="Comece pelo teste direto, sem cadastro." />
       </ReadingLayout>
     </PageShell>

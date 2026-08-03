@@ -137,3 +137,57 @@ describe("página /sobre — o que o SignallQ faz (#79)", () => {
     expect(ctas[0]).toHaveAttribute("href", "/");
   });
 });
+
+/**
+ * #80 — "Medição não é adivinhação": seção curta e nova que explica que o
+ * SignallQ separa medição, sinal de possível problema e ausência de dados
+ * suficientes, usando o vocabulário real do motor de diagnóstico (parcial,
+ * inconclusivo, confiança baixa), com um único link contextual para
+ * /como-medimos.
+ */
+describe("página /sobre — medição não é adivinhação (#80)", () => {
+  it("renderiza o título e a seção logo após 'O que o SignallQ faz'", () => {
+    render(<Page />);
+    const heading = screen.getByRole("heading", { level: 2, name: "Medição não é adivinhação" });
+    expect(heading).toBeInTheDocument();
+
+    const previous = screen.getByRole("heading", { level: 2, name: "O que o SignallQ faz" });
+    const headings = screen.getAllByRole("heading", { level: 2 });
+    const previousIndex = headings.indexOf(previous);
+    const currentIndex = headings.indexOf(heading);
+    expect(currentIndex).toBe(previousIndex + 1);
+  });
+
+  it("usa vocabulário consistente com o motor de diagnóstico real (parcial, inconclusivo, confiança baixa)", () => {
+    render(<Page />);
+    const heading = screen.getByRole("heading", { level: 2, name: "Medição não é adivinhação" });
+    const section = heading.closest("section");
+    expect(section?.textContent).toContain("parcial");
+    expect(section?.textContent).toContain("inconclusivo");
+    expect(section?.textContent).toContain("confiança baixa");
+    expect(section?.textContent).toContain(
+      "separa o que foi medido, o que é um sinal de possível problema e quando não há dados suficientes para concluir",
+    );
+    expect(section?.textContent).not.toMatch(/descobre[a-z]* (sempre|toda) a causa/i);
+  });
+
+  it("inclui um único link contextual para /como-medimos dentro da seção", () => {
+    render(<Page />);
+    const heading = screen.getByRole("heading", { level: 2, name: "Medição não é adivinhação" });
+    const section = heading.closest("section");
+    const link = section
+      ? within(section).getByRole("link", { name: "Como medimos" })
+      : null;
+    expect(link).toHaveAttribute("href", "/como-medimos");
+    const links = section ? within(section).getAllByRole("link") : [];
+    expect(links).toHaveLength(1);
+  });
+
+  it("não usa múltiplos blocos visuais separados para medição/hipótese/limite", () => {
+    render(<Page />);
+    const heading = screen.getByRole("heading", { level: 2, name: "Medição não é adivinhação" });
+    const section = heading.closest("section");
+    const paragraphs = section ? section.querySelectorAll("p") : [];
+    expect(paragraphs).toHaveLength(1);
+  });
+});
