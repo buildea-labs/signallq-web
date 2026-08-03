@@ -45,3 +45,6 @@ next-env.d.ts
 # local tooling
 .turbo/
 .eslintcache
+
+# git worktrees (local multi-branch workspaces)
+/worktree/
