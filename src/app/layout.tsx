@@ -58,7 +58,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="bg-[#0B1120] text-[color:var(--text-primary)]">
+      <body className="bg-[color:var(--bg-primary)] text-[color:var(--text-primary)]">
         {/* SiteNav + miolo em min-h-screen própria (não a <body> inteira, que
             também engloba o SiteFooter abaixo) — garante que o rodapé nunca
             apareça na primeira vista, mesmo em telas com pouco conteúdo
