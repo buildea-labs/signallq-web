@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { listComparisons, type ComparacaoRegistro } from "@/lib/comparisonRepository";
 import { createHistoryExport } from "@/lib/historyExport";
@@ -48,6 +48,7 @@ export type HistoryController = ReturnType<typeof useHistoryController>;
  */
 export function useHistoryController() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [status, setStatus] = useState<HistoryStatus>("loading");
   const [records, setRecords] = useState<MedicaoRegistro[]>([]);
   const [comparisons, setComparisons] = useState<ComparacaoRegistro[]>([]);
@@ -58,6 +59,15 @@ export function useHistoryController() {
   const [metadata, setMetadata] = useState<HistoryUserMetadata>({});
   const [selectedConnectionId, setSelectedConnectionId] = useState("");
   const dialogRef = useRef<HTMLDivElement>(null);
+
+  // Seleção manual de comparação (#75): a lista existente vira o "picker" —
+  // nenhuma tela nova de escolha de registro é construída. `selectedForCompare`
+  // é uma fila de no máximo 2 ids, na ordem em que foram marcados (não por
+  // timestamp) — ao marcar um 3º, o primeiro marcado sai automaticamente,
+  // permitindo trocar uma seleção sem reiniciar a jornada.
+  const [compareMode, setCompareMode] = useState(false);
+  const [selectedForCompare, setSelectedForCompare] = useState<string[]>([]);
+  const [preselectApplied, setPreselectApplied] = useState(false);
 
   const load = async () => {
     setStatus("loading");
@@ -83,6 +93,57 @@ export function useHistoryController() {
     window.addEventListener("keydown", escape);
     return () => window.removeEventListener("keydown", escape);
   }, [editing]);
+
+  // A partir do detalhe (#74), "Comparar com outro teste" navega para
+  // `/historico?compare=<id>` e a lista deve abrir já em modo de seleção com
+  // esse registro marcado, pedindo o segundo. Só aplica quando os registros
+  // já carregaram (precisa existir para fazer sentido marcar) e só uma vez
+  // por carregamento da página, para não reimpor a seleção se o usuário a
+  // limpar manualmente depois.
+  useEffect(() => {
+    if (preselectApplied || status !== "loaded") return;
+    const compareId = searchParams.get("compare");
+    if (compareId && records.some((record) => record.id === compareId)) {
+      setCompareMode(true);
+      setSelectedForCompare([compareId]);
+    }
+    setPreselectApplied(true);
+  }, [preselectApplied, status, records, searchParams]);
+
+  const toggleCompareMode = () => {
+    setCompareMode((current) => {
+      if (current) setSelectedForCompare([]);
+      return !current;
+    });
+  };
+
+  const toggleSelectForCompare = (id: string) => {
+    setSelectedForCompare((current) => {
+      if (current.includes(id)) return current.filter((existing) => existing !== id);
+      if (current.length < 2) return [...current, id];
+      // Já há 2 marcados: o primeiro marcado sai, o novo entra — troca sem
+      // precisar cancelar e recomeçar a seleção (spec de UX do #75).
+      return [current[1], id];
+    });
+  };
+
+  const confirmCompare = () => {
+    if (selectedForCompare.length !== 2) return;
+    const [first, second] = selectedForCompare;
+    const a = byIdRecord(first);
+    const b = byIdRecord(second);
+    // Ordem na URL só por legibilidade — `compareHistoryRecords` reordena por
+    // timestamp de qualquer forma, então isto não afeta o resultado.
+    const [olderId, newerId] =
+      a && b && a.timestamp <= b.timestamp ? [first, second] : [second, first];
+    setCompareMode(false);
+    setSelectedForCompare([]);
+    router.push(`/historico/comparar?a=${olderId}&b=${newerId}`);
+  };
+
+  function byIdRecord(id: string): MedicaoRegistro | undefined {
+    return records.find((record) => record.id === id);
+  }
 
   const remove = async (id: string) => {
     await deleteRecord(id);
@@ -141,6 +202,13 @@ export function useHistoryController() {
   const recoverableComparisons = comparisons.filter(
     (comparison) => byId.has(comparison.beforeId) && byId.has(comparison.afterId)
   );
+  // Pares já vinculados (#10) deixam de ser uma seção fixa no topo (#75,
+  // achado transversal seção 0): aparecem inline na lista, na posição
+  // cronológica do registro mais recente do par. Chave = id do registro mais
+  // novo (`afterId`), único ponto onde o conector visual é desenhado.
+  const linkedPairByAfterId = new Map(
+    recoverableComparisons.map((comparison) => [comparison.afterId, comparison])
+  );
 
   return {
     status,
@@ -173,5 +241,11 @@ export function useHistoryController() {
     knownConnections,
     byId,
     recoverableComparisons,
+    linkedPairByAfterId,
+    compareMode,
+    selectedForCompare,
+    toggleCompareMode,
+    toggleSelectForCompare,
+    confirmCompare,
   };
 }

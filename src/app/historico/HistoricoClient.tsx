@@ -1,7 +1,7 @@
 "use client";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { PageShell } from "@/components/PageShell";
-import { HistoryCompare } from "@/components/historico/HistoryCompare";
+import { HistoryCompareBar } from "@/components/historico/HistoryCompareBar";
 import { HistoryEditDialog } from "@/components/historico/HistoryEditDialog";
 import { HistoryEmptyState, HistoryLoadingState, HistoryUnavailableState } from "@/components/historico/HistoryEmptyState";
 import { HistoryEvolutionChart } from "@/components/historico/HistoryEvolutionChart";
@@ -45,14 +45,27 @@ export function HistoricoClient() {
               onFiltroChange={history.setFiltro}
               onClearAll={() => history.setConfirmOpen(true)}
               onExport={history.exportHistory}
+              compareMode={history.compareMode}
+              onToggleCompareMode={history.toggleCompareMode}
             />
 
-            <HistoryCompare comparisons={history.recoverableComparisons} byId={history.byId} />
+            {history.compareMode && (
+              <HistoryCompareBar
+                selectedCount={history.selectedForCompare.length}
+                onConfirm={history.confirmCompare}
+                onCancel={history.toggleCompareMode}
+              />
+            )}
 
             <HistoryList
               groups={history.groups}
               filteredCount={history.filtered.length}
               totalCount={history.records.length}
+              selectable={history.compareMode}
+              selectedIds={history.selectedForCompare}
+              onToggleSelect={history.toggleSelectForCompare}
+              linkedPairByAfterId={history.linkedPairByAfterId}
+              byId={history.byId}
             />
 
             {/*

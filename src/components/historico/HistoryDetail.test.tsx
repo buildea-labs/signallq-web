@@ -104,8 +104,11 @@ describe("HistoryDetail — detalhe de teste salvo (#74)", () => {
     expect(screen.getByRole("button", { name: /Editar contexto/ })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Compartilhar/ })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Excluir/ })).toBeInTheDocument();
-    // #75 (comparação) não está implementado nesta tarefa.
-    expect(screen.queryByText(/Comparar com outro teste/)).not.toBeInTheDocument();
+    // #75: "Comparar com outro teste" pré-seleciona este registro na lista.
+    expect(screen.getByRole("link", { name: /Comparar com outro teste/ })).toHaveAttribute(
+      "href",
+      "/historico?compare=rec-1"
+    );
   });
 
   it("mostra o aviso de versão anterior quando mode ou diagnostic estão ausentes, sem inventar dados", async () => {

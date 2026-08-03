@@ -1,6 +1,6 @@
 import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { HistoryList } from "@/components/historico/HistoryList";
 import { groupRecordsByPeriod } from "@/lib/historySelectors";
 import type { MedicaoRegistro } from "@/lib/measurementRepository";
@@ -112,5 +112,47 @@ describe("HistoryList — lista agrupada por período (#73)", () => {
 
     await user.tab();
     expect(link).toHaveFocus();
+  });
+
+  it("mostra o par vinculado inline, na posição do registro mais recente, sem seção fixa no topo (#75)", () => {
+    const before = record({ id: "antes", timestamp: AGORA - 2 * DIA, diagnostic: { conclusion: "x", confidence: "y", nextAction: "Aproxime-se do roteador.", contractVersion: 1 } });
+    const after = record({ id: "depois", timestamp: AGORA - 60 * 60 * 1000 });
+    const groups = groupRecordsByPeriod([before, after], AGORA);
+    const byId = new Map([
+      [before.id, before],
+      [after.id, after],
+    ]);
+    const linkedPairByAfterId = new Map([[after.id, { id: "cmp-1", createdAt: AGORA, beforeId: before.id, afterId: after.id, mode: "rapido" as const }]]);
+
+    render(<HistoryList groups={groups} filteredCount={2} totalCount={2} linkedPairByAfterId={linkedPairByAfterId} byId={byId} />);
+
+    expect(screen.getByText(/Vinculado a um teste anterior/)).toBeInTheDocument();
+    expect(screen.getByText(/Aproxime-se do roteador\./)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Ver comparação" })).toHaveAttribute(
+      "href",
+      "/historico/comparar?a=antes&b=depois"
+    );
+  });
+
+  it("modo de seleção (#75): item vira checkbox marcável em vez de link de navegação", async () => {
+    const user = userEvent.setup();
+    const records = [record({ id: "sel-1", timestamp: AGORA - 10 * 60 * 1000 })];
+    const groups = groupRecordsByPeriod(records, AGORA);
+    const onToggleSelect = vi.fn();
+    render(
+      <HistoryList
+        groups={groups}
+        filteredCount={1}
+        totalCount={1}
+        selectable
+        selectedIds={[]}
+        onToggleSelect={onToggleSelect}
+      />
+    );
+
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+    const checkbox = screen.getByRole("checkbox");
+    await user.click(checkbox);
+    expect(onToggleSelect).toHaveBeenCalledWith("sel-1");
   });
 });

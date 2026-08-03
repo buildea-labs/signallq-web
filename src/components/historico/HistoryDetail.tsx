@@ -254,11 +254,11 @@ export function HistoryDetail({ id }: { id: string }) {
       </div>
 
       {/*
-        Ações secundárias (#74): editar/compartilhar/excluir saíram do card da
-        lista (#73) e vivem só aqui agora. "Comparar com outro teste" (#75)
-        não está implementado nesta tarefa — a rota/fluxo de seleção manual
-        ainda não existe, e este componente não fabrica um link para algo que
-        não funciona (pendência registrada no resumo desta entrega).
+        Ações secundárias (#74/#75): editar/compartilhar/excluir saíram do
+        card da lista (#73) e vivem só aqui agora. "Comparar com outro teste"
+        (#75) pré-seleciona este registro e abre a lista em modo de seleção
+        (`/historico?compare=<id>`), pedindo o segundo — reaproveita a lista
+        existente como picker, sem tela nova.
       */}
       <div className="w-full max-w-[640px] mx-auto mt-2 flex flex-wrap justify-center gap-[10px] pb-8">
         <button
@@ -270,6 +270,15 @@ export function HistoryDetail({ id }: { id: string }) {
           </span>
           <span className="font-medium text-[12px] leading-[1.33] text-[color:var(--accent)]">Editar contexto</span>
         </button>
+        <Link
+          href={`/historico?compare=${current.id}`}
+          className="flex items-center gap-[6px] h-[36px] px-2 rounded-full transition-colors hover:bg-[color:var(--bg-secondary)] no-underline"
+        >
+          <span aria-hidden="true" className="material-symbols-outlined text-[16px] text-[color:var(--accent)]">
+            compare_arrows
+          </span>
+          <span className="font-medium text-[12px] leading-[1.33] text-[color:var(--accent)]">Comparar com outro teste</span>
+        </Link>
         <button
           onClick={share}
           className="flex items-center gap-[6px] h-[36px] px-2 border-none bg-transparent cursor-pointer hover:bg-[color:var(--bg-secondary)] rounded-full transition-colors"
