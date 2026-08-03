@@ -21,13 +21,17 @@ vi.mock("next/navigation", () => ({
 
 const listRecords = vi.fn();
 const listComparisons = vi.fn();
+const deleteRecord = vi.fn();
+const clearAll = vi.fn();
+const deleteConnection = vi.fn();
+const updateRecordMetadata = vi.fn();
 
 vi.mock("@/lib/measurementRepository", () => ({
   listRecords: (...args: unknown[]) => listRecords(...args),
-  deleteRecord: vi.fn(),
-  clearAll: vi.fn(),
-  deleteConnection: vi.fn(),
-  updateRecordMetadata: vi.fn(),
+  deleteRecord: (...args: unknown[]) => deleteRecord(...args),
+  clearAll: (...args: unknown[]) => clearAll(...args),
+  deleteConnection: (...args: unknown[]) => deleteConnection(...args),
+  updateRecordMetadata: (...args: unknown[]) => updateRecordMetadata(...args),
 }));
 
 vi.mock("@/lib/comparisonRepository", () => ({
@@ -274,5 +278,257 @@ describe("Histórico — seleção manual para comparar testes (#75)", () => {
         expect(status.contains(live)).toBe(false);
       }
     }
+  });
+});
+
+/**
+ * Teste de INTEGRAÇÃO da issue #76 (US 76, controlar/exportar/apagar
+ * histórico local): monta `HistoricoClient` de verdade, cobrindo o menu de
+ * opções que se abre (jornada de duas etapas — não uma fileira de botões
+ * sempre visível) e o modo de seleção múltipla para exclusão em massa,
+ * incluindo o tratamento de falha parcial que a spec de UX exige
+ * explicitamente ("falhas são distinguíveis de sucesso").
+ */
+describe("Histórico — menu de opções e exclusão em massa (#76)", () => {
+  beforeEach(() => {
+    push.mockClear();
+    searchParamsValue = new URLSearchParams();
+    listRecords.mockReset();
+    listComparisons.mockReset();
+    listComparisons.mockResolvedValue([]);
+    deleteRecord.mockReset();
+    clearAll.mockReset();
+    deleteConnection.mockReset();
+    updateRecordMetadata.mockReset();
+  });
+
+  afterEach(() => cleanup());
+
+  it("o menu de opções se abre com Selecionar registros/Exportar dados/Apagar tudo; filtros e Comparar testes ficam fora dele", async () => {
+    listRecords.mockResolvedValue([historyRecord("x", Date.now())]);
+    const user = userEvent.setup();
+    const { HistoricoClient } = await import("./HistoricoClient");
+    render(<HistoricoClient />);
+
+    await screen.findByText("1 medição salva");
+
+    // Antes de abrir: nenhum item do menu está na árvore, mas filtros e
+    // "Comparar testes" já estão visíveis (fora do menu, sempre presentes).
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Comparar testes" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Todos" })).toBeInTheDocument();
+
+    const menuButton = screen.getByRole("button", { name: "Mais opções" });
+    expect(menuButton).toHaveAttribute("aria-haspopup", "menu");
+    expect(menuButton).toHaveAttribute("aria-expanded", "false");
+    await user.click(menuButton);
+
+    expect(menuButton).toHaveAttribute("aria-expanded", "true");
+    const menu = screen.getByRole("menu", { name: "Mais opções" });
+    expect(within(menu).getByRole("menuitem", { name: "Selecionar registros" })).toBeInTheDocument();
+    expect(within(menu).getByRole("menuitem", { name: "Exportar dados" })).toBeInTheDocument();
+    expect(within(menu).getByRole("menuitem", { name: "Apagar tudo" })).toBeInTheDocument();
+  });
+
+  it("Apagar tudo, a partir do menu, abre o ConfirmDialog existente e limpa o histórico ao confirmar", async () => {
+    listRecords.mockResolvedValue([historyRecord("x", Date.now())]);
+    clearAll.mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    const { HistoricoClient } = await import("./HistoricoClient");
+    render(<HistoricoClient />);
+
+    await screen.findByText("1 medição salva");
+    await user.click(screen.getByRole("button", { name: "Mais opções" }));
+    await user.click(screen.getByRole("menuitem", { name: "Apagar tudo" }));
+
+    const dialog = screen.getByRole("dialog", { name: "Limpar todo o histórico?" });
+    await user.click(within(dialog).getByRole("button", { name: "Limpar tudo" }));
+
+    expect(clearAll).toHaveBeenCalledTimes(1);
+    expect(await screen.findByText("Nenhuma medição ainda")).toBeInTheDocument();
+  });
+
+  it("Selecionar registros ativa o modo de seleção sem teto de contagem, e cancelar não exclui nada", async () => {
+    listRecords.mockResolvedValue([historyRecord("a", 1), historyRecord("b", 2), historyRecord("c", 3)]);
+    const user = userEvent.setup();
+    const { HistoricoClient } = await import("./HistoricoClient");
+    render(<HistoricoClient />);
+
+    await screen.findByText("3 medições salvas");
+    await user.click(screen.getByRole("button", { name: "Mais opções" }));
+    await user.click(screen.getByRole("menuitem", { name: "Selecionar registros" }));
+
+    expect(screen.getByText("Selecione os testes que deseja excluir.")).toBeInTheDocument();
+    const checkboxes = screen.getAllByRole("checkbox");
+    expect(checkboxes).toHaveLength(3);
+
+    // Sem teto de 2 (diferente do comparar): marca as 3.
+    await user.click(checkboxes[0]);
+    await user.click(checkboxes[1]);
+    await user.click(checkboxes[2]);
+    expect(screen.getByText("3 selecionados.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Excluir selecionados (3)" })).toBeEnabled();
+
+    await user.click(screen.getByRole("button", { name: "Cancelar seleção" }));
+    expect(deleteRecord).not.toHaveBeenCalled();
+    expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
+    expect(screen.getAllByRole("link")).toHaveLength(3);
+  });
+
+  it("confirma a exclusão em massa: remove os selecionados via deleteRecord e sai do modo de seleção quando tudo dá certo", async () => {
+    listRecords.mockResolvedValue([historyRecord("a", 1), historyRecord("b", 2)]);
+    deleteRecord.mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    const { HistoricoClient } = await import("./HistoricoClient");
+    render(<HistoricoClient />);
+
+    await screen.findByText("2 medições salvas");
+    await user.click(screen.getByRole("button", { name: "Mais opções" }));
+    await user.click(screen.getByRole("menuitem", { name: "Selecionar registros" }));
+
+    const checkboxes = screen.getAllByRole("checkbox");
+    await user.click(checkboxes[0]);
+    await user.click(checkboxes[1]);
+
+    await user.click(screen.getByRole("button", { name: "Excluir selecionados (2)" }));
+    const dialog = screen.getByRole("dialog", { name: "Excluir 2 testes selecionados?" });
+    await user.click(within(dialog).getByRole("button", { name: "Excluir" }));
+
+    expect(deleteRecord).toHaveBeenCalledWith("a");
+    expect(deleteRecord).toHaveBeenCalledWith("b");
+    expect(await screen.findByText("Nenhuma medição ainda")).toBeInTheDocument();
+    expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
+  });
+
+  it("falha parcial no lote: mantém os que falharam selecionados e mostra mensagem distinguível de sucesso total", async () => {
+    listRecords.mockResolvedValue([historyRecord("ok", 1), historyRecord("fail", 2)]);
+    deleteRecord.mockImplementation((id: string) =>
+      id === "fail" ? Promise.reject(new Error("falhou")) : Promise.resolve(undefined)
+    );
+    const user = userEvent.setup();
+    const { HistoricoClient } = await import("./HistoricoClient");
+    render(<HistoricoClient />);
+
+    await screen.findByText("2 medições salvas");
+    await user.click(screen.getByRole("button", { name: "Mais opções" }));
+    await user.click(screen.getByRole("menuitem", { name: "Selecionar registros" }));
+
+    const checkboxes = screen.getAllByRole("checkbox");
+    await user.click(checkboxes[0]);
+    await user.click(checkboxes[1]);
+    await user.click(screen.getByRole("button", { name: "Excluir selecionados (2)" }));
+    const dialog = screen.getByRole("dialog", { name: "Excluir 2 testes selecionados?" });
+    await user.click(within(dialog).getByRole("button", { name: "Excluir" }));
+
+    // Mensagem distinguível de sucesso total, não um "excluído" genérico.
+    expect(
+      await screen.findByText("1 de 2 testes excluídos. 1 não puderam ser removidos — tente novamente.")
+    ).toBeInTheDocument();
+    // Permanece no modo de seleção (permite nova tentativa), com o registro
+    // que falhou ainda selecionado/visível — a lista não fica vazia.
+    expect(screen.getAllByRole("checkbox")).toHaveLength(1);
+  });
+
+  it("entrar no modo de seleção cancela o modo de comparação ativo (modos mutuamente exclusivos)", async () => {
+    listRecords.mockResolvedValue([historyRecord("a", 1), historyRecord("b", 2)]);
+    const user = userEvent.setup();
+    const { HistoricoClient } = await import("./HistoricoClient");
+    render(<HistoricoClient />);
+
+    await screen.findByText("2 medições salvas");
+    await user.click(screen.getByRole("button", { name: "Comparar testes" }));
+    expect(screen.getByText("Selecione 2 testes para comparar.")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Mais opções" }));
+    await user.click(screen.getByRole("menuitem", { name: "Selecionar registros" }));
+
+    expect(screen.queryByText(/Selecione 2 testes para comparar\./)).not.toBeInTheDocument();
+    expect(screen.getByText("Selecione os testes que deseja excluir.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Comparar testes" })).toBeInTheDocument();
+  });
+});
+
+/**
+ * Teste de INTEGRAÇÃO da issue #76 (item 1): `removeConnection` migrou de
+ * `window.confirm` nativo para o `ConfirmDialog` declarativo do design
+ * system, consistente com "Excluir este teste?" e "Limpar tudo". Monta
+ * `HistoricoClient` de verdade; como a lista hoje não expõe um gatilho de UI
+ * para `startEdit` (edição de contexto só é alcançável a partir do detalhe,
+ * #74), este teste aciona `startEdit` pelo próprio controller devolvido —
+ * ainda assim renderiza a árvore real de `ConfirmDialog`/`HistoryEditDialog`
+ * e verifica o comportamento declarado pela spec de UX (cancelar não perde
+ * dados, confirmar exclui e fecha).
+ */
+describe("Histórico — excluir conexão via ConfirmDialog, não window.confirm (#76)", () => {
+  function recordWithConnection(id: string, timestamp: number) {
+    return {
+      id,
+      timestamp,
+      download: 80,
+      upload: 10,
+      latency: 20,
+      jitter: 1,
+      connectionType: null,
+      connectionKind: "wifi" as const,
+      server: "Cloudflare",
+      mode: "rapido" as const,
+      userMetadata: { connectionId: "casa", connectionName: "Casa" },
+    };
+  }
+
+  beforeEach(() => {
+    push.mockClear();
+    searchParamsValue = new URLSearchParams();
+    listRecords.mockReset();
+    listComparisons.mockReset();
+    listComparisons.mockResolvedValue([]);
+    deleteConnection.mockReset();
+    updateRecordMetadata.mockReset();
+  });
+
+  afterEach(() => cleanup());
+
+  it("cancelar no ConfirmDialog não chama deleteConnection e mantém o diálogo de edição aberto", async () => {
+    const { renderHook, act } = await import("@testing-library/react");
+    const { useHistoryController } = await import("@/hooks/useHistoryController");
+    listRecords.mockResolvedValue([recordWithConnection("r1", 1)]);
+
+    const { result } = renderHook(() => useHistoryController());
+    await act(async () => {
+      await Promise.resolve();
+    });
+    act(() => result.current.startEdit(recordWithConnection("r1", 1)));
+    act(() => result.current.removeConnection());
+
+    expect(result.current.confirmRemoveConnectionOpen).toBe(true);
+    expect(result.current.editing).not.toBeNull();
+
+    act(() => result.current.cancelRemoveConnection());
+
+    expect(result.current.confirmRemoveConnectionOpen).toBe(false);
+    expect(result.current.editing).not.toBeNull();
+    expect(deleteConnection).not.toHaveBeenCalled();
+  });
+
+  it("confirmar no ConfirmDialog chama deleteConnection e fecha o diálogo de edição", async () => {
+    const { renderHook, act } = await import("@testing-library/react");
+    const { useHistoryController } = await import("@/hooks/useHistoryController");
+    listRecords.mockResolvedValue([recordWithConnection("r1", 1)]);
+    deleteConnection.mockResolvedValue(undefined);
+
+    const { result } = renderHook(() => useHistoryController());
+    await act(async () => {
+      await Promise.resolve();
+    });
+    act(() => result.current.startEdit(recordWithConnection("r1", 1)));
+    act(() => result.current.removeConnection());
+
+    await act(async () => {
+      await result.current.confirmRemoveConnection();
+    });
+
+    expect(deleteConnection).toHaveBeenCalledWith("casa");
+    expect(result.current.confirmRemoveConnectionOpen).toBe(false);
+    expect(result.current.editing).toBeNull();
   });
 });
