@@ -25,9 +25,16 @@ export const SIGNALLQ_CLOSED_TESTING_URL: string =
 
 // Publisher ID do Google AdSense — gate de carregamento de `AdSenseScript`
 // (só carrega o script real com a env var configurada E consentimento aceito,
-// ver `src/lib/adConsent.ts`). Sem posição de anúncio decidida ainda (fase
-// Fundação, reconstrução v4) — nenhuma tela reserva espaço visual de anúncio.
+// ver `src/lib/adConsent.ts`).
 export const ADSENSE_PUBLISHER_ID: string = process.env.NEXT_PUBLIC_ADSENSE_PUBLISHER_ID || ''
+
+// Slot ID da única unidade de anúncio autorizada (issue #21, direção inicial
+// de Juliana): posicionada após o resultado completo e suas ações, fora da
+// jornada de medição/diagnóstico — ver `ResultAdSlot.tsx`. Sem slot ID
+// configurado aqui, o componente nunca renderiza (nem publisher id nem
+// consentimento aceito bastam sozinhos) — evita publicar um `<ins>` sem
+// unidade de anúncio real por trás.
+export const ADSENSE_RESULT_AD_SLOT: string = process.env.NEXT_PUBLIC_ADSENSE_RESULT_AD_SLOT || ''
 
 // Motor de medição real. Isolado aqui para poder trocar por um endpoint
 // próprio (ex.: o motor do app SignallQ hospedado na Cloudflare) sem tocar
