@@ -37,7 +37,7 @@ export default function Page() {
         <HighlightSection title="Site/PWA e Android">
           <p>São experiências complementares. O site permite medir e acompanhar o histórico local no navegador; o Android pode acessar sinais e recursos de rede que o navegador não expõe.</p>
         </HighlightSection>
-        <InstitutionalCta label="Medir minha conexão" href="/" supportingText="Comece pelo teste direto, sem cadastro." />
+        <InstitutionalCta label="Testar minha internet" href="/" supportingText="Comece pelo teste direto, sem cadastro." />
       </ReadingLayout>
     </PageShell>
   )

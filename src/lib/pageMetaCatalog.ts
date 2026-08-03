@@ -39,8 +39,8 @@ export const PAGE_META: Record<string, PageMeta> = {
     path: '/como-medimos',
   },
   '/sobre': {
-    title: 'Quem somos — SignallQ',
-    description: 'Conheça o SignallQ: diagnóstico de conectividade que explica, não só mede.',
+    title: 'Sobre o SignallQ',
+    description: 'Conheça o SignallQ: por que existe, o que faz na Web e no Android, e quem mantém o produto.',
     path: '/sobre',
   },
   '/privacidade': {

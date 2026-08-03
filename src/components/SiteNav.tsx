@@ -11,7 +11,7 @@ const ITENS = [
   { key: "home", label: "Velocidade", href: "/" },
   { key: "historico", label: "Histórico", href: "/historico" },
   { key: "como-medimos", label: "Como funciona", href: "/como-medimos" },
-  { key: "sobre", label: "Quem somos", href: "/sobre" },
+  { key: "sobre", label: "Sobre o SignallQ", href: "/sobre" },
   { key: "privacidade", label: "Privacidade", href: "/privacidade" },
 ];
 
