@@ -26,7 +26,10 @@ export default function Page() {
           <p>Testes tradicionais de velocidade mostram números, mas não explicam o que eles significam para quem está usando a internet. O SignallQ busca interpretar o resultado e indicar próximos passos, sem prometer descobrir toda causa de um problema de conexão.</p>
         </HighlightSection>
         <HighlightSection title="Desenvolvido pela Buildea">
-          <p>Desenvolvido pela Buildea.</p>
+          <p>
+            Desenvolvido pela Buildea. Canal oficial:{' '}
+            <a href="https://signallq.com">signallq.com</a>.
+          </p>
           <p>SignallQ Web/PWA: disponível em beta.</p>
           <p>Aplicativo SignallQ Android: em teste fechado.</p>
           <p>

@@ -195,7 +195,7 @@ describe("página /sobre — medição não é adivinhação (#80)", () => {
 /**
  * #81 — "Desenvolvido pela Buildea": identifica a mantenedora, separa o
  * estágio por plataforma (Web/PWA e Android, sem frase única combinada),
- * expõe contato oficial (mailto) e um único link contextual para /termos.
+ * expõe contato oficial (mailto) e um link contextual para /termos.
  * Substitui a antiga seção "O que fazemos", que misturava mantenedora,
  * estágio e descrição funcional (já coberta por #79).
  */
@@ -230,7 +230,7 @@ describe("página /sobre — desenvolvido pela Buildea (#81)", () => {
     expect(contact).toHaveAttribute("href", "mailto:suporte@signallq.com");
   });
 
-  it("inclui um único link contextual para /termos, sem outro link secundário", () => {
+  it("inclui um link contextual para /termos", () => {
     render(<Page />);
     const heading = screen.getByRole("heading", { level: 2, name: "Desenvolvido pela Buildea" });
     const section = heading.closest("section");
@@ -238,8 +238,6 @@ describe("página /sobre — desenvolvido pela Buildea (#81)", () => {
       ? within(section).getByRole("link", { name: "Termos" })
       : null;
     expect(termosLink).toHaveAttribute("href", "/termos");
-    const links = section ? within(section).getAllByRole("link") : [];
-    expect(links).toHaveLength(2); // mailto de contato + /termos
   });
 
   it("não menciona dado pessoal, equipe, escritório, prêmio ou número de uso", () => {
@@ -248,5 +246,36 @@ describe("página /sobre — desenvolvido pela Buildea (#81)", () => {
     const section = heading.closest("section");
     expect(section?.textContent).not.toMatch(/produto independente desenvolvido no Brasil/i);
     expect(section?.textContent).not.toMatch(/equipe|escritório|prêmio|usuários ativos/i);
+  });
+});
+
+/**
+ * #77 — Canal oficial da Buildea em "Desenvolvido pela Buildea". A Buildea
+ * não tem site institucional próprio distinto do SignallQ, então o canal
+ * oficial referenciado é o domínio canônico do produto (signallq.com),
+ * como um link contextual inline no texto que já identifica a mantenedora
+ * — não um botão/CTA separado, para não concorrer com o CTA final da
+ * página nem com o link de Termos já existente na seção.
+ */
+describe("página /sobre — canal oficial da Buildea (#77)", () => {
+  it("inclui um link contextual para https://signallq.com como canal oficial", () => {
+    render(<Page />);
+    const heading = screen.getByRole("heading", { level: 2, name: "Desenvolvido pela Buildea" });
+    const section = heading.closest("section");
+    const link = section
+      ? within(section).getByRole("link", { name: "signallq.com" })
+      : null;
+    expect(link).toHaveAttribute("href", "https://signallq.com");
+  });
+
+  it("mantém o link do canal oficial inline no texto, não como um CTA/botão visual", () => {
+    render(<Page />);
+    const heading = screen.getByRole("heading", { level: 2, name: "Desenvolvido pela Buildea" });
+    const section = heading.closest("section");
+    const link = section
+      ? within(section).getByRole("link", { name: "signallq.com" })
+      : null;
+    expect(link?.tagName).toBe("A");
+    expect(link?.className).toBe("");
   });
 });
