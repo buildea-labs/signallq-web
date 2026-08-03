@@ -191,3 +191,62 @@ describe("página /sobre — medição não é adivinhação (#80)", () => {
     expect(paragraphs).toHaveLength(1);
   });
 });
+
+/**
+ * #81 — "Desenvolvido pela Buildea": identifica a mantenedora, separa o
+ * estágio por plataforma (Web/PWA e Android, sem frase única combinada),
+ * expõe contato oficial (mailto) e um único link contextual para /termos.
+ * Substitui a antiga seção "O que fazemos", que misturava mantenedora,
+ * estágio e descrição funcional (já coberta por #79).
+ */
+describe("página /sobre — desenvolvido pela Buildea (#81)", () => {
+  it("identifica a Buildea como mantenedora inequivocamente", () => {
+    render(<Page />);
+    const heading = screen.getByRole("heading", { level: 2, name: "Desenvolvido pela Buildea" });
+    expect(heading).toBeInTheDocument();
+    const section = heading.closest("section");
+    expect(section?.textContent).toContain("Desenvolvido pela Buildea.");
+    expect(screen.queryByRole("heading", { name: "O que fazemos" })).not.toBeInTheDocument();
+  });
+
+  it("mostra o estágio separado por plataforma, sem frase única combinada", () => {
+    render(<Page />);
+    const heading = screen.getByRole("heading", { level: 2, name: "Desenvolvido pela Buildea" });
+    const section = heading.closest("section");
+    expect(section?.textContent).toContain("SignallQ Web/PWA: disponível em beta.");
+    expect(section?.textContent).toContain("Aplicativo SignallQ Android: em teste fechado.");
+    expect(section?.textContent).not.toContain(
+      "O teste web está disponível em beta; o aplicativo Android está em teste fechado.",
+    );
+  });
+
+  it("expõe contato oficial suporte@signallq.com como link mailto funcional", () => {
+    render(<Page />);
+    const heading = screen.getByRole("heading", { level: 2, name: "Desenvolvido pela Buildea" });
+    const section = heading.closest("section");
+    const contact = section
+      ? within(section).getByRole("link", { name: "suporte@signallq.com" })
+      : null;
+    expect(contact).toHaveAttribute("href", "mailto:suporte@signallq.com");
+  });
+
+  it("inclui um único link contextual para /termos, sem outro link secundário", () => {
+    render(<Page />);
+    const heading = screen.getByRole("heading", { level: 2, name: "Desenvolvido pela Buildea" });
+    const section = heading.closest("section");
+    const termosLink = section
+      ? within(section).getByRole("link", { name: "Termos" })
+      : null;
+    expect(termosLink).toHaveAttribute("href", "/termos");
+    const links = section ? within(section).getAllByRole("link") : [];
+    expect(links).toHaveLength(2); // mailto de contato + /termos
+  });
+
+  it("não menciona dado pessoal, equipe, escritório, prêmio ou número de uso", () => {
+    render(<Page />);
+    const heading = screen.getByRole("heading", { level: 2, name: "Desenvolvido pela Buildea" });
+    const section = heading.closest("section");
+    expect(section?.textContent).not.toMatch(/produto independente desenvolvido no Brasil/i);
+    expect(section?.textContent).not.toMatch(/equipe|escritório|prêmio|usuários ativos/i);
+  });
+});

@@ -25,8 +25,16 @@ export default function Page() {
         <HighlightSection title="Por que existimos">
           <p>Testes tradicionais de velocidade mostram números, mas não explicam o que eles significam para quem está usando a internet. O SignallQ busca interpretar o resultado e indicar próximos passos, sem prometer descobrir toda causa de um problema de conexão.</p>
         </HighlightSection>
-        <HighlightSection title="O que fazemos">
-          <p>O SignallQ é gratuito. O teste web está disponível em beta; o aplicativo Android está em teste fechado. Ele ajuda qualquer pessoa a medir e entender a própria conexão: Wi‑Fi, fibra, DNS ou sinal móvel.</p>
+        <HighlightSection title="Desenvolvido pela Buildea">
+          <p>Desenvolvido pela Buildea.</p>
+          <p>SignallQ Web/PWA: disponível em beta.</p>
+          <p>Aplicativo SignallQ Android: em teste fechado.</p>
+          <p>
+            Fale com a gente em{' '}
+            <a href="mailto:suporte@signallq.com">suporte@signallq.com</a>. Propriedade,
+            responsabilidade e condições de uso estão detalhadas em{' '}
+            <Link href="/termos">Termos</Link>.
+          </p>
         </HighlightSection>
         <HighlightSection title="O que o SignallQ faz">
           <div className="flex flex-col gap-3">
