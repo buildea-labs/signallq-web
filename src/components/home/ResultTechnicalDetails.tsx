@@ -59,7 +59,7 @@ export function ResultTechnicalDetails({ result }: { result: SpeedTestResult }) 
 
         <p className="mt-5 mb-0 font-normal text-[12px] leading-[1.4] text-[color:var(--text-tertiary)]">
           O navegador não confirma provedor, localização, nem lê sinal Wi-Fi ou 4G/5G.{" "}
-          <a href="/como-medimos" className="text-[color:var(--accent)] no-underline hover:underline">
+          <a href="/como-medimos" className="text-[color:var(--accent)] underline underline-offset-2 hover:opacity-80">
             Entenda como o teste mede sua conexão
           </a>
         </p>
