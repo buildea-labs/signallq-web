@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { PageShell } from '../../components/PageShell'
 import {
   HighlightSection,
@@ -27,8 +28,23 @@ export default function Page() {
         <HighlightSection title="O que fazemos">
           <p>O SignallQ é gratuito. O teste web está disponível em beta; o aplicativo Android está em teste fechado. Ele ajuda qualquer pessoa a medir e entender a própria conexão: Wi‑Fi, fibra, DNS ou sinal móvel.</p>
         </HighlightSection>
-        <HighlightSection title="Site/PWA e Android">
-          <p>São experiências complementares. O site permite medir e acompanhar o histórico local no navegador; o Android pode acessar sinais e recursos de rede que o navegador não expõe.</p>
+        <HighlightSection title="O que o SignallQ faz">
+          <div className="flex flex-col gap-3">
+            <ul className="m-0 flex list-disc flex-col gap-2 pl-5">
+              <li>Medir a conexão em segundos, direto no navegador.</li>
+              <li>Interpretar os resultados em linguagem simples, sem jargão técnico.</li>
+              <li>Aprofundar a análise quando há indício de um problema.</li>
+              <li>
+                Manter um histórico local no navegador para comparar medições ao longo do tempo —
+                veja como tratamos esses dados em <Link href="/privacidade">Privacidade</Link>.
+              </li>
+            </ul>
+            <p className="m-0">
+              Recursos como sinal Wi‑Fi, rede móvel, informações de dispositivo e outras análises
+              nativas podem depender do{' '}
+              <Link href="/app">aplicativo Android</Link>.
+            </p>
+          </div>
         </HighlightSection>
         <InstitutionalCta label="Testar minha internet" href="/" supportingText="Comece pelo teste direto, sem cadastro." />
       </ReadingLayout>
