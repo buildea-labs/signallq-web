@@ -2,7 +2,7 @@
 
 ## Fonte de verdade
 
-O Android e o design system oficial prevalecem. A auditoria foi feita no repositório [buildea-labs/SignallQ](https://github.com/buildea-labs/SignallQ) no commit `92fefdd8754f238bd93f1293a32dd34b3a620c6a`: `android/app/src/main/kotlin/io/veloo/app/kotlin/ui/screen/VelocidadeScreen.kt`, `ui/component/GaugeCircular.kt`, `ui/SignallQTheme.kt` e `feature/speedtest/.../MeasurementStatus.kt`.
+O Android e o design system oficial prevalecem. A auditoria foi feita no repositório [buildea-labs/signallq](https://github.com/buildea-labs/signallq) no commit `92fefdd8754f238bd93f1293a32dd34b3a620c6a`: `android/app/src/main/kotlin/io/veloo/app/kotlin/ui/screen/VelocidadeScreen.kt`, `ui/component/GaugeCircular.kt`, `ui/SignallQTheme.kt` e `feature/speedtest/.../MeasurementStatus.kt`.
 
 | Android | Web/PWA | Token e apresentação |
 | --- | --- | --- |
