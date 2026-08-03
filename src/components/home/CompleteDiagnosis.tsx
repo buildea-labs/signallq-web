@@ -54,13 +54,6 @@ export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
 
       <ResultTechnicalDetails result={result} />
 
-      <a
-        href="/como-medimos"
-        className="self-center mt-6 font-medium text-[14px] leading-[1.43] text-[color:var(--accent)] no-underline hover:underline"
-      >
-        Entenda como o teste mede sua conexão
-      </a>
-
       <div className="flex gap-3 mt-6">
         <button
           onClick={statusCompleto ? journey.iniciarReteste : journey.retry}

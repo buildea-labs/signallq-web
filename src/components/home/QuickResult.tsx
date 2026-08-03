@@ -1,17 +1,14 @@
 "use client";
 
-import { useState } from "react";
 import { Velocimetro } from "@/components/Velocimetro";
 import type { SpeedTestJourney } from "@/hooks/useSpeedTestJourney";
 import { useNetworkInfo } from "@/hooks/useNetworkInfo";
-import { MetricSidePanel } from "./MetricSidePanel";
 import { PostResultProblemPrompt } from "./PostResultProblemPrompt";
 import { UseCaseSummary } from "./UseCaseSummary";
 import { buildSpeedometerView } from "./speedometerView";
 
 /** Velocímetro, conclusão e leitura rápida da medição corrente. */
 export function QuickResult({ journey }: { journey: SpeedTestJourney }) {
-  const [ajudaEstabilidadeAberta, setAjudaEstabilidadeAberta] = useState(false);
   const { phase, liveValue, result, isIdle, isRunning, isProblem, isResult, terminalOutcome, respostaDiagnostica, modo, isAutoStarting } = journey;
   const { isp, region, loading } = useNetworkInfo();
   const { fraction, dialNumber, dialUnit, identity } = buildSpeedometerView({
@@ -58,16 +55,7 @@ export function QuickResult({ journey }: { journey: SpeedTestJourney }) {
       {result && !isProblem && (
         <div className="w-full max-w-[520px] mt-8 flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 mx-auto">
           
-          {modo === "completo" && (
-            <>
-              <MetricSidePanel
-                result={result}
-                ajudaEstabilidadeAberta={ajudaEstabilidadeAberta}
-                onToggleAjudaEstabilidade={() => setAjudaEstabilidadeAberta(!ajudaEstabilidadeAberta)}
-              />
-              <UseCaseSummary result={result} />
-            </>
-          )}
+          {modo === "completo" && <UseCaseSummary result={result} />}
 
           {modo === "rapido" && <PostResultProblemPrompt journey={journey} />}
         </div>

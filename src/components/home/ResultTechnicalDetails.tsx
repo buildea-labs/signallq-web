@@ -1,47 +1,89 @@
-import { ListaChaveValor } from "@/components/ListaChaveValor";
-import { formatarDataHora, formatarDuracao } from "@/lib/measurementFormat";
-import type { SpeedTestResult } from "@/lib/speedEngine";
-import { BUFFERBLOAT_LABEL } from "./homeCopy";
+"use client";
 
-/** Detalhes por tipo de uso e técnicos, recolhidos por padrão. */
+import { useState, type SyntheticEvent } from "react";
+import { FEATURE_DIAGNOSIS_EXPANDED, trackFeatureUsed } from "@/lib/telemetry";
+import type { SpeedTestResult } from "@/lib/speedEngine";
+import { buildTechnicalDetailGroups, type DetailRow } from "./resultTechnicalDetailsRows";
+
+function DetailHelp({ id, text, openId, onToggle }: { id: string; text: string; openId: string | null; onToggle: (id: string) => void }) {
+  const open = openId === id;
+  return (
+    <span className="relative inline-flex">
+      <button
+        type="button"
+        onClick={() => onToggle(id)}
+        aria-expanded={open}
+        aria-label="O que é isso?"
+        className="ml-1 inline-flex items-center justify-center border-none bg-transparent cursor-pointer hover:opacity-80 transition-opacity p-0"
+      >
+        <span aria-hidden="true" className="material-symbols-outlined text-[13px] text-[color:var(--text-tertiary)]">help</span>
+      </button>
+      {open && (
+        <span className="absolute z-10 top-6 left-1/2 -translate-x-1/2 w-[200px] p-2 rounded-lg border border-[color:var(--border)] bg-[color:var(--surface-elevated)] shadow-[0_4px_24px_rgba(0,0,0,0.12)] text-[11px] leading-[1.4] text-[color:var(--text-primary)] text-center">
+          {text}
+        </span>
+      )}
+    </span>
+  );
+}
+
+function DetailRowLine({ row, openId, onToggle }: { row: DetailRow; openId: string | null; onToggle: (id: string) => void }) {
+  return (
+    <div className="flex items-baseline justify-between gap-3 py-[3px]">
+      <span className="inline-flex items-center font-normal text-[12px] leading-[1.35] text-[color:var(--text-secondary)]">
+        {row.label}
+        {row.help && <DetailHelp id={row.id} text={row.help} openId={openId} onToggle={onToggle} />}
+      </span>
+      <span className="font-medium text-[12px] leading-[1.35] text-right text-[color:var(--text-primary)]">{row.value}</span>
+    </div>
+  );
+}
+
+/**
+ * Único bloco expansível de detalhes técnicos (#70): recolhido por padrão,
+ * agrupa Velocidade / Resposta da conexão / Sobre o teste — o `MetricSidePanel`
+ * sempre-visível foi removido e fundido aqui (ver homeCopy/QuickResult).
+ */
 export function ResultTechnicalDetails({ result }: { result: SpeedTestResult }) {
+  const [openHelpId, setOpenHelpId] = useState<string | null>(null);
+  const groups = buildTechnicalDetailGroups(result);
+
+  const handleToggleDetails = (event: SyntheticEvent<HTMLDetailsElement>) => {
+    if (event.currentTarget.open) {
+      trackFeatureUsed(FEATURE_DIAGNOSIS_EXPANDED);
+    }
+  };
+
   return (
     <section className="py-7 border-b border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]">
-      <h2 className="m-0 font-semibold text-[16px] leading-[1.38] text-[color:var(--text-primary)]">Detalhes por tipo de uso e técnicos</h2>
-      <details className="mt-3">
-      <summary className="cursor-pointer font-medium text-[14px] text-[color:var(--accent)]">Mostrar detalhes técnicos</summary>
-      <div className="mt-[18px]">
-        <p className="m-0 font-normal text-[13px] leading-[1.4] text-[color:var(--text-secondary)]">O painel acima resume a capacidade da sua conexão para diferentes usos baseado na velocidade aferida. Valores individuais como Jitter e Latência abaixo complementam a visão técnica.</p>
-      </div>
+      <details onToggle={handleToggleDetails}>
+        <summary className="cursor-pointer font-medium text-[14px] text-[color:var(--accent)]">Ver detalhes do teste</summary>
 
-      <p className="mt-4 mb-0 font-normal text-[12px] leading-[1.33] text-[color:var(--text-tertiary)]">Esta é uma leitura das métricas desta medição, não uma certificação da velocidade contratada.</p>
+        <div className="mt-[18px] grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
+          {groups.map((group) => (
+            <div key={group.title}>
+              <div className="font-medium text-[11px] leading-[1.45] text-[color:var(--text-secondary)] tracking-[.3px] uppercase">
+                {group.title}
+              </div>
+              <div className="mt-[10px]">
+                {group.rows.map((row) => (
+                  <DetailRowLine key={row.id} row={row} openId={openHelpId} onToggle={(id) => setOpenHelpId((current) => (current === id ? null : id))} />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
 
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-6">
-      <ListaChaveValor
-        title="Contexto"
-        items={[
-          { label: "Infraestrutura", value: result.server },
-          { label: "Duração", value: formatarDuracao(result.durationMs) },
-          { label: "Data e hora local", value: formatarDataHora(result.timestamp) },
-        ]}
-      />
-      <ListaChaveValor
-        title="Detalhes técnicos"
-        items={[
-          { label: "Jitter", value: result.jitter ? `${result.jitter.ms.toFixed(1)} ms` : "Indisponível" },
-          {
-            label: "Bufferbloat",
-            value: `${result.bufferbloat.ms.toFixed(1)} ms · ${BUFFERBLOAT_LABEL[result.bufferbloat.severity]}`,
-          },
-          { label: "Estabilidade", value: `${result.stabilityScore.toFixed(0)}%` },
-          {
-            label: "DNS (DoH)",
-            value: result.dns.latencyMs == null ? "Indisponível" : `${result.dns.latencyMs} ms`,
-          },
-        ]}
-      />
-      <p className="sm:col-span-2 mt-1 mb-0 font-normal text-[12px] leading-[1.33] text-[color:var(--text-tertiary)]">O navegador não confirma provedor, localização, nem lê sinal Wi-Fi ou 4G/5G.</p>
-    </div>
+        <p className="mt-5 mb-0 font-normal text-[12px] leading-[1.4] text-[color:var(--text-tertiary)]">
+          O navegador não confirma provedor, localização, nem lê sinal Wi-Fi ou 4G/5G.{" "}
+          <a href="/como-medimos" className="text-[color:var(--accent)] no-underline hover:underline">
+            Entenda como o teste mede sua conexão
+          </a>
+        </p>
+
+        <p className="mt-3 mb-0 font-normal text-[12px] leading-[1.33] text-[color:var(--text-tertiary)]">
+          Esta é uma leitura das métricas desta medição, não uma certificação da velocidade contratada.
+        </p>
       </details>
     </section>
   );
