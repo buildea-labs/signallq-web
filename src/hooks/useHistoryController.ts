@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { listComparisons, type ComparacaoRegistro } from "@/lib/comparisonRepository";
 import { createHistoryExport } from "@/lib/historyExport";
+import { resolveConnectionMetadata } from "@/lib/historyMetadata";
 import { groupRecordsByConnection, groupRecordsByPeriod } from "@/lib/historySelectors";
 import {
   clearAll,
@@ -103,27 +104,8 @@ export function useHistoryController() {
   };
   const saveMetadata = async () => {
     if (!editing) return;
-    const name = metadata.connectionName?.trim();
-    // O nome é a chave humana: se já existe, reutiliza a conexão. Caso seja
-    // novo, uma chave estável derivada dele permite que a próxima medição seja
-    // agrupada sem depender do id técnico da medição.
-    const matching = name
-      ? records.find(
-          (record) =>
-            record.id !== editing.id &&
-            record.userMetadata?.connectionName?.localeCompare(name, "pt-BR", { sensitivity: "accent" }) === 0
-        )
-      : undefined;
-    const connectionId =
-      selectedConnectionId ||
-      matching?.userMetadata?.connectionId ||
-      (name
-        ? `connection:${name
-            .toLocaleLowerCase("pt-BR")
-            .replace(/[^a-z0-9]+/g, "-")
-            .replace(/(^-|-$)/g, "")}`
-        : undefined);
-    const updated = await updateRecordMetadata(editing.id, { ...metadata, connectionId });
+    const resolved = resolveConnectionMetadata(records, editing.id, metadata, selectedConnectionId);
+    const updated = await updateRecordMetadata(editing.id, resolved);
     if (updated) setRecords((current) => current.map((record) => (record.id === updated.id ? updated : record)));
     setEditing(null);
   };
