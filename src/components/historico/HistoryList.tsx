@@ -1,22 +1,18 @@
 import { HistoryListItem } from "@/components/historico/HistoryListItem";
-import type { HistoryConnectionGroup } from "@/lib/historySelectors";
-import type { MedicaoRegistro } from "@/lib/measurementRepository";
+import type { HistoryPeriodGroup } from "@/lib/historySelectors";
 
 interface HistoryListProps {
-  groups: HistoryConnectionGroup[]
+  groups: HistoryPeriodGroup[]
   filteredCount: number
   totalCount: number
-  onShare: (record: MedicaoRegistro) => void
-  onRemove: (id: string) => void
-  onEdit: (record: MedicaoRegistro) => void
 }
 
-export function HistoryList({ groups, filteredCount, totalCount, onShare, onRemove, onEdit }: HistoryListProps) {
+export function HistoryList({ groups, filteredCount, totalCount }: HistoryListProps) {
   return (
     <>
       <div className="flex flex-col gap-5">
         {groups.map((group) => (
-          <HistoryListItem key={group.id} group={group} onShare={onShare} onRemove={onRemove} onEdit={onEdit} />
+          <HistoryListItem key={group.id} group={group} />
         ))}
         {filteredCount === 0 && (
           <div className="col-span-full py-6 text-center font-normal text-[12px] leading-[1.33] text-[color:var(--text-tertiary)]">

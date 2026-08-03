@@ -1,3 +1,5 @@
+import Link from 'next/link'
+import { MODE_LABEL } from '../home/homeCopy'
 import { classifyDownload } from '../../lib/classification'
 import { iconeConexao, labelConexao } from '../../lib/connection'
 import { formatarTempoRelativo } from '../../lib/relativeTime'
@@ -5,35 +7,35 @@ import type { MedicaoRegistro } from '../../lib/measurementRepository'
 
 const NIVEL_COR: Record<string, string> = { success: 'var(--success)', warning: 'var(--warning)', error: 'var(--error)', indisponivel: 'var(--text-tertiary)' }
 
-interface HistoryRecordCardProps {
-  record: MedicaoRegistro
-  onShare: (record: MedicaoRegistro) => void
-  onRemove: (id: string) => void
-  onEdit: (record: MedicaoRegistro) => void
+const PROBLEMA_MAX = 48
+
+function truncarProblema(texto: string): string {
+  return texto.length > PROBLEMA_MAX ? `${texto.slice(0, PROBLEMA_MAX - 1).trimEnd()}…` : texto
 }
 
-// Card por medição da Tela 3 "Histórico" (protótipo "SignallQ WebApp.dc.html"
-// do Luiz, GH#1186) — substitui a tabela (HistoryTable.tsx) por um card por
-// linha: topo com ícone/tipo de conexão + horário relativo, base com
-// download/upload/latência inline.
-export function HistoryRecordCard({ record, onShare, onRemove, onEdit }: HistoryRecordCardProps) {
+interface HistoryRecordCardProps {
+  record: MedicaoRegistro
+}
+
+// Item de lista do Histórico (#73): reconhecível sem expor todas as
+// métricas — só o resultado principal (download), horário, modo (quando
+// conhecido) e o problema informado (quando existir) aparecem. Nenhuma ação
+// (editar/compartilhar/excluir) vive mais aqui: a linha inteira é um único
+// alvo de navegação (link semântico, focável e ativável por teclado) para o
+// detalhe do teste (#74). Enquanto a rota de detalhe não existe, o link
+// aponta para `/historico/{id}` — pendência registrada no resumo da tarefa.
+export function HistoryRecordCard({ record }: HistoryRecordCardProps) {
   const verdict = classifyDownload(record.download)
+  const modeLabel = record.mode ? MODE_LABEL[record.mode] : undefined
+  const reportedProblem = record.userMetadata?.reportedProblem?.trim()
 
   return (
-    <div className="flex flex-col gap-2 rounded-2xl p-3.5" style={{ background: 'var(--bg-secondary)', boxShadow: '0 8px 20px rgba(0,0,0,.14)' }}>
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5">
-          <span aria-hidden="true" className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--text-tertiary)' }}>
-            {iconeConexao(record.connectionKind)}
-          </span>
-          <span className="label-medium">{labelConexao(record.connectionKind)}</span>
-        </div>
-        <span style={{ font: '400 11px/1.45 var(--font-sans)', color: 'var(--text-tertiary)' }}>
-          {formatarTempoRelativo(record.timestamp)}
-        </span>
-      </div>
-
-      <div className="flex items-center gap-3.5">
+    <Link
+      href={`/historico/${record.id}`}
+      className="flex items-center gap-3 rounded-2xl p-3.5 no-underline"
+      style={{ background: 'var(--bg-secondary)', boxShadow: '0 8px 20px rgba(0,0,0,.14)', color: 'inherit' }}
+    >
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex items-center gap-1">
           <span aria-hidden="true" className="material-symbols-outlined" style={{ fontSize: 14, color: NIVEL_COR[verdict.nivel] }}>
             arrow_downward
@@ -42,31 +44,35 @@ export function HistoryRecordCard({ record, onShare, onRemove, onEdit }: History
             {record.download.toFixed(1)} Mbps
           </span>
         </div>
-        <div className="flex items-center gap-1">
-          <span aria-hidden="true" className="material-symbols-outlined" style={{ fontSize: 14, color: 'var(--accent)' }}>
-            arrow_upward
-          </span>
-          <span className="label-large">{record.upload.toFixed(1)} Mbps</span>
-        </div>
-        <div className="body-small">{Math.round(record.latency)} ms</div>
 
-        <div className="ml-auto flex gap-1">
-          <button aria-label="Editar contexto da medição" onClick={() => onEdit(record)} className="flex h-8 w-8 items-center justify-center border-none bg-transparent">
-            <span aria-hidden="true" className="material-symbols-outlined" style={{ fontSize: 16 }}>edit</span>
-          </button>
-          <button aria-label="Compartilhar medição" onClick={() => onShare(record)} className="flex h-8 w-8 items-center justify-center border-none bg-transparent">
-            <span aria-hidden="true" className="material-symbols-outlined" style={{ fontSize: 16 }}>
-              share
+        <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[12px]" style={{ color: 'var(--text-tertiary)' }}>
+          <span>{formatarTempoRelativo(record.timestamp)}</span>
+          {modeLabel && (
+            <>
+              <span aria-hidden="true">·</span>
+              <span>{modeLabel}</span>
+            </>
+          )}
+          <span aria-hidden="true">·</span>
+          <span className="inline-flex items-center gap-0.5">
+            <span aria-hidden="true" className="material-symbols-outlined" style={{ fontSize: 13 }}>
+              {iconeConexao(record.connectionKind)}
             </span>
-          </button>
-          <button aria-label="Excluir medição" onClick={() => onRemove(record.id)} className="flex h-8 w-8 items-center justify-center border-none bg-transparent">
-            <span aria-hidden="true" className="material-symbols-outlined" style={{ fontSize: 16 }}>
-              delete
-            </span>
-          </button>
+            {labelConexao(record.connectionKind)}
+            {record.userMetadata?.connectionName ? ` · ${record.userMetadata.connectionName}` : ''}
+          </span>
         </div>
+
+        {reportedProblem && (
+          <div className="truncate text-[12px]" style={{ color: 'var(--text-secondary)' }}>
+            {truncarProblema(reportedProblem)}
+          </div>
+        )}
       </div>
-      {record.userMetadata?.connectionName && <div className="body-small text-[color:var(--text-secondary)]">{record.userMetadata.connectionName}</div>}
-    </div>
+
+      <span aria-hidden="true" className="material-symbols-outlined shrink-0" style={{ fontSize: 20, color: 'var(--text-tertiary)' }}>
+        chevron_right
+      </span>
+    </Link>
   )
 }

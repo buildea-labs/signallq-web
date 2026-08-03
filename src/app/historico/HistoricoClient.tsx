@@ -47,18 +47,30 @@ export function HistoricoClient() {
               onExport={history.exportHistory}
             />
 
-            <HistoryEvolutionChart records={history.records} />
-
             <HistoryCompare comparisons={history.recoverableComparisons} byId={history.byId} />
 
             <HistoryList
               groups={history.groups}
               filteredCount={history.filtered.length}
               totalCount={history.records.length}
-              onShare={history.shareRecord}
-              onRemove={history.remove}
-              onEdit={history.startEdit}
             />
+
+            {/*
+              A lista deve favorecer varredura visual e não competir com um
+              gráfico obrigatório na abertura (achado transversal da spec de
+              UX, seção 0, que afeta #73 além de #75). O gráfico continua
+              consumindo os mesmos `records` — nenhuma lógica de
+              `historyChartMath.ts` muda, só a posição/visibilidade: recolhido
+              por padrão, depois da lista, mesmo padrão de disclosure do #70.
+            */}
+            <details className="rounded-2xl" style={{ background: 'var(--bg-secondary)' }}>
+              <summary className="cursor-pointer select-none p-3.5 font-medium text-[13px] text-[color:var(--text-primary)]">
+                Ver evolução
+              </summary>
+              <div className="p-3.5 pt-0">
+                <HistoryEvolutionChart records={history.records} />
+              </div>
+            </details>
           </div>
         )}
       </div>

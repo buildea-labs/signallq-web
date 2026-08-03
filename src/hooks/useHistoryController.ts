@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { listComparisons, type ComparacaoRegistro } from "@/lib/comparisonRepository";
 import { createHistoryExport } from "@/lib/historyExport";
-import { groupRecordsByConnection } from "@/lib/historySelectors";
+import { groupRecordsByConnection, groupRecordsByPeriod } from "@/lib/historySelectors";
 import {
   clearAll,
   deleteConnection,
@@ -150,7 +150,10 @@ export function useHistoryController() {
   const isEmpty = status === "loaded" && records.length === 0;
   const hasRecords = status === "loaded" && records.length > 0;
   const filtered = records.filter((r) => filtro === "todos" || r.connectionKind === filtro);
-  const groups = groupRecordsByConnection(filtered);
+  // Período é o agrupador visual primário da lista (#73); conexão continua
+  // existindo só para o autocomplete e a exclusão em massa no
+  // `HistoryEditDialog` (`knownConnections`), não para renderizar a lista.
+  const groups = groupRecordsByPeriod(filtered);
   const knownConnections = groupRecordsByConnection(records).filter((group) => !group.id.startsWith("legacy:"));
   const byId = new Map(records.map((record) => [record.id, record]));
   const recoverableComparisons = comparisons.filter(
