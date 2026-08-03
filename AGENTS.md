@@ -1,26 +1,68 @@
 # SignallQ Web
 
-Este repositório contém somente o site Next.js. Leia a skill aplicável em `skills/` antes de agir.
+## Identidade e estado atual
 
-## Agentes
+- **Organização:** `buildea-labs`
+- **Finalidade:** site institucional e PWA do SignallQ para medição de conexão, histórico local e conteúdo explicativo.
+- **Classificação:** produto.
+- **Estado atual:** aplicação Next.js com App Router, PWA baseada em Serwist, rotas públicas, Route Handlers e validações Vitest.
 
-- `agents/renan.md`: implementação Web.
-- `agents/caio.md`: revisão independente; não implementa a entrega que revisa.
+## Escopo e exclusões
 
-## Regras
+- **Pertence ao repositório:** site público, PWA, medição no navegador, histórico local, páginas institucionais e editoriais, SEO técnico e Route Handlers deste site.
+- **Não pertence:** aplicativo Android e Workers do repositório `signallq`, portal administrativo `buildea-admin`, políticas corporativas completas ou projetos pessoais.
 
-- Não altere layout, textos, UX, rotas, escopo ou arquitetura sem instrução explícita do Luiz.
-- Preserve variáveis secretas no servidor; nunca versione `.env` nem use `NEXT_PUBLIC_` para segredos.
-- Toda implementação relevante requer revisão de Caio antes de merge, incluindo o gate de arquitetura em `skills/architecture-guardrails/`.
-- Execute os gates definidos em `skills/quality-gates/` antes de publicar uma mudança.
-- **Sempre limpe (delete) workspaces isolados ou pastas temporárias** geradas por agentes (ex: `branch` ou `share` workspaces) imediatamente após o merge da issue. Não deixe sujeira no projeto.
+## Arquitetura comprovada
 
-## Branch e PR
+- **Componentes principais:** Next.js 16, React 19, TypeScript, Tailwind CSS, `src/app/`, `src/components/`, `src/lib/`, `src/styles/` e `public/`.
+- **PWA:** Serwist gera o service worker a partir de `src/app/sw.ts`; `public/manifest.json` define a instalação e `public/sw.js` é o destino gerado.
+- **Rotas e dados locais:** App Router e Route Handlers em `src/app/api/`; o histórico é mantido no navegador.
+- **Integrações:** medição por endpoints configuráveis, proxies de telemetria e lista de espera, Worker de diagnóstico configurado somente no servidor e AdSense configurável por variável pública. Disponibilidade de serviços externos é a validar.
+- **Dependências:** declaradas em `package.json`.
 
-- **Sincronização e Conflitos**: Sempre verifique se o ambiente local e o remoto estão sincronizados (`git pull`) antes de iniciar o desenvolvimento. Verifique se existem outras branches abertas ou PRs concomitantes que possam gerar conflitos, e resolva-os quando possível e fizer sentido.
-- **Não precisa de branch/PR**: atualização de documentação (`.md`, changelogs, comentários de contexto) e ajustes finos de layout (espaçamento, cor, texto de um elemento isolado — sem mudar estrutura, hierarquia ou comportamento). Commit direto na main, com mensagem descritiva.
-- **Precisa de branch + PR**: qualquer mudança de código com lógica, estado, rotas, componentes novos ou alterados estruturalmente, hooks, stores, engine — e qualquer mudança de layout que altere estrutura, hierarquia ou comportamento (não apenas ajuste visual pontual).
-- **Convenção de Nomenclatura**: Sempre que abrir uma branch ou PR, utilize o formato `[nome do modelo]-[numero da issue]-[nome da feature]`. (exemplo de branch: `antigravity-17-criar-login-de-acesso` / exemplo de título de PR: `antigravity-17-criar login de acesso`).
-- Na dúvida entre os dois casos, tratar como mudança maior e abrir branch/PR.
-- PR de código passa pelo gate de arquitetura e revisão de Caio antes de merge.
-- **Fechamento**: Sempre atualize ou feche as issues relacionadas ao final da implementação, garantindo que o status no board reflita a realidade.
+## Comandos essenciais comprovados
+
+- **Instalação:** `npm ci`.
+- **Execução:** `npm run dev`.
+- **Lint:** `npm run lint`.
+- **Typecheck:** `npm run typecheck`.
+- **Testes:** `npm test`.
+- **Build:** `npm run build`.
+- **Validações específicas:** a CI executa instalação, lint, typecheck, testes e build. Alterações de PWA, acessibilidade, SEO técnico ou interface exigem as validações locais aplicáveis em `skills/`.
+
+## Restrições
+
+- **Acessibilidade e performance:** preservar semântica, navegação por teclado, responsividade e desempenho; mudanças de UI devem manter tokens e componentes existentes quando aplicável.
+- **Privacidade:** o histórico permanece local; compartilhamento deve preservar somente os dados autorizados. Segredos, incluindo `SITE_INGEST_KEY` e `DIAGNOSTIC_WORKER_URL`, devem permanecer somente no servidor.
+- **SEO técnico:** Renan responde por rotas, metadados, redirecionamentos, indexação e dados estruturados. SEO editorial e aquisição pertencem a Marcos.
+- **Custos:** mudanças em AdSense, provedores de medição, telemetria, hospedagem ou serviços externos exigem aprovação do Luiz quando criarem custo ou compromisso externo.
+- **Publicação:** deploy, produção, alteração pública de marca, rotas públicas, consentimento ou mudança irreversível exigem aprovação explícita do Luiz.
+
+## Agentes aplicáveis
+
+- **Líder funcional:** Claudete.
+- **Responsável técnico web:** Renan.
+- **Design:** Juliana.
+- **Growth e SEO editorial:** Marcos.
+- **Operações, métricas e dados:** Gustavo.
+- **Revisão independente:** Caio; não implementa a entrega que revisa.
+- **Fonte organizacional:** os agentes corporativos canônicos vivem em `../ai-governance/agents/`. Arquivos em `agents/` fornecem contexto específico de execução, mas não substituem a governança organizacional.
+- **Skills locais:** `skills/` contém instruções específicas deste repositório.
+
+## Critérios locais de conclusão
+
+- O escopo autorizado foi atendido, os comandos e validações aplicáveis têm evidência, acessibilidade/PWA/SEO técnico foram avaliados quando afetados e Caio revisou mudanças com código, segurança, produção ou risco relevante.
+
+## Fontes complementares
+
+- `README.md`
+- `package.json`
+- `next.config.ts`
+- `.env.example`
+- `docs/deploy-vercel.md`
+- `skills/quality-gates/SKILL.md`
+- `skills/accessibility-seo-review/SKILL.md`
+- `skills/pwa-validation/SKILL.md`
+- `skills/architecture-guardrails/SKILL.md`
+- `../ai-governance/policies/agent-operating-contract.md`
+- `../ai-governance/policies/demand-routing.md`
