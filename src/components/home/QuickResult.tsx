@@ -5,6 +5,7 @@ import { Velocimetro } from "@/components/Velocimetro";
 import type { SpeedTestJourney } from "@/hooks/useSpeedTestJourney";
 import { useNetworkInfo } from "@/hooks/useNetworkInfo";
 import { MetricSidePanel } from "./MetricSidePanel";
+import { PostResultProblemPrompt } from "./PostResultProblemPrompt";
 import { UseCaseSummary } from "./UseCaseSummary";
 import { buildSpeedometerView } from "./speedometerView";
 
@@ -68,27 +69,7 @@ export function QuickResult({ journey }: { journey: SpeedTestJourney }) {
             </>
           )}
 
-          {modo === "rapido" && (
-            <div className="flex flex-col items-center gap-3 pt-2">
-              <p className="m-0 font-medium text-[15px] text-center text-[color:var(--text-secondary)] px-4">
-                {result.download.mbps > 100 
-                  ? "Sua velocidade é ótima para baixar, mas será que a internet está 100% saudável?" 
-                  : result.download.mbps < 30 
-                  ? "A velocidade parece restrita. Quer descobrir se há algum gargalo na sua rede?" 
-                  : "A velocidade atende, mas sua conexão aguenta uso pesado (como vídeos e jogos)?"}
-              </p>
-              <button
-                onClick={() => {
-                  journey.setModo("completo");
-                  journey.abrirEntradaPorProblema();
-                }}
-                className="cursor-pointer bg-[color-mix(in_srgb,_var(--accent)_10%,_transparent)] border border-[color-mix(in_srgb,_var(--accent)_30%,_transparent)] text-[color:var(--accent)] px-5 py-2.5 rounded-full font-semibold text-[14px] hover:bg-[color-mix(in_srgb,_var(--accent)_15%,_transparent)] transition-colors flex items-center gap-2 mt-1"
-              >
-                <span aria-hidden="true" className="material-symbols-outlined text-[20px]">manage_search</span>
-                Diagnóstico Completo
-              </button>
-            </div>
-          )}
+          {modo === "rapido" && <PostResultProblemPrompt journey={journey} />}
         </div>
       )}
 
