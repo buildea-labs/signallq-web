@@ -1,0 +1,1 @@
+O PR possui erros de lint. Foram encontrados problemas no arquivo src/app/internet-para-jogos/InternetParaJogosClient.tsx (react/no-unescaped-entities) relacionados ao uso de aspas. Por favor, faca o escape correto usando &quot; e garanta que o comando npm run lint passe com sucesso (zero warnings/errors). Nao faremos o merge ate que a pipeline de lint esteja verde.
