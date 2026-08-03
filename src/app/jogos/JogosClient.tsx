@@ -43,7 +43,7 @@ export function JogosClient() {
         disabled={state.status === 'running'}
         className="h-[44px] flex items-center gap-2 self-start px-5 rounded-[var(--radius-button,_999px)] bg-[color:var(--accent)] hover:opacity-90 transition-opacity disabled:opacity-60"
       >
-        <span className="material-symbols-outlined text-[20px] text-[color:var(--on-accent)]">sports_esports</span>
+        <span aria-hidden="true" className="material-symbols-outlined text-[20px] text-[color:var(--on-accent)]">sports_esports</span>
         <span className="font-medium text-[14px] leading-[1.43] text-[color:var(--on-accent)]">
           {state.status === 'running' ? 'Medindo…' : state.status === 'done' ? 'Medir novamente' : 'Medir latência'}
         </span>

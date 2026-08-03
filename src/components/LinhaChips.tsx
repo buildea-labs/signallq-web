@@ -21,7 +21,7 @@ export function LinhaChips({ items }: { items: ItemChip[] }) {
           "flex items-center gap-2 rounded-full py-2 pr-[14px] pl-[10px] bg-[color:var(--bg-secondary)] shadow-[0_4px_14px_rgba(0,0,0,.16)]";
         const content = (
           <>
-            <span className="material-symbols-outlined text-[16px] text-[color:var(--accent)]">
+            <span aria-hidden="true" className="material-symbols-outlined text-[16px] text-[color:var(--accent)]">
               {item.icon}
             </span>
             <span className="font-medium text-[13px] leading-[1.3] text-[color:var(--text-primary)] whitespace-nowrap">

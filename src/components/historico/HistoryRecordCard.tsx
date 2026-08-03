@@ -23,7 +23,7 @@ export function HistoryRecordCard({ record, onShare, onRemove, onEdit }: History
     <div className="flex flex-col gap-2 rounded-2xl p-3.5" style={{ background: 'var(--bg-secondary)', boxShadow: '0 8px 20px rgba(0,0,0,.14)' }}>
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5">
-          <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--text-tertiary)' }}>
+          <span aria-hidden="true" className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--text-tertiary)' }}>
             {iconeConexao(record.connectionKind)}
           </span>
           <span className="label-medium">{labelConexao(record.connectionKind)}</span>
@@ -35,7 +35,7 @@ export function HistoryRecordCard({ record, onShare, onRemove, onEdit }: History
 
       <div className="flex items-center gap-3.5">
         <div className="flex items-center gap-1">
-          <span className="material-symbols-outlined" style={{ fontSize: 14, color: NIVEL_COR[verdict.nivel] }}>
+          <span aria-hidden="true" className="material-symbols-outlined" style={{ fontSize: 14, color: NIVEL_COR[verdict.nivel] }}>
             arrow_downward
           </span>
           <span className="label-large" style={{ color: NIVEL_COR[verdict.nivel] }}>
@@ -43,7 +43,7 @@ export function HistoryRecordCard({ record, onShare, onRemove, onEdit }: History
           </span>
         </div>
         <div className="flex items-center gap-1">
-          <span className="material-symbols-outlined" style={{ fontSize: 14, color: 'var(--accent)' }}>
+          <span aria-hidden="true" className="material-symbols-outlined" style={{ fontSize: 14, color: 'var(--accent)' }}>
             arrow_upward
           </span>
           <span className="label-large">{record.upload.toFixed(1)} Mbps</span>
@@ -52,15 +52,15 @@ export function HistoryRecordCard({ record, onShare, onRemove, onEdit }: History
 
         <div className="ml-auto flex gap-1">
           <button aria-label="Editar contexto da medição" onClick={() => onEdit(record)} className="flex h-8 w-8 items-center justify-center border-none bg-transparent">
-            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>edit</span>
+            <span aria-hidden="true" className="material-symbols-outlined" style={{ fontSize: 16 }}>edit</span>
           </button>
           <button aria-label="Compartilhar medição" onClick={() => onShare(record)} className="flex h-8 w-8 items-center justify-center border-none bg-transparent">
-            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+            <span aria-hidden="true" className="material-symbols-outlined" style={{ fontSize: 16 }}>
               share
             </span>
           </button>
           <button aria-label="Excluir medição" onClick={() => onRemove(record.id)} className="flex h-8 w-8 items-center justify-center border-none bg-transparent">
-            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+            <span aria-hidden="true" className="material-symbols-outlined" style={{ fontSize: 16 }}>
               delete
             </span>
           </button>

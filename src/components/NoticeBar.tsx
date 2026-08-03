@@ -24,7 +24,7 @@ export function NoticeBar({
     <div
       className={`flex items-start gap-2 rounded-xl py-3 px-[14px] ${bgClass}`}
     >
-      <span className={`material-symbols-outlined text-[16px] ${colorClass}`}>
+      <span aria-hidden="true" className={`material-symbols-outlined text-[16px] ${colorClass}`}>
         {icon}
       </span>
       <div className="font-normal text-[12px] leading-[1.4] text-[color:var(--text-secondary)]">

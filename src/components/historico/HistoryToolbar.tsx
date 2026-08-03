@@ -3,7 +3,7 @@ import { FILTROS, type HistoryFiltro } from "@/hooks/useHistoryController";
 export function HistoryDiagnosticTip() {
   return (
     <div className="flex items-start gap-3 rounded-[16px] p-4 bg-[color-mix(in_srgb,_var(--accent)_15%,_transparent)]">
-      <span className="material-symbols-outlined text-[20px] text-[color:var(--accent)] mt-0.5">lightbulb</span>
+      <span aria-hidden="true" className="material-symbols-outlined text-[20px] text-[color:var(--accent)] mt-0.5">lightbulb</span>
       <div className="font-normal text-[12px] leading-[1.33] text-[color:var(--text-secondary)]">
         <b className="text-[color:var(--text-primary)]">Dica de Diagnóstico:</b> Compare a sua conexão fazendo um teste perto do roteador e outro no cômodo onde a internet fica lenta. A diferença mostra o quanto você perde no Wi-Fi.
       </div>
@@ -35,14 +35,14 @@ export function HistoryToolbar({ filtro, onFiltroChange, onClearAll, onExport }:
         ))}
       </div>
       <button onClick={onClearAll} className="flex items-center gap-[6px] whitespace-nowrap bg-transparent border-none cursor-pointer">
-        <span className="material-symbols-outlined text-[16px] text-[color:var(--accent)]">
+        <span aria-hidden="true" className="material-symbols-outlined text-[16px] text-[color:var(--accent)]">
           delete_sweep
         </span>
         <span className="font-medium text-[12px] leading-[1.33] text-[color:var(--accent)] hover:underline">
           Limpar histórico
         </span>
       </button>
-      <button type="button" onClick={onExport} className="flex items-center gap-[6px] whitespace-nowrap bg-transparent border-none cursor-pointer text-[color:var(--accent)]"><span className="material-symbols-outlined text-[16px]">download</span><span className="font-medium text-[12px]">Exportar dados</span></button>
+      <button type="button" onClick={onExport} className="flex items-center gap-[6px] whitespace-nowrap bg-transparent border-none cursor-pointer text-[color:var(--accent)]"><span aria-hidden="true" className="material-symbols-outlined text-[16px]">download</span><span className="font-medium text-[12px]">Exportar dados</span></button>
     </div>
   );
 }

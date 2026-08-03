@@ -131,6 +131,7 @@ export function SiteNav() {
                 "material-symbols-outlined text-[16px]",
                 isApp ? "text-[color:var(--on-accent)]" : "text-[color:var(--accent)]"
               )}
+              aria-hidden="true"
             >
               android
             </span>
@@ -153,7 +154,7 @@ export function SiteNav() {
           onClick={() => setMenuOpen((v) => !v)}
           className="md:hidden w-[40px] h-[40px] rounded-full flex items-center justify-center cursor-pointer bg-transparent border-none p-0"
         >
-          <span className="material-symbols-outlined text-[24px] text-[color:var(--text-primary)]">
+          <span aria-hidden="true" className="material-symbols-outlined text-[24px] text-[color:var(--text-primary)]">
             {menuOpen ? "close" : "menu"}
           </span>
         </button>

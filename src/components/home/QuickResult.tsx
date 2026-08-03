@@ -39,7 +39,7 @@ export function QuickResult({ journey }: { journey: SpeedTestJourney }) {
                   onClick={journey.iniciarTesteDireto}
                   className="h-[44px] px-[26px] rounded-full flex items-center gap-2 border-none bg-[color:var(--accent)] shadow-[0_14px_30px_color-mix(in_srgb,_var(--accent)_45%,_transparent),_0_2px_6px_rgba(0,0,0,.25)] whitespace-nowrap cursor-pointer hover:scale-105 active:scale-95 transition-transform"
                 >
-                  <span className="material-symbols-outlined text-[18px] text-[color:var(--on-accent)]">
+                  <span aria-hidden="true" className="material-symbols-outlined text-[18px] text-[color:var(--on-accent)]">
                     {isProblem ? "refresh" : "speed"}
                   </span>
                   <span className="font-semibold text-[16px] leading-[1.15] text-[color:var(--on-accent)]">
@@ -84,7 +84,7 @@ export function QuickResult({ journey }: { journey: SpeedTestJourney }) {
                 }}
                 className="cursor-pointer bg-[color-mix(in_srgb,_var(--accent)_10%,_transparent)] border border-[color-mix(in_srgb,_var(--accent)_30%,_transparent)] text-[color:var(--accent)] px-5 py-2.5 rounded-full font-semibold text-[14px] hover:bg-[color-mix(in_srgb,_var(--accent)_15%,_transparent)] transition-colors flex items-center gap-2 mt-1"
               >
-                <span className="material-symbols-outlined text-[20px]">manage_search</span>
+                <span aria-hidden="true" className="material-symbols-outlined text-[20px]">manage_search</span>
                 Diagnóstico Completo
               </button>
             </div>
