@@ -7,9 +7,9 @@ import { PostResultProblemPrompt } from "./PostResultProblemPrompt";
 import { UseCaseSummary } from "./UseCaseSummary";
 import { buildSpeedometerView } from "./speedometerView";
 
-/** Velocímetro, conclusão e leitura rápida da medição corrente. */
+/** Velocímetro e leitura rápida da medição corrente (conclusão/impacto vivem em CompleteDiagnosis, #71). */
 export function QuickResult({ journey }: { journey: SpeedTestJourney }) {
-  const { phase, liveValue, result, isIdle, isRunning, isProblem, isResult, terminalOutcome, respostaDiagnostica, modo, isAutoStarting } = journey;
+  const { phase, liveValue, result, isIdle, isRunning, isProblem, isResult, terminalOutcome, modo, isAutoStarting } = journey;
   const { isp, region, loading } = useNetworkInfo();
   const { fraction, dialNumber, dialUnit, identity } = buildSpeedometerView({
     phase,
@@ -22,13 +22,6 @@ export function QuickResult({ journey }: { journey: SpeedTestJourney }) {
 
   return (
     <>
-      {respostaDiagnostica && !isProblem && modo !== "rapido" && (
-        <div className="w-full text-center max-w-[520px] pt-4 mb-4">
-          <h1 id="resultado-conclusao" className="m-0 font-bold text-[24px] sm:text-[28px] leading-[1.25] text-[color:var(--text-primary)] tracking-tight">{respostaDiagnostica.conclusion}</h1>
-          <p className="mt-2 mb-0 font-normal text-[14px] sm:text-[15px] leading-[1.45] text-[color:var(--text-secondary)] max-w-[480px] mx-auto">{respostaDiagnostica.impact}</p>
-        </div>
-      )}
-
       <div className={`w-full ${modo === 'rapido' ? 'max-w-[1024px] mt-0' : 'max-w-[800px] mt-2'} flex justify-center px-4 sm:px-8`}>
         <Velocimetro fraction={fraction} phaseColor={identity.color} isRunning={isRunning} phase={result ? "download" : phase} liveValue={result ? result.download.mbps : liveValue} value={dialNumber} unit={dialUnit} metricLabel={result ? "Download" : undefined} phaseLabel={isRunning || (isProblem && terminalOutcome === null) ? identity.label : undefined} narrative={isRunning || (isProblem && terminalOutcome === null) ? identity.narrative : undefined} compact={modo === "completo" ? (terminalOutcome !== null || isProblem) : isProblem}>
             {(isIdle || isProblem) && !isAutoStarting && (
@@ -61,11 +54,13 @@ export function QuickResult({ journey }: { journey: SpeedTestJourney }) {
         </div>
       )}
 
-      {!isProblem && isResult && (
+      {/* Só exibida quando ambos os valores são conhecidos — "Desconhecido" é
+          ruído para quem não pediu essa informação (#71 §3.1/§3.4.8). */}
+      {!isProblem && isResult && !loading && isp && region && (
         <div className="w-full flex justify-center items-center gap-3 mt-4 text-[color:var(--text-secondary)] text-[14px]">
-          <span className="font-semibold line-clamp-1">{loading ? "..." : isp || "Desconhecido"}</span>
+          <span className="font-semibold line-clamp-1">{isp}</span>
           <span className="text-[color:var(--accent)] font-bold">|</span>
-          <span className="line-clamp-1">{loading ? "..." : region || "Desconhecido"}</span>
+          <span className="line-clamp-1">{region}</span>
         </div>
       )}
     </>

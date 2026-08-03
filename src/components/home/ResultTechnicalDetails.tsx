@@ -1,38 +1,21 @@
 "use client";
 
 import { useState, type SyntheticEvent } from "react";
+import { HelpButton } from "@/components/HelpButton";
 import { FEATURE_DIAGNOSIS_EXPANDED, trackFeatureUsed } from "@/lib/telemetry";
 import type { SpeedTestResult } from "@/lib/speedEngine";
 import { buildTechnicalDetailGroups, type DetailRow } from "./resultTechnicalDetailsRows";
-
-function DetailHelp({ id, text, openId, onToggle }: { id: string; text: string; openId: string | null; onToggle: (id: string) => void }) {
-  const open = openId === id;
-  return (
-    <span className="relative inline-flex">
-      <button
-        type="button"
-        onClick={() => onToggle(id)}
-        aria-expanded={open}
-        aria-label="O que é isso?"
-        className="ml-1 inline-flex items-center justify-center border-none bg-transparent cursor-pointer hover:opacity-80 transition-opacity p-0"
-      >
-        <span aria-hidden="true" className="material-symbols-outlined text-[13px] text-[color:var(--text-tertiary)]">help</span>
-      </button>
-      {open && (
-        <span className="absolute z-10 top-6 left-1/2 -translate-x-1/2 w-[200px] p-2 rounded-lg border border-[color:var(--border)] bg-[color:var(--surface-elevated)] shadow-[0_4px_24px_rgba(0,0,0,0.12)] text-[11px] leading-[1.4] text-[color:var(--text-primary)] text-center">
-          {text}
-        </span>
-      )}
-    </span>
-  );
-}
 
 function DetailRowLine({ row, openId, onToggle }: { row: DetailRow; openId: string | null; onToggle: (id: string) => void }) {
   return (
     <div className="flex items-baseline justify-between gap-3 py-[3px]">
       <span className="inline-flex items-center font-normal text-[12px] leading-[1.35] text-[color:var(--text-secondary)]">
         {row.label}
-        {row.help && <DetailHelp id={row.id} text={row.help} openId={openId} onToggle={onToggle} />}
+        {row.help && (
+          <span className="ml-1 inline-flex">
+            <HelpButton text={row.help} open={openId === row.id} onToggle={() => onToggle(row.id)} />
+          </span>
+        )}
       </span>
       <span className="font-medium text-[12px] leading-[1.35] text-right text-[color:var(--text-primary)]">{row.value}</span>
     </div>

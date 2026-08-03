@@ -19,13 +19,15 @@ export function useNetworkInfo() {
       })
       .then((data) => {
         setInfo({
-          isp: data.org || data.asn || "Desconhecido",
-          region: data.city && data.region ? `${data.city}, ${data.region}` : data.country_name || "Desconhecido",
+          isp: data.org || data.asn || null,
+          region: data.city && data.region ? `${data.city}, ${data.region}` : data.country_name || null,
           loading: false,
         });
       })
       .catch(() => {
-        setInfo({ isp: "Desconhecido", region: "Desconhecido", loading: false });
+        // Falha ou indisponibilidade real: `null`, nunca um placeholder de
+        // texto — quem consome decide se omite a linha (#71 §3.1/§3.4.8).
+        setInfo({ isp: null, region: null, loading: false });
       });
   }, []);
 

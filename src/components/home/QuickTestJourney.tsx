@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { HelpButton } from "@/components/HelpButton";
 import { SegmentedControl } from "@/components/SegmentedControl";
 import { GuidedDiagnosis } from "@/components/speedtest/GuidedDiagnosis";
 import type { ProblemPhase } from "@/hooks/useSpeedTest";
@@ -14,6 +16,9 @@ import { PROBLEMAS } from "./problemStates";
 export function QuickTestJourney({ journey }: { journey: SpeedTestJourney }) {
   const { phase, isIdle, isRunning, isProblem, showDial, modo } = journey;
   const problema = isProblem ? PROBLEMAS[phase as ProblemPhase] : null;
+  // Ajuda sob demanda para o modo selecionado — substitui o parágrafo
+  // permanente que competia com a decisão principal (#71 §3.3/§3.4.7).
+  const [modoHelpOpen, setModoHelpOpen] = useState(false);
 
   return (
     <>
@@ -30,13 +35,17 @@ export function QuickTestJourney({ journey }: { journey: SpeedTestJourney }) {
           {(isIdle || isProblem) && (
             <>
               <ProblemPrompt journey={journey} />
-              <div className="w-full max-w-[220px] flex justify-center">
+              <div className="w-full max-w-[260px] flex items-center justify-center gap-1">
                 <SegmentedControl options={MODOS} value={modo} onChange={journey.setModo} />
+                <HelpButton
+                  text={MODO_EXPLICACAO[modo]}
+                  label="O que muda entre os modos?"
+                  open={modoHelpOpen}
+                  onToggle={() => setModoHelpOpen((current) => !current)}
+                  width={240}
+                />
               </div>
-              <p className="m-0 max-w-[360px] text-center font-normal text-[12px] leading-[1.4] text-[color:var(--text-secondary)]">
-                {MODO_EXPLICACAO[modo]}
-              </p>
-              
+
               {isProblem && problema && (
                 <div className="mt-4 p-4 rounded-xl bg-[color-mix(in_srgb,_var(--alert-error)_15%,_transparent)] flex flex-col items-center text-center gap-2 max-w-[400px]">
                    <span aria-hidden="true" className="material-symbols-outlined text-[24px] text-[color:var(--alert-error)]">{problema.icon}</span>
