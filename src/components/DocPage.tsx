@@ -7,7 +7,7 @@ import {
 
 export interface DocSection {
   title: string
-  text: string
+  text: ReactNode
 }
 
 interface DocPageProps {
@@ -37,7 +37,11 @@ export function DocPage({ overline, title, intro, updated, sections, ctaLabel, c
         {sections.map((section) => (
           <section key={section.title} className="flex flex-col gap-2">
             <h2 className="title-medium m-0">{section.title}</h2>
-            <p className="body-small m-0 text-pretty">{section.text}</p>
+            {typeof section.text === 'string' ? (
+              <p className="body-small m-0 text-pretty">{section.text}</p>
+            ) : (
+              <div className="body-small m-0 text-pretty flex flex-col gap-2">{section.text}</div>
+            )}
           </section>
         ))}
       </ReadingLayout>

@@ -90,6 +90,9 @@ export default function PrivacyPageContent() {
 
         <HighlightSection title="Resumo direto">
           <p>O SignallQ trata dados técnicos para medir e explicar a conexão. Android e Web/PWA não usam os mesmos serviços nem guardam dados do mesmo modo. Esta página separa armazenamento local, processamento transitório e envio remoto sem prometer anonimato absoluto.</p>
+          <p className="mt-2">
+            <strong>Prefere uma leitura mais rápida?</strong> Consulte a nossa <a href="/privacidade/matriz" className="text-[var(--accent)] hover:underline font-medium">Matriz de Privacidade</a> para um resumo detalhado e tabelado.
+          </p>
         </HighlightSection>
 
         <section aria-labelledby="common-policy" className="flex flex-col gap-4">

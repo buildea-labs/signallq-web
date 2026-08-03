@@ -32,6 +32,11 @@ export const PAGE_META: Record<string, PageMeta> = {
     description: 'Política única do SignallQ: dados tratados no Android e na Web/PWA, armazenamento local, serviços externos e seus direitos.',
     path: '/privacidade',
   },
+  '/privacidade/matriz': {
+    title: 'Matriz de Privacidade — SignallQ',
+    description: 'Resumo leigo e matriz detalhada do tratamento de dados por plataforma (Android e Web/PWA).',
+    path: '/privacidade/matriz',
+  },
   '/termos': {
     title: 'Termos de Uso — SignallQ',
     description: 'Termos de uso do site público do SignallQ: teste de velocidade, histórico local e conteúdo institucional.',
