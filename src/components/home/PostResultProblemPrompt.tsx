@@ -2,7 +2,6 @@
 
 import { useId } from "react";
 import type { SpeedTestJourney } from "@/hooks/useSpeedTestJourney";
-import { resolveContextualQuestions } from "@/lib/contextualQuestionFlow";
 import { POST_RESULT_PROBLEMS } from "@/lib/postResultProblem";
 
 const TRANSITION_TEXT =
@@ -16,12 +15,10 @@ const TRANSITION_TEXT =
  * trocar o modo automaticamente para Completo.
  */
 export function PostResultProblemPrompt({ journey }: { journey: SpeedTestJourney }) {
-  const { postResultProblem, postResultMeasurementContext, postResultAnswers } = journey;
+  const { postResultProblem, postResultAnswers, postResultFlowState, respostaDiagnosticaPosResultado } = journey;
   const groupName = useId();
   const isProblemChoice = postResultProblem !== null && postResultProblem !== "sem-problema";
-  const flowState = isProblemChoice
-    ? resolveContextualQuestions(postResultMeasurementContext, postResultAnswers)
-    : null;
+  const flowState = isProblemChoice ? postResultFlowState : null;
 
   return (
     <div className="w-full flex flex-col items-center gap-4 pt-2">
@@ -110,9 +107,30 @@ export function PostResultProblemPrompt({ journey }: { journey: SpeedTestJourney
           )}
 
           {flowState && flowState.status === "concluded" && (
-            <p className="m-0 text-center font-normal text-[13px] leading-[1.4] text-[color:var(--text-secondary)]">
-              Respostas registradas para esta medição.
-            </p>
+            <div
+              className="w-full flex flex-col gap-2 text-center"
+              data-testid="post-result-diagnostico"
+            >
+              {respostaDiagnosticaPosResultado ? (
+                <>
+                  <p className="m-0 font-semibold text-[15px] leading-[1.35] text-[color:var(--text-primary)]">
+                    {respostaDiagnosticaPosResultado.conclusion}
+                  </p>
+                  <div>
+                    <h3 className="m-0 font-medium text-[11px] uppercase tracking-[.3px] text-[color:var(--text-tertiary)]">
+                      Próxima ação
+                    </h3>
+                    <p className="mt-1 mb-0 text-[13px] leading-[1.4] text-[color:var(--text-secondary)]">
+                      {respostaDiagnosticaPosResultado.nextAction}
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <p className="m-0 font-normal text-[13px] leading-[1.4] text-[color:var(--text-secondary)]">
+                  Respostas registradas para esta medição.
+                </p>
+              )}
+            </div>
           )}
         </div>
       )}

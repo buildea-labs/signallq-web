@@ -2,18 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useSpeedTest, type ProblemPhase } from "@/hooks/useSpeedTest";
+import { usePostResultProblem } from "@/hooks/usePostResultProblem";
 import { contextualProblemFromSearch } from "@/lib/contextualEntry";
 import type { ContextualAnswer } from "@/lib/contextualQuestionFlow";
 import { addComparison } from "@/lib/comparisonRepository";
 import { updateRecordDiagnostic } from "@/lib/measurementRepository";
-import { createMeasurementSessionContext, type MeasurementSessionContext } from "@/lib/measurementSessionContext";
-import { readMeasurementSession, savePostResultAnswers, savePostResultProblem } from "@/lib/measurementSessionStore";
+import { createMeasurementSessionContext } from "@/lib/measurementSessionContext";
+import { readMeasurementSession } from "@/lib/measurementSessionStore";
 import type { ProblemaPercebido } from "@/lib/problemEntry";
-import {
-  buildPostResultMeasurementContext,
-  postResultInitialAnswers,
-  type PostResultProblema,
-} from "@/lib/postResultProblem";
 import { compareRetest, comparisonMode, type RetestComparison } from "@/lib/retestComparison";
 import { copyMeasurement, shareMeasurement } from "@/lib/sharing";
 import type { SpeedTestResult } from "@/lib/speedEngine";
@@ -25,9 +21,6 @@ import {
   FEATURE_SPEEDTEST_ENTRADA_PROBLEMA,
   FEATURE_SPEEDTEST_PROBLEMA_ABANDONADO,
   FEATURE_SPEEDTEST_PROBLEMA_SELECIONADO,
-  FEATURE_SPEEDTEST_RESULTADO_APROFUNDAMENTO_INICIADO,
-  FEATURE_SPEEDTEST_RESULTADO_PROBLEMA_SELECIONADO,
-  FEATURE_SPEEDTEST_RESULTADO_SEM_PROBLEMA,
   trackFeatureUsed,
 } from "@/lib/telemetry";
 import { createWebDiagnosticResponse } from "@/lib/webDiagnosticResponse";
@@ -60,15 +53,19 @@ export function useSpeedTestJourney() {
   const [retesteBase, setRetesteBase] = useState<SpeedTestResult | null>(null);
   const [comparacaoReteste, setComparacaoReteste] = useState<RetestComparison | null>(null);
   const [comparacaoNaoSalva, setComparacaoNaoSalva] = useState(false);
-  const [postResultProblem, setPostResultProblemState] = useState<PostResultProblema | null>(
-    () => readMeasurementSession()?.postResultProblem?.value ?? null
-  );
-  const [postResultAnswers, setPostResultAnswersState] = useState<ContextualAnswer[]>(
-    () => readMeasurementSession()?.postResultProblem?.answers ?? []
-  );
   const abandonoRegistrado = useRef(false);
   const comparacaoPersistida = useRef<string | null>(null);
   const { phase, liveValue, phaseResults, result, measurementContext, cancelTest, retry, forceStart } = useSpeedTest(modo);
+  const {
+    postResultProblem,
+    postResultAnswers,
+    postResultMeasurementContext,
+    postResultFlowState,
+    respostaDiagnosticaPosResultado,
+    selecionarProblemaPosResultado,
+    atualizarRespostasPosResultado,
+    resetarProblemaPosResultado,
+  } = usePostResultProblem(result);
 
   const isIdle = phase === "idle";
   const isRunning = RUNNING_PHASES.includes(phase);
@@ -93,8 +90,6 @@ export function useSpeedTestJourney() {
     const session = readMeasurementSession();
     setQuestionarioRetomavel(Boolean(session?.questionnaireActive));
     setRespostasContextuais(session?.answers ?? []);
-    setPostResultProblemState(session?.postResultProblem?.value ?? null);
-    setPostResultAnswersState(session?.postResultProblem?.answers ?? []);
   }, []);
 
   useEffect(() => {
@@ -178,38 +173,6 @@ export function useSpeedTestJourney() {
     retry();
   };
 
-  // Nova rodada de teste: `beginMeasurementSession` já limpa `postResultProblem`
-  // na sessão persistida; sincroniza o estado local para não exibir a escolha
-  // de uma medição anterior sobre um resultado novo.
-  function resetarProblemaPosResultado() {
-    setPostResultProblemState(null);
-    setPostResultAnswersState([]);
-  }
-
-  const selecionarProblemaPosResultado = (valor: PostResultProblema) => {
-    setPostResultProblemState(valor);
-    if (valor === "sem-problema") {
-      setPostResultAnswersState([]);
-      savePostResultProblem(valor, []);
-      trackFeatureUsed(FEATURE_SPEEDTEST_RESULTADO_SEM_PROBLEMA);
-      return;
-    }
-    const initialAnswers = postResultInitialAnswers(valor);
-    setPostResultAnswersState(initialAnswers);
-    savePostResultProblem(valor, initialAnswers);
-    trackFeatureUsed(FEATURE_SPEEDTEST_RESULTADO_PROBLEMA_SELECIONADO);
-    trackFeatureUsed(FEATURE_SPEEDTEST_RESULTADO_APROFUNDAMENTO_INICIADO);
-  };
-
-  const atualizarRespostasPosResultado = (answers: ContextualAnswer[]) => {
-    setPostResultAnswersState(answers);
-    savePostResultAnswers(answers);
-  };
-
-  const postResultMeasurementContext: MeasurementSessionContext | null = postResultProblem
-    ? buildPostResultMeasurementContext(postResultProblem)
-    : null;
-
   const compartilhar = async () => {
     if (!result) return;
     const outcome = await shareMeasurement({ timestamp: result.timestamp, downloadMbps: result.download.mbps, uploadMbps: result.upload.mbps, latencyMs: result.latency.ms, conclusion: respostaDiagnostica?.conclusion, nextAction: respostaDiagnostica?.nextAction });
@@ -257,6 +220,7 @@ export function useSpeedTestJourney() {
     retesteBase, comparacaoReteste, comparacaoNaoSalva,
     setRespostasContextuais,
     postResultProblem, postResultAnswers, postResultMeasurementContext,
+    postResultFlowState, respostaDiagnosticaPosResultado,
     selecionarProblemaPosResultado, atualizarRespostasPosResultado,
     abrirEntradaPorProblema, fecharEntradaPorProblema, selecionarProblema,
     iniciarTesteDireto, iniciarTesteComProblema, iniciarReteste,
