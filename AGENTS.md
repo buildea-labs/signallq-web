@@ -13,6 +13,7 @@ Este repositório contém somente o site Next.js. Leia a skill aplicável em `sk
 - Preserve variáveis secretas no servidor; nunca versione `.env` nem use `NEXT_PUBLIC_` para segredos.
 - Toda implementação relevante requer revisão de Caio antes de merge, incluindo o gate de arquitetura em `skills/architecture-guardrails/`.
 - Execute os gates definidos em `skills/quality-gates/` antes de publicar uma mudança.
+- **Sempre limpe (delete) workspaces isolados ou pastas temporárias** geradas por agentes (ex: `branch` ou `share` workspaces) imediatamente após o merge da issue. Não deixe sujeira no projeto.
 
 ## Branch e PR
 
