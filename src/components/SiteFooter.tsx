@@ -13,6 +13,7 @@ export function SiteFooter() {
     { label: "Comparativo", href: "/comparativo" },
     { label: "Quem somos", href: "/sobre" },
     { label: "Política de Privacidade", href: "/privacidade" },
+    { label: "Matriz de Privacidade", href: "/privacidade/matriz" },
     { label: "Termos de Uso", href: "/termos" },
   ];
 
@@ -104,6 +105,7 @@ export function SiteFooter() {
               </div>
               <Link href="/sobre" className="font-normal text-[14px] text-[color:var(--text-primary)] no-underline hover:underline">Quem somos</Link>
               <Link href="/privacidade" className="font-normal text-[14px] text-[color:var(--text-primary)] no-underline hover:underline">Política de Privacidade</Link>
+              <Link href="/privacidade/matriz" className="font-normal text-[14px] text-[color:var(--text-primary)] no-underline hover:underline">Matriz de Privacidade</Link>
               <Link href="/termos" className="font-normal text-[14px] text-[color:var(--text-primary)] no-underline hover:underline">Termos de Uso</Link>
             </div>
             <div className="flex flex-col items-start gap-[10px]">

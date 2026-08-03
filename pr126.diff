@@ -1,0 +1,439 @@
+diff --git a/src/app/app/AppLandingComponents.tsx b/src/app/app/AppLandingComponents.tsx
+index 23e6c7e..af3453b 100644
+--- a/src/app/app/AppLandingComponents.tsx
++++ b/src/app/app/AppLandingComponents.tsx
+@@ -34,7 +34,7 @@ export function AppLandingHero({ onEntrar }: { onEntrar: () => void }) {
+       <div className="relative w-full max-w-[1080px] flex items-center gap-[48px] flex-wrap">
+         <div className="flex-[1_1_420px] flex flex-col items-center sm:items-start gap-4 text-center sm:text-left">
+           <span className="flex items-center gap-[6px] rounded-full py-[6px] px-[14px] bg-[color-mix(in_srgb,_var(--accent)_16%,_transparent)]">
+-            <span className="material-symbols-outlined text-[16px] text-[color:var(--accent)]">science</span>
++            <span aria-hidden="true" className="material-symbols-outlined text-[16px] text-[color:var(--accent)]">science</span>
+             <span className="font-semibold text-[12px] leading-[1.3] text-[color:var(--accent)] tracking-[.02em]">Em teste fechado · vagas limitadas</span>
+           </span>
+           <h1 className="m-0 max-w-[560px] font-bold text-[30px] sm:text-[42px] leading-[1.12] text-[color:var(--text-primary)] text-pretty">
+@@ -49,7 +49,7 @@ export function AppLandingHero({ onEntrar }: { onEntrar: () => void }) {
+               onClick={onEntrar}
+               className="h-[48px] flex items-center gap-2 px-6 rounded-full border-none bg-[color:var(--accent)] shadow-[0_14px_30px_color-mix(in_srgb,_var(--accent)_40%,_transparent)] cursor-pointer hover:brightness-110 transition-all"
+             >
+-              <span className="material-symbols-outlined text-[20px] text-[color:var(--on-accent)]">how_to_reg</span>
++              <span aria-hidden="true" className="material-symbols-outlined text-[20px] text-[color:var(--on-accent)]">how_to_reg</span>
+               <span className="font-semibold text-[15px] leading-[1.2] text-[color:var(--on-accent)]">Entrar na lista de teste</span>
+             </button>
+             <Link href="/" className="h-[48px] flex items-center px-[22px] rounded-full border border-[color:var(--border)] no-underline hover:bg-[color:var(--bg-secondary)] transition-colors cursor-pointer">
+@@ -76,7 +76,7 @@ export function AppLandingHero({ onEntrar }: { onEntrar: () => void }) {
+       </div>
+ 
+       <div className="sq-app-bounce absolute left-1/2 bottom-2 -translate-x-1/2 hidden sm:block">
+-        <span className="material-symbols-outlined text-[24px] text-[color:var(--text-tertiary)]">expand_more</span>
++        <span aria-hidden="true" className="material-symbols-outlined text-[24px] text-[color:var(--text-tertiary)]">expand_more</span>
+       </div>
+     </div>
+   )
+@@ -91,8 +91,10 @@ export function AppLandingFeatures() {
+       <div className="sq-app-scroller w-full overflow-hidden">
+         <div className="sq-app-track">
+           {FEATURES_LOOP.map((f, i) => (
+-            <div key={i} className="flex-none w-[240px] flex flex-col gap-2 rounded-[20px] p-5 box-border bg-[color:var(--bg-secondary)] shadow-[0_10px_26px_rgba(0,0,0,.16)]">
+-              <span className="material-symbols-outlined text-[22px] text-[color:var(--accent)]">{f.icon}</span>
++            // i >= FEATURES.length: itens duplicados para o loop infinito do carrossel — ocultos
++            // da árvore acessível para evitar conteúdo duplicado (issue #57).
++            <div key={i} aria-hidden={i >= FEATURES.length || undefined} className="flex-none w-[240px] flex flex-col gap-2 rounded-[20px] p-5 box-border bg-[color:var(--bg-secondary)] shadow-[0_10px_26px_rgba(0,0,0,.16)]">
++              <span aria-hidden="true" className="material-symbols-outlined text-[22px] text-[color:var(--accent)]">{f.icon}</span>
+               <div className="font-semibold text-[15px] leading-[1.3] text-[color:var(--text-primary)]">{f.title}</div>
+               <div className="font-normal text-[13px] leading-[1.45] text-[color:var(--text-secondary)]">{f.text}</div>
+             </div>
+@@ -142,10 +144,10 @@ export function AppLandingCompare() {
+               {r.label}
+             </div>
+             <div className="p-[12px_18px] border-t border-[color-mix(in_srgb,_var(--border)_18%,_transparent)] flex items-center justify-center">
+-              <span className="material-symbols-outlined text-[18px] text-[color:var(--text-tertiary)]">close</span>
++              <span aria-hidden="true" className="material-symbols-outlined text-[18px] text-[color:var(--text-tertiary)]">close</span>
+             </div>
+             <div className="p-[12px_18px] border-t border-[color-mix(in_srgb,_var(--border)_18%,_transparent)] flex items-center justify-center">
+-              <span className="material-symbols-outlined text-[18px] text-[color:var(--success)]">check_circle</span>
++              <span aria-hidden="true" className="material-symbols-outlined text-[18px] text-[color:var(--success)]">check_circle</span>
+             </div>
+           </div>
+         ))}
+@@ -171,7 +173,7 @@ export function AppLandingCTA({ onEntrar }: { onEntrar: () => void }) {
+         onClick={onEntrar}
+         className="relative h-[48px] flex items-center gap-2 px-6 rounded-full border-none bg-[color:var(--accent)] shadow-[0_14px_30px_color-mix(in_srgb,_var(--accent)_40%,_transparent)] shrink-0 cursor-pointer hover:brightness-110 transition-all"
+       >
+-        <span className="material-symbols-outlined text-[20px] text-[color:var(--on-accent)]">how_to_reg</span>
++        <span aria-hidden="true" className="material-symbols-outlined text-[20px] text-[color:var(--on-accent)]">how_to_reg</span>
+         <span className="font-semibold text-[15px] leading-[1.2] text-[color:var(--on-accent)] whitespace-nowrap">Entrar na lista de teste</span>
+       </button>
+     </div>
+diff --git a/src/app/dns/DnsClient.tsx b/src/app/dns/DnsClient.tsx
+index 27c139d..2964db7 100644
+--- a/src/app/dns/DnsClient.tsx
++++ b/src/app/dns/DnsClient.tsx
+@@ -42,7 +42,7 @@ export function DnsClient() {
+         disabled={state.status === 'running'}
+         className="h-[44px] flex items-center gap-2 self-start px-5 rounded-[var(--radius-button,_999px)] bg-[color:var(--accent)] hover:opacity-90 transition-opacity disabled:opacity-60"
+       >
+-        <span className="material-symbols-outlined text-[20px] text-[color:var(--on-accent)]">dns</span>
++        <span aria-hidden="true" className="material-symbols-outlined text-[20px] text-[color:var(--on-accent)]">dns</span>
+         <span className="font-medium text-[14px] leading-[1.43] text-[color:var(--on-accent)]">
+           {state.status === 'running' ? 'Medindo…' : state.status === 'done' ? 'Medir novamente' : 'Comparar resolvedores'}
+         </span>
+diff --git a/src/app/jogos/JogosClient.tsx b/src/app/jogos/JogosClient.tsx
+index dd4948f..20b8958 100644
+--- a/src/app/jogos/JogosClient.tsx
++++ b/src/app/jogos/JogosClient.tsx
+@@ -43,7 +43,7 @@ export function JogosClient() {
+         disabled={state.status === 'running'}
+         className="h-[44px] flex items-center gap-2 self-start px-5 rounded-[var(--radius-button,_999px)] bg-[color:var(--accent)] hover:opacity-90 transition-opacity disabled:opacity-60"
+       >
+-        <span className="material-symbols-outlined text-[20px] text-[color:var(--on-accent)]">sports_esports</span>
++        <span aria-hidden="true" className="material-symbols-outlined text-[20px] text-[color:var(--on-accent)]">sports_esports</span>
+         <span className="font-medium text-[14px] leading-[1.43] text-[color:var(--on-accent)]">
+           {state.status === 'running' ? 'Medindo…' : state.status === 'done' ? 'Medir novamente' : 'Medir latência'}
+         </span>
+diff --git a/src/components/FaixaMetricas.tsx b/src/components/FaixaMetricas.tsx
+index d58c44f..0b6e1fb 100644
+--- a/src/components/FaixaMetricas.tsx
++++ b/src/components/FaixaMetricas.tsx
+@@ -61,6 +61,7 @@ export function FaixaMetricas({
+           <div className="flex items-center gap-[6px]">
+             {item.icon && (
+               <span
++                aria-hidden="true"
+                 className="material-symbols-outlined text-[16px]"
+                 style={{ color: item.color ?? "var(--success)" }}
+               >
+diff --git a/src/components/InstallPwaPrompt.tsx b/src/components/InstallPwaPrompt.tsx
+index 2747d97..a7c9ab8 100644
+--- a/src/components/InstallPwaPrompt.tsx
++++ b/src/components/InstallPwaPrompt.tsx
+@@ -42,7 +42,7 @@ export function InstallPwaPrompt() {
+         style={{ borderColor: 'color-mix(in srgb, var(--border) 40%, transparent)', background: 'var(--bg-card)' }}
+       >
+         <button onClick={handleClick} className="flex items-center gap-1.5 border-none bg-transparent p-0">
+-          <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--accent)' }}>
++          <span aria-hidden="true" className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--accent)' }}>
+             install_mobile
+           </span>
+           <span className="label-medium" style={{ color: 'var(--text-primary)' }}>
+@@ -55,7 +55,7 @@ export function InstallPwaPrompt() {
+           className="flex h-5 w-5 items-center justify-center border-none bg-transparent p-0"
+           style={{ color: 'var(--text-tertiary)' }}
+         >
+-          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
++          <span aria-hidden="true" className="material-symbols-outlined" style={{ fontSize: 16 }}>
+             close
+           </span>
+         </button>
+diff --git a/src/components/LinhaChips.tsx b/src/components/LinhaChips.tsx
+index 9490e72..838d6bc 100644
+--- a/src/components/LinhaChips.tsx
++++ b/src/components/LinhaChips.tsx
+@@ -21,7 +21,7 @@ export function LinhaChips({ items }: { items: ItemChip[] }) {
+           "flex items-center gap-2 rounded-full py-2 pr-[14px] pl-[10px] bg-[color:var(--bg-secondary)] shadow-[0_4px_14px_rgba(0,0,0,.16)]";
+         const content = (
+           <>
+-            <span className="material-symbols-outlined text-[16px] text-[color:var(--accent)]">
++            <span aria-hidden="true" className="material-symbols-outlined text-[16px] text-[color:var(--accent)]">
+               {item.icon}
+             </span>
+             <span className="font-medium text-[13px] leading-[1.3] text-[color:var(--text-primary)] whitespace-nowrap">
+diff --git a/src/components/NoticeBar.tsx b/src/components/NoticeBar.tsx
+index c015f76..5ba09ba 100644
+--- a/src/components/NoticeBar.tsx
++++ b/src/components/NoticeBar.tsx
+@@ -24,7 +24,7 @@ export function NoticeBar({
+     <div
+       className={`flex items-start gap-2 rounded-xl py-3 px-[14px] ${bgClass}`}
+     >
+-      <span className={`material-symbols-outlined text-[16px] ${colorClass}`}>
++      <span aria-hidden="true" className={`material-symbols-outlined text-[16px] ${colorClass}`}>
+         {icon}
+       </span>
+       <div className="font-normal text-[12px] leading-[1.4] text-[color:var(--text-secondary)]">
+diff --git a/src/components/PwaUpdatePrompt.tsx b/src/components/PwaUpdatePrompt.tsx
+index 41c160c..61ab13f 100644
+--- a/src/components/PwaUpdatePrompt.tsx
++++ b/src/components/PwaUpdatePrompt.tsx
+@@ -62,7 +62,7 @@ export function PwaUpdatePrompt() {
+       role="status"
+       aria-live="polite"
+     >
+-      <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--accent)' }}>
++      <span aria-hidden="true" className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--accent)' }}>
+         sync
+       </span>
+       <span className="label-medium" style={{ color: 'var(--text-primary)' }}>
+@@ -90,7 +90,7 @@ export function PwaUpdatePrompt() {
+         className="flex h-5 w-5 items-center justify-center border-none bg-transparent p-0"
+         style={{ color: 'var(--text-tertiary)' }}
+       >
+-        <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
++        <span aria-hidden="true" className="material-symbols-outlined" style={{ fontSize: 16 }}>
+           close
+         </span>
+       </button>
+diff --git a/src/components/SiteNav.tsx b/src/components/SiteNav.tsx
+index 6ea9018..0023c76 100644
+--- a/src/components/SiteNav.tsx
++++ b/src/components/SiteNav.tsx
+@@ -131,6 +131,7 @@ export function SiteNav() {
+                 "material-symbols-outlined text-[16px]",
+                 isApp ? "text-[color:var(--on-accent)]" : "text-[color:var(--accent)]"
+               )}
++              aria-hidden="true"
+             >
+               android
+             </span>
+@@ -153,7 +154,7 @@ export function SiteNav() {
+           onClick={() => setMenuOpen((v) => !v)}
+           className="md:hidden w-[40px] h-[40px] rounded-full flex items-center justify-center cursor-pointer bg-transparent border-none p-0"
+         >
+-          <span className="material-symbols-outlined text-[24px] text-[color:var(--text-primary)]">
++          <span aria-hidden="true" className="material-symbols-outlined text-[24px] text-[color:var(--text-primary)]">
+             {menuOpen ? "close" : "menu"}
+           </span>
+         </button>
+diff --git a/src/components/historico/HistoryEmptyState.tsx b/src/components/historico/HistoryEmptyState.tsx
+index 9c36113..1d452de 100644
+--- a/src/components/historico/HistoryEmptyState.tsx
++++ b/src/components/historico/HistoryEmptyState.tsx
+@@ -6,7 +6,7 @@ import { EstadoVazio } from "@/components/EstadoVazio";
+ export function HistoryLoadingState() {
+   return (
+     <div className="flex w-full flex-1 flex-col items-center justify-center gap-3">
+-      <span className="material-symbols-outlined text-[28px] text-[color:var(--text-tertiary)]">
++      <span aria-hidden="true" className="material-symbols-outlined text-[28px] text-[color:var(--text-tertiary)]">
+         hourglass_top
+       </span>
+       <div className="font-normal text-[16px] leading-[1.5] text-[color:var(--text-primary)]">Carregando histórico…</div>
+diff --git a/src/components/historico/HistoryRecordCard.tsx b/src/components/historico/HistoryRecordCard.tsx
+index 19502a4..39a20e5 100644
+--- a/src/components/historico/HistoryRecordCard.tsx
++++ b/src/components/historico/HistoryRecordCard.tsx
+@@ -23,7 +23,7 @@ export function HistoryRecordCard({ record, onShare, onRemove, onEdit }: History
+     <div className="flex flex-col gap-2 rounded-2xl p-3.5" style={{ background: 'var(--bg-secondary)', boxShadow: '0 8px 20px rgba(0,0,0,.14)' }}>
+       <div className="flex items-center justify-between gap-2">
+         <div className="flex items-center gap-1.5">
+-          <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--text-tertiary)' }}>
++          <span aria-hidden="true" className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--text-tertiary)' }}>
+             {iconeConexao(record.connectionKind)}
+           </span>
+           <span className="label-medium">{labelConexao(record.connectionKind)}</span>
+@@ -35,7 +35,7 @@ export function HistoryRecordCard({ record, onShare, onRemove, onEdit }: History
+ 
+       <div className="flex items-center gap-3.5">
+         <div className="flex items-center gap-1">
+-          <span className="material-symbols-outlined" style={{ fontSize: 14, color: NIVEL_COR[verdict.nivel] }}>
++          <span aria-hidden="true" className="material-symbols-outlined" style={{ fontSize: 14, color: NIVEL_COR[verdict.nivel] }}>
+             arrow_downward
+           </span>
+           <span className="label-large" style={{ color: NIVEL_COR[verdict.nivel] }}>
+@@ -43,7 +43,7 @@ export function HistoryRecordCard({ record, onShare, onRemove, onEdit }: History
+           </span>
+         </div>
+         <div className="flex items-center gap-1">
+-          <span className="material-symbols-outlined" style={{ fontSize: 14, color: 'var(--accent)' }}>
++          <span aria-hidden="true" className="material-symbols-outlined" style={{ fontSize: 14, color: 'var(--accent)' }}>
+             arrow_upward
+           </span>
+           <span className="label-large">{record.upload.toFixed(1)} Mbps</span>
+@@ -52,15 +52,15 @@ export function HistoryRecordCard({ record, onShare, onRemove, onEdit }: History
+ 
+         <div className="ml-auto flex gap-1">
+           <button aria-label="Editar contexto da medição" onClick={() => onEdit(record)} className="flex h-8 w-8 items-center justify-center border-none bg-transparent">
+-            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>edit</span>
++            <span aria-hidden="true" className="material-symbols-outlined" style={{ fontSize: 16 }}>edit</span>
+           </button>
+           <button aria-label="Compartilhar medição" onClick={() => onShare(record)} className="flex h-8 w-8 items-center justify-center border-none bg-transparent">
+-            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
++            <span aria-hidden="true" className="material-symbols-outlined" style={{ fontSize: 16 }}>
+               share
+             </span>
+           </button>
+           <button aria-label="Excluir medição" onClick={() => onRemove(record.id)} className="flex h-8 w-8 items-center justify-center border-none bg-transparent">
+-            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
++            <span aria-hidden="true" className="material-symbols-outlined" style={{ fontSize: 16 }}>
+               delete
+             </span>
+           </button>
+diff --git a/src/components/historico/HistoryToolbar.tsx b/src/components/historico/HistoryToolbar.tsx
+index 7af134c..6390809 100644
+--- a/src/components/historico/HistoryToolbar.tsx
++++ b/src/components/historico/HistoryToolbar.tsx
+@@ -3,7 +3,7 @@ import { FILTROS, type HistoryFiltro } from "@/hooks/useHistoryController";
+ export function HistoryDiagnosticTip() {
+   return (
+     <div className="flex items-start gap-3 rounded-[16px] p-4 bg-[color-mix(in_srgb,_var(--accent)_15%,_transparent)]">
+-      <span className="material-symbols-outlined text-[20px] text-[color:var(--accent)] mt-0.5">lightbulb</span>
++      <span aria-hidden="true" className="material-symbols-outlined text-[20px] text-[color:var(--accent)] mt-0.5">lightbulb</span>
+       <div className="font-normal text-[12px] leading-[1.33] text-[color:var(--text-secondary)]">
+         <b className="text-[color:var(--text-primary)]">Dica de Diagnóstico:</b> Compare a sua conexão fazendo um teste perto do roteador e outro no cômodo onde a internet fica lenta. A diferença mostra o quanto você perde no Wi-Fi.
+       </div>
+@@ -35,14 +35,14 @@ export function HistoryToolbar({ filtro, onFiltroChange, onClearAll, onExport }:
+         ))}
+       </div>
+       <button onClick={onClearAll} className="flex items-center gap-[6px] whitespace-nowrap bg-transparent border-none cursor-pointer">
+-        <span className="material-symbols-outlined text-[16px] text-[color:var(--accent)]">
++        <span aria-hidden="true" className="material-symbols-outlined text-[16px] text-[color:var(--accent)]">
+           delete_sweep
+         </span>
+         <span className="font-medium text-[12px] leading-[1.33] text-[color:var(--accent)] hover:underline">
+           Limpar histórico
+         </span>
+       </button>
+-      <button type="button" onClick={onExport} className="flex items-center gap-[6px] whitespace-nowrap bg-transparent border-none cursor-pointer text-[color:var(--accent)]"><span className="material-symbols-outlined text-[16px]">download</span><span className="font-medium text-[12px]">Exportar dados</span></button>
++      <button type="button" onClick={onExport} className="flex items-center gap-[6px] whitespace-nowrap bg-transparent border-none cursor-pointer text-[color:var(--accent)]"><span aria-hidden="true" className="material-symbols-outlined text-[16px]">download</span><span className="font-medium text-[12px]">Exportar dados</span></button>
+     </div>
+   );
+ }
+diff --git a/src/components/home/CompleteDiagnosis.tsx b/src/components/home/CompleteDiagnosis.tsx
+index 7de17a0..98a530e 100644
+--- a/src/components/home/CompleteDiagnosis.tsx
++++ b/src/components/home/CompleteDiagnosis.tsx
+@@ -20,7 +20,7 @@ export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
+ 
+       {statusMensagem && (
+         <div className="flex items-start justify-center gap-2 py-4 border-b border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]">
+-          <span className="material-symbols-outlined text-[16px] text-[color:var(--warning)]">
++          <span aria-hidden="true" className="material-symbols-outlined text-[16px] text-[color:var(--warning)]">
+             warning
+           </span>
+           <div className="font-normal text-[12px] leading-[1.4] text-[color:var(--text-secondary)]">
+@@ -66,7 +66,7 @@ export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
+           onClick={statusCompleto ? journey.iniciarReteste : journey.retry}
+           className="flex-1 h-[46px] flex items-center justify-center gap-2 rounded-[var(--radius-button)] border-none bg-[color:var(--accent)] hover:brightness-110 transition-all cursor-pointer"
+         >
+-          <span className="material-symbols-outlined text-[20px] text-[color:var(--on-accent)]">refresh</span>
++          <span aria-hidden="true" className="material-symbols-outlined text-[20px] text-[color:var(--on-accent)]">refresh</span>
+           <span className="font-medium text-[14px] leading-[1.43] text-[color:var(--on-accent)]">
+             {statusCompleto ? "Fazer e testar novamente" : "Testar novamente"}
+           </span>
+@@ -75,7 +75,7 @@ export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
+           href="/historico"
+           className="flex-1 h-[46px] flex items-center justify-center gap-2 rounded-[var(--radius-button)] border border-[color:var(--border)] no-underline hover:bg-[color:var(--bg-secondary)] transition-colors"
+         >
+-          <span className="material-symbols-outlined text-[20px] text-[color:var(--accent)]">history</span>
++          <span aria-hidden="true" className="material-symbols-outlined text-[20px] text-[color:var(--accent)]">history</span>
+           <span className="font-medium text-[14px] leading-[1.43] text-[color:var(--accent)]">Ver histórico</span>
+         </a>
+       </div>
+@@ -85,14 +85,14 @@ export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
+           onClick={journey.compartilhar}
+           className="flex items-center gap-[6px] h-[36px] px-2 border-none bg-transparent cursor-pointer hover:bg-[color:var(--bg-secondary)] rounded-full transition-colors"
+         >
+-          <span className="material-symbols-outlined text-[16px] text-[color:var(--accent)]">share</span>
++          <span aria-hidden="true" className="material-symbols-outlined text-[16px] text-[color:var(--accent)]">share</span>
+           <span className="font-medium text-[12px] leading-[1.33] text-[color:var(--accent)]">Compartilhar</span>
+         </button>
+         <button
+           onClick={journey.copiarResumo}
+           className="flex items-center gap-[6px] h-[36px] px-2 border-none bg-transparent cursor-pointer hover:bg-[color:var(--bg-secondary)] rounded-full transition-colors"
+         >
+-          <span className="material-symbols-outlined text-[16px] text-[color:var(--accent)]">content_copy</span>
++          <span aria-hidden="true" className="material-symbols-outlined text-[16px] text-[color:var(--accent)]">content_copy</span>
+           <span className="font-medium text-[12px] leading-[1.33] text-[color:var(--accent)]">
+             {journey.copiado ? "Copiado!" : "Copiar resumo"}
+           </span>
+diff --git a/src/components/home/MetricSidePanel.tsx b/src/components/home/MetricSidePanel.tsx
+index 6b374a5..783ceba 100644
+--- a/src/components/home/MetricSidePanel.tsx
++++ b/src/components/home/MetricSidePanel.tsx
+@@ -47,7 +47,7 @@ export function MetricSidePanel({ result, ajudaEstabilidadeAberta, onToggleAjuda
+       {painelLateral.map((item) => (
+         <div key={item.label} className="flex flex-col items-center justify-center p-3 relative">
+           <div className="flex items-center gap-1">
+-            {item.icon && <span className="material-symbols-outlined text-[16px]" style={{ color: item.color }}>{item.icon}</span>}
++            {item.icon && <span aria-hidden="true" className="material-symbols-outlined text-[16px]" style={{ color: item.color }}>{item.icon}</span>}
+             <span className="font-semibold text-[10px] uppercase tracking-wide text-[color:var(--text-secondary)]">{item.label}</span>
+             {item.hasHelp && (
+               <button
+@@ -55,7 +55,7 @@ export function MetricSidePanel({ result, ajudaEstabilidadeAberta, onToggleAjuda
+                 className="ml-1 flex items-center justify-center border-none bg-transparent cursor-pointer hover:opacity-80 transition-opacity p-0"
+                 aria-label="O que é Estabilidade?"
+               >
+-                <span className="material-symbols-outlined text-[13px] text-[color:var(--text-tertiary)]">help</span>
++                <span aria-hidden="true" className="material-symbols-outlined text-[13px] text-[color:var(--text-tertiary)]">help</span>
+               </button>
+             )}
+           </div>
+diff --git a/src/components/home/ProblemPrompt.tsx b/src/components/home/ProblemPrompt.tsx
+index a6b6a4c..ccd9f5a 100644
+--- a/src/components/home/ProblemPrompt.tsx
++++ b/src/components/home/ProblemPrompt.tsx
+@@ -36,7 +36,7 @@ export function ProblemPrompt({ journey }: { journey: SpeedTestJourney }) {
+           className="h-9 w-9 shrink-0 border-none bg-transparent cursor-pointer text-[color:var(--text-secondary)]"
+           aria-label="Fechar opções de problema"
+         >
+-          <span className="material-symbols-outlined text-[20px]">close</span>
++          <span aria-hidden="true" className="material-symbols-outlined text-[20px]">close</span>
+         </button>
+       </div>
+       <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
+diff --git a/src/components/home/QuickResult.tsx b/src/components/home/QuickResult.tsx
+index babe640..e1c041d 100644
+--- a/src/components/home/QuickResult.tsx
++++ b/src/components/home/QuickResult.tsx
+@@ -39,7 +39,7 @@ export function QuickResult({ journey }: { journey: SpeedTestJourney }) {
+                   onClick={journey.iniciarTesteDireto}
+                   className="h-[44px] px-[26px] rounded-full flex items-center gap-2 border-none bg-[color:var(--accent)] shadow-[0_14px_30px_color-mix(in_srgb,_var(--accent)_45%,_transparent),_0_2px_6px_rgba(0,0,0,.25)] whitespace-nowrap cursor-pointer hover:scale-105 active:scale-95 transition-transform"
+                 >
+-                  <span className="material-symbols-outlined text-[18px] text-[color:var(--on-accent)]">
++                  <span aria-hidden="true" className="material-symbols-outlined text-[18px] text-[color:var(--on-accent)]">
+                     {isProblem ? "refresh" : "speed"}
+                   </span>
+                   <span className="font-semibold text-[16px] leading-[1.15] text-[color:var(--on-accent)]">
+@@ -84,7 +84,7 @@ export function QuickResult({ journey }: { journey: SpeedTestJourney }) {
+                 }}
+                 className="cursor-pointer bg-[color-mix(in_srgb,_var(--accent)_10%,_transparent)] border border-[color-mix(in_srgb,_var(--accent)_30%,_transparent)] text-[color:var(--accent)] px-5 py-2.5 rounded-full font-semibold text-[14px] hover:bg-[color-mix(in_srgb,_var(--accent)_15%,_transparent)] transition-colors flex items-center gap-2 mt-1"
+               >
+-                <span className="material-symbols-outlined text-[20px]">manage_search</span>
++                <span aria-hidden="true" className="material-symbols-outlined text-[20px]">manage_search</span>
+                 Diagnóstico Completo
+               </button>
+             </div>
+diff --git a/src/components/home/QuickTestJourney.tsx b/src/components/home/QuickTestJourney.tsx
+index 8dab2e3..5d1f1a3 100644
+--- a/src/components/home/QuickTestJourney.tsx
++++ b/src/components/home/QuickTestJourney.tsx
+@@ -39,7 +39,7 @@ export function QuickTestJourney({ journey }: { journey: SpeedTestJourney }) {
+               
+               {isProblem && problema && (
+                 <div className="mt-4 p-4 rounded-xl bg-[color-mix(in_srgb,_var(--alert-error)_15%,_transparent)] flex flex-col items-center text-center gap-2 max-w-[400px]">
+-                   <span className="material-symbols-outlined text-[24px] text-[color:var(--alert-error)]">{problema.icon}</span>
++                   <span aria-hidden="true" className="material-symbols-outlined text-[24px] text-[color:var(--alert-error)]">{problema.icon}</span>
+                    <span className="font-semibold text-[14px] text-[color:var(--text-primary)]">{problema.title}</span>
+                    <span className="text-[13px] text-[color:var(--text-secondary)]">{problema.message}</span>
+                 </div>
+diff --git a/src/components/home/TestRunning.tsx b/src/components/home/TestRunning.tsx
+index 4fffd42..0b60344 100644
+--- a/src/components/home/TestRunning.tsx
++++ b/src/components/home/TestRunning.tsx
+@@ -28,7 +28,7 @@ export function TestRunning({ journey }: { journey: SpeedTestJourney }) {
+         onClick={journey.cancelTest}
+         className="h-[40px] flex items-center gap-[6px] border-none bg-transparent cursor-pointer"
+       >
+-        <span className="material-symbols-outlined text-[18px] text-[color:var(--text-primary)]">close</span>
++        <span aria-hidden="true" className="material-symbols-outlined text-[18px] text-[color:var(--text-primary)]">close</span>
+         <span className="font-medium text-[14px] leading-[1.43] text-[color:var(--text-primary)]">
+           Cancelar teste
+         </span>
+diff --git a/src/components/home/UseCaseSummary.tsx b/src/components/home/UseCaseSummary.tsx
+index 52f75ec..757aadb 100644
+--- a/src/components/home/UseCaseSummary.tsx
++++ b/src/components/home/UseCaseSummary.tsx
+@@ -17,6 +17,7 @@ export function UseCaseSummary({ result }: { result: SpeedTestResult }) {
+     <div className="w-full flex flex-col items-center gap-4 mt-2">
+       <div className="flex items-center justify-center gap-2">
+         <span
++          aria-hidden="true"
+           className="material-symbols-outlined text-[16px]"
+           style={{ color: statusCompleto ? "var(--success)" : "var(--warning)" }}
+         >
+@@ -41,6 +42,7 @@ export function UseCaseSummary({ result }: { result: SpeedTestResult }) {
+             className={`flex flex-col items-center justify-center gap-1 p-3 ${index > 0 ? "border-l border-[color-mix(in_srgb,_var(--border)_14%,_transparent)]" : ""}`}
+           >
+             <span
++              aria-hidden="true"
+               className="material-symbols-outlined text-[20px]"
+               style={{ color: NIVEL_COR[veredictoCaso.nivel] }}
+             >
