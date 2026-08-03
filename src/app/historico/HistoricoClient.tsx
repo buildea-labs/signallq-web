@@ -22,37 +22,46 @@ export function HistoricoClient() {
         </span>
       </div>
 
-      {history.status === 'loading' && <HistoryLoadingState />}
+      {/*
+        Região única de status para o estado carregando/indisponível/vazio/carregado
+        (#72, Gap A): sem isto, um leitor de tela parado no H1 nunca é avisado quando
+        o carregamento termina — precisaria varrer a tela manualmente. `aria-live`
+        fica só aqui (não duplicado dentro de cada subcomponente) para não gerar
+        anúncio duplicado quando o estado troca.
+      */}
+      <div aria-live="polite" className="flex w-full flex-1 flex-col">
+        {history.status === 'loading' && <HistoryLoadingState />}
 
-      {history.status === 'unavailable' && <HistoryUnavailableState onRetry={history.load} />}
+        {history.status === 'unavailable' && <HistoryUnavailableState onRetry={history.load} />}
 
-      {history.isEmpty && <HistoryEmptyState onStartTest={history.startTest} />}
+        {history.isEmpty && <HistoryEmptyState onStartTest={history.startTest} />}
 
-      {history.hasRecords && (
-        <div className="flex flex-col gap-[14px] w-full">
-          <HistoryDiagnosticTip />
+        {history.hasRecords && (
+          <div className="flex flex-col gap-[14px] w-full">
+            <HistoryDiagnosticTip />
 
-          <HistoryToolbar
-            filtro={history.filtro}
-            onFiltroChange={history.setFiltro}
-            onClearAll={() => history.setConfirmOpen(true)}
-            onExport={history.exportHistory}
-          />
+            <HistoryToolbar
+              filtro={history.filtro}
+              onFiltroChange={history.setFiltro}
+              onClearAll={() => history.setConfirmOpen(true)}
+              onExport={history.exportHistory}
+            />
 
-          <HistoryEvolutionChart records={history.records} />
+            <HistoryEvolutionChart records={history.records} />
 
-          <HistoryCompare comparisons={history.recoverableComparisons} byId={history.byId} />
+            <HistoryCompare comparisons={history.recoverableComparisons} byId={history.byId} />
 
-          <HistoryList
-            groups={history.groups}
-            filteredCount={history.filtered.length}
-            totalCount={history.records.length}
-            onShare={history.shareRecord}
-            onRemove={history.remove}
-            onEdit={history.startEdit}
-          />
-        </div>
-      )}
+            <HistoryList
+              groups={history.groups}
+              filteredCount={history.filtered.length}
+              totalCount={history.records.length}
+              onShare={history.shareRecord}
+              onRemove={history.remove}
+              onEdit={history.startEdit}
+            />
+          </div>
+        )}
+      </div>
 
       {history.justDeleted && <div className="font-medium text-[14px] leading-[1.43] text-center mt-2">Medição excluída.</div>}
 
