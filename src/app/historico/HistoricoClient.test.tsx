@@ -237,4 +237,42 @@ describe("Histórico — seleção manual para comparar testes (#75)", () => {
     expect(checkboxes).toHaveLength(2);
     expect(screen.getByText("1 selecionado — escolha mais 1.")).toBeInTheDocument();
   });
+
+  /**
+   * Achado de revisão independente (Caio): o `role="status"` do
+   * `HistoryCompareBar` (#75) ficava aninhado dentro do `aria-live="polite"`
+   * do #72, que envolvia a árvore inteira de toolbar/lista/gráfico/
+   * comparação em vez de só o indicador de transição de estado. Este teste
+   * cobre exatamente o cenário onde isso acontecia — modo de comparação
+   * ativo, com registros carregados — e comprova que não há live region
+   * aninhada dentro de outra.
+   */
+  it("não aninha o role=status do HistoryCompareBar dentro do aria-live do estado de carregamento (Caio)", async () => {
+    listRecords.mockResolvedValue([
+      historyRecord("x", new Date(2026, 7, 3, 10, 0, 0).getTime()),
+      historyRecord("y", new Date(2026, 7, 3, 12, 0, 0).getTime()),
+    ]);
+    const user = userEvent.setup();
+    const { HistoricoClient } = await import("./HistoricoClient");
+    const { container } = render(<HistoricoClient />);
+
+    await screen.findByText("2 medições salvas");
+    await user.click(screen.getByRole("button", { name: "Comparar testes" }));
+    expect(screen.getByText("Selecione 2 testes para comparar.")).toBeInTheDocument();
+
+    const liveRegions = Array.from(container.querySelectorAll('[aria-live="polite"]'));
+    const statusRegions = Array.from(container.querySelectorAll('[role="status"]'));
+
+    // Exatamente uma região aria-live (a do #72) e exatamente um role=status
+    // (o do HistoryCompareBar, #75) montados ao mesmo tempo — nenhum dos dois
+    // duplicado, e nenhum deles descendente do outro.
+    expect(liveRegions).toHaveLength(1);
+    expect(statusRegions).toHaveLength(1);
+    for (const live of liveRegions) {
+      for (const status of statusRegions) {
+        expect(live.contains(status)).toBe(false);
+        expect(status.contains(live)).toBe(false);
+      }
+    }
+  });
 });

@@ -26,8 +26,14 @@ export function HistoricoClient() {
         Região única de status para o estado carregando/indisponível/vazio/carregado
         (#72, Gap A): sem isto, um leitor de tela parado no H1 nunca é avisado quando
         o carregamento termina — precisaria varrer a tela manualmente. `aria-live`
-        fica só aqui (não duplicado dentro de cada subcomponente) para não gerar
-        anúncio duplicado quando o estado troca.
+        cobre só o indicador da transição de estado, não a árvore de conteúdo
+        inteira: quando há registros, o que entra aqui é um anúncio pontual
+        ("carregado"), não o toolbar/lista/gráfico/comparação em si — do
+        contrário qualquer re-render desse conteúdo (trocar filtro, marcar um
+        item para comparar) dispararia novos anúncios, e uma live region
+        própria dentro dele (como o `role="status"` do `HistoryCompareBar`,
+        #75) ficaria aninhada dentro desta, o antipadrão que esta correção
+        evita (achado de revisão independente, Caio).
       */}
       <div aria-live="polite" className="flex w-full flex-1 flex-col">
         {history.status === 'loading' && <HistoryLoadingState />}
@@ -37,56 +43,63 @@ export function HistoricoClient() {
         {history.isEmpty && <HistoryEmptyState onStartTest={history.startTest} />}
 
         {history.hasRecords && (
-          <div className="flex flex-col gap-[14px] w-full">
-            <HistoryDiagnosticTip />
-
-            <HistoryToolbar
-              filtro={history.filtro}
-              onFiltroChange={history.setFiltro}
-              onClearAll={() => history.setConfirmOpen(true)}
-              onExport={history.exportHistory}
-              compareMode={history.compareMode}
-              onToggleCompareMode={history.toggleCompareMode}
-            />
-
-            {history.compareMode && (
-              <HistoryCompareBar
-                selectedCount={history.selectedForCompare.length}
-                onConfirm={history.confirmCompare}
-                onCancel={history.toggleCompareMode}
-              />
-            )}
-
-            <HistoryList
-              groups={history.groups}
-              filteredCount={history.filtered.length}
-              totalCount={history.records.length}
-              selectable={history.compareMode}
-              selectedIds={history.selectedForCompare}
-              onToggleSelect={history.toggleSelectForCompare}
-              linkedPairByAfterId={history.linkedPairByAfterId}
-              byId={history.byId}
-            />
-
-            {/*
-              A lista deve favorecer varredura visual e não competir com um
-              gráfico obrigatório na abertura (achado transversal da spec de
-              UX, seção 0, que afeta #73 além de #75). O gráfico continua
-              consumindo os mesmos `records` — nenhuma lógica de
-              `historyChartMath.ts` muda, só a posição/visibilidade: recolhido
-              por padrão, depois da lista, mesmo padrão de disclosure do #70.
-            */}
-            <details className="rounded-2xl" style={{ background: 'var(--bg-secondary)' }}>
-              <summary className="cursor-pointer select-none p-3.5 font-medium text-[13px] text-[color:var(--text-primary)]">
-                Ver evolução
-              </summary>
-              <div className="p-3.5 pt-0">
-                <HistoryEvolutionChart records={history.records} />
-              </div>
-            </details>
-          </div>
+          <span className="sr-only">
+            Histórico carregado: {history.records.length}{' '}
+            {history.records.length === 1 ? 'medição salva' : 'medições salvas'}.
+          </span>
         )}
       </div>
+
+      {history.hasRecords && (
+        <div className="flex flex-col gap-[14px] w-full">
+          <HistoryDiagnosticTip />
+
+          <HistoryToolbar
+            filtro={history.filtro}
+            onFiltroChange={history.setFiltro}
+            onClearAll={() => history.setConfirmOpen(true)}
+            onExport={history.exportHistory}
+            compareMode={history.compareMode}
+            onToggleCompareMode={history.toggleCompareMode}
+          />
+
+          {history.compareMode && (
+            <HistoryCompareBar
+              selectedCount={history.selectedForCompare.length}
+              onConfirm={history.confirmCompare}
+              onCancel={history.toggleCompareMode}
+            />
+          )}
+
+          <HistoryList
+            groups={history.groups}
+            filteredCount={history.filtered.length}
+            totalCount={history.records.length}
+            selectable={history.compareMode}
+            selectedIds={history.selectedForCompare}
+            onToggleSelect={history.toggleSelectForCompare}
+            linkedPairByAfterId={history.linkedPairByAfterId}
+            byId={history.byId}
+          />
+
+          {/*
+            A lista deve favorecer varredura visual e não competir com um
+            gráfico obrigatório na abertura (achado transversal da spec de
+            UX, seção 0, que afeta #73 além de #75). O gráfico continua
+            consumindo os mesmos `records` — nenhuma lógica de
+            `historyChartMath.ts` muda, só a posição/visibilidade: recolhido
+            por padrão, depois da lista, mesmo padrão de disclosure do #70.
+          */}
+          <details className="rounded-2xl" style={{ background: 'var(--bg-secondary)' }}>
+            <summary className="cursor-pointer select-none p-3.5 font-medium text-[13px] text-[color:var(--text-primary)]">
+              Ver evolução
+            </summary>
+            <div className="p-3.5 pt-0">
+              <HistoryEvolutionChart records={history.records} />
+            </div>
+          </details>
+        </div>
+      )}
 
       {history.justDeleted && <div className="font-medium text-[14px] leading-[1.43] text-center mt-2">Medição excluída.</div>}
 

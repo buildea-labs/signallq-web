@@ -9,6 +9,14 @@ interface HistoryCompareBarProps {
  * toolbar enquanto o modo de seleção está ativo (a lista existente vira o
  * "picker", sem tela nova). Contagem da seleção e o botão de confirmar só
  * habilita com exatamente 2 marcados — nunca com 0 ou 1.
+ *
+ * `role="status"` anuncia a contagem de selecionados conforme o usuário
+ * marca itens (0/1/2). Isto só é seguro porque este componente é renderizado
+ * FORA da região `aria-live="polite"` do #72 em `HistoricoClient.tsx` — uma
+ * live region aninhada dentro de outra é o antipadrão que a correção daquele
+ * gap evitou (achado de revisão independente, Caio, nesta correção). Se este
+ * componente algum dia passar a ser renderizado dentro de outra live region,
+ * este `role="status"` precisa sair.
  */
 export function HistoryCompareBar({ selectedCount, onConfirm, onCancel }: HistoryCompareBarProps) {
   return (
