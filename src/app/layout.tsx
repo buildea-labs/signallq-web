@@ -48,8 +48,10 @@ export const viewport: Viewport = {
 
 export default function RootLayout({
   children,
+  modal,
 }: Readonly<{
   children: React.ReactNode;
+  modal: React.ReactNode;
 }>) {
   return (
     <html lang="pt-BR" className="antialiased" data-sq-theme="system" suppressHydrationWarning>
@@ -73,7 +75,10 @@ export default function RootLayout({
             "topbar sambando" ao trocar de rota). */}
         <div className="min-h-screen w-full">
           <SiteNav />
-          <main className="w-full">{children}</main>
+          <main className="w-full">
+            {children}
+            {modal}
+          </main>
         </div>
         <SiteFooter />
         <AdSenseScript />

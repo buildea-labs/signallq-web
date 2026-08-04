@@ -170,7 +170,7 @@ export function Velocimetro({
 
       {showCenter && (
         <div className={`absolute inset-x-0 bottom-[-16px] flex flex-col items-center text-center`}>
-          <div className={`${compact ? "text-[34px]" : "text-[48px] sm:text-[58px]"} font-bold leading-none tabular-nums`} style={{ color: phaseColor }}>
+          <div className={`${compact ? "text-[51px]" : "text-[72px] sm:text-[87px]"} font-bold leading-none tabular-nums`} style={{ color: phaseColor }}>
             {value}
           </div>
           <div className="flex flex-col items-center mt-1">

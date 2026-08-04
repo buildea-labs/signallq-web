@@ -103,17 +103,19 @@ describe("aprofundamento pós-resultado exibe motivo e próxima ação (#69, bug
     // Antes de concluir o aprofundamento, o bug nunca chegava a aparecer aqui.
     expect(screen.queryByTestId("post-result-diagnostico")).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole("radio", { name: "Está lenta" }));
+    // Bug crítico #1+#2 corrigido: aprofundamento do teste ocorre após responder o diagnóstico.
+    expect(retrySpy).not.toHaveBeenCalled();
 
-    // Bug crítico #1+#2 corrigido: escolher um problema reinicia o teste de
-    // verdade em modo Completo (não só mostra perguntas sobre o download antigo).
-    expect(retrySpy).toHaveBeenCalledWith("completo");
+    await user.click(screen.getByRole("radio", { name: "Está lenta" }));
 
     // Pergunta de aprofundamento gerada pela árvore contextual (`internet_lenta_q1`).
     expect(await screen.findByText("Quando a lentidão ocorre?")).toBeInTheDocument();
 
     // Resposta que conclui o aprofundamento em uma única pergunta.
     await user.click(screen.getByRole("button", { name: "Em horários específicos" }));
+
+    // Agora sim o teste completo deve iniciar, pois as perguntas terminaram.
+    expect(retrySpy).toHaveBeenCalledWith("completo");
 
     const diagnostico = await screen.findByTestId("post-result-diagnostico");
     expect(diagnostico).toBeInTheDocument();

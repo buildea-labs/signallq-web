@@ -82,9 +82,6 @@ export function PostResultProblemPrompt({ journey }: { journey: SpeedTestJourney
 
       {isProblemChoice && (
         <div className="w-full max-w-[440px] flex flex-col gap-[10px]" aria-live="polite">
-          <p className="m-0 text-center font-normal text-[13px] leading-[1.4] text-[color:var(--text-secondary)]">
-            {TRANSITION_TEXT}
-          </p>
 
           {flowState && (flowState.status === "awaiting_answer" || flowState.status === "invalid_answer") && (
             <div className="flex flex-col gap-[10px]">

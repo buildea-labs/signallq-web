@@ -22,8 +22,9 @@ export function QuickResult({ journey }: { journey: SpeedTestJourney }) {
 
   return (
     <>
-      <div className={`w-full ${modo === 'rapido' ? 'max-w-[1024px] mt-0' : 'max-w-[800px] mt-2'} flex justify-center px-4 sm:px-8`}>
-        <Velocimetro fraction={fraction} phaseColor={identity.color} isRunning={isRunning} phase={(isResult && result) ? "download" : phase} liveValue={(isResult && result) ? result.download.mbps : liveValue} value={dialNumber} unit={dialUnit} metricLabel={(isResult && result) ? "Download" : undefined} phaseLabel={isRunning || (isProblem && terminalOutcome === null) ? identity.label : undefined} narrative={isRunning || (isProblem && terminalOutcome === null) ? identity.narrative : undefined} compact={modo === "completo" ? (terminalOutcome !== null || isProblem) : isProblem}>
+      <div className={`w-full ${modo === 'rapido' ? 'max-w-[1024px] mt-0' : 'max-w-[800px] mt-2'} flex flex-col items-center justify-center px-4 sm:px-8`}>
+        <div className="w-full flex justify-center">
+          <Velocimetro fraction={fraction} phaseColor={identity.color} isRunning={isRunning} phase={(isResult && result) ? "download" : phase} liveValue={(isResult && result) ? result.download.mbps : liveValue} value={dialNumber} unit={dialUnit} metricLabel={(isResult && result) ? "Download" : undefined} phaseLabel={isRunning || (isProblem && terminalOutcome === null) ? identity.label : undefined} narrative={isRunning || (isProblem && terminalOutcome === null) ? identity.narrative : undefined} compact={modo === "completo" ? (terminalOutcome !== null || isProblem) : isProblem}>
             {(isIdle || isProblem) && !isAutoStarting && (
               <div className="absolute left-1/2 bottom-[26px] -translate-x-1/2 flex flex-col items-center gap-[10px] z-10">
                 <button
@@ -43,6 +44,17 @@ export function QuickResult({ journey }: { journey: SpeedTestJourney }) {
               </div>
             )}
           </Velocimetro>
+        </div>
+
+        {/* Só exibida quando ambos os valores são conhecidos — "Desconhecido" é
+            ruído para quem não pediu essa informação (#71 §3.1/§3.4.8). */}
+        {!isProblem && isResult && !loading && isp && region && (
+          <div className="w-full flex justify-center items-center gap-2 mt-2 text-[color:var(--text-secondary)] text-[10px] sm:text-[11px]">
+            <span className="font-semibold line-clamp-1">{isp}</span>
+            <span className="text-[color:var(--accent)] font-bold">|</span>
+            <span className="line-clamp-1">{region}</span>
+          </div>
+        )}
       </div>
 
       {/* Gate por `isResult` (não só `result` truthy): durante um reteste
@@ -63,16 +75,6 @@ export function QuickResult({ journey }: { journey: SpeedTestJourney }) {
               pós-resultado ativa ou concluída, o cartão final dela continua
               aparecendo no mesmo lugar de sempre (spec Juliana §2). */}
           {(modo === "rapido" || Boolean(journey.postResultProblem)) && <PostResultProblemPrompt journey={journey} />}
-        </div>
-      )}
-
-      {/* Só exibida quando ambos os valores são conhecidos — "Desconhecido" é
-          ruído para quem não pediu essa informação (#71 §3.1/§3.4.8). */}
-      {!isProblem && isResult && !loading && isp && region && (
-        <div className="w-full flex justify-center items-center gap-3 mt-4 text-[color:var(--text-secondary)] text-[14px]">
-          <span className="font-semibold line-clamp-1">{isp}</span>
-          <span className="text-[color:var(--accent)] font-bold">|</span>
-          <span className="line-clamp-1">{region}</span>
         </div>
       )}
     </>

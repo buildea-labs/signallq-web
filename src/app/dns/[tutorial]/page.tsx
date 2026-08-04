@@ -2,7 +2,8 @@ import { Metadata } from "next";
 import { PageShell } from "@/components/PageShell";
 import { DnsModal } from "@/components/dns/DnsModal";
 
-export function generateMetadata({ params }: { params: { tutorial: string } }): Metadata {
+export async function generateMetadata(props: { params: Promise<{ tutorial: string }> }): Promise<Metadata> {
+  const params = await props.params;
   const tutorialName = params.tutorial.charAt(0).toUpperCase() + params.tutorial.slice(1);
   return {
     title: `Como mudar o DNS no ${tutorialName} | SignallQ`,
