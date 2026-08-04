@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import "../index.css";
 import { AdSenseScript } from "../components/AdSenseScript";
 import { CookieConsentBanner } from "../components/CookieConsentBanner";
@@ -58,7 +59,11 @@ export default function RootLayout({
         <link rel="stylesheet" href="/_ds/signallq-design-system-2d25d7a1-31b2-4ac3-881f-72dbc8f35a29/_ds_bundle.css" />
         {/* eslint-disable-next-line @next/next/no-css-tags */}
         <link rel="stylesheet" href="/_ds/signallq-design-system-2d25d7a1-31b2-4ac3-881f-72dbc8f35a29/styles.css" />
-        <script
+      </head>
+      <body className="bg-[color:var(--bg-primary)] text-[color:var(--text-primary)]">
+        <Script
+          id="theme-toggle"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               (function () {
@@ -68,8 +73,6 @@ export default function RootLayout({
             `,
           }}
         />
-      </head>
-      <body className="bg-[color:var(--bg-primary)] text-[color:var(--text-primary)]">
         {/* SiteNav + miolo em min-h-screen própria (não a <body> inteira, que
             também engloba o SiteFooter abaixo) — garante que o rodapé nunca
             apareça na primeira vista, mesmo em telas com pouco conteúdo

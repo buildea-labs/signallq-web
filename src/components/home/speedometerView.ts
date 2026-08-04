@@ -1,5 +1,5 @@
 import type { FasePainel } from "@/hooks/useSpeedTest";
-import { fractionForLatency, fractionForThroughput } from "@/lib/gaugeMath";
+import { fractionForThroughput } from "@/lib/gaugeMath";
 import type { SpeedTestResult } from "@/lib/speedEngine";
 import {
   SPEEDOMETER_ERROR,
@@ -33,16 +33,17 @@ export function buildSpeedometerView(input: {
   const speedometerPhase: SpeedometerPhase = terminalOutcome === "complete"
     ? "concluido"
     : (phase === "idle" || phase === "preparando" || phase === "latencia" || phase === "download" || phase === "upload" || phase === "processando" ? phase : "idle");
-  const identity = terminalOutcome
+  let identity = terminalOutcome
     ? SPEEDOMETER_OUTCOME[terminalOutcome]
     : isProblem
       ? SPEEDOMETER_ERROR
       : SPEEDOMETER_PHASE[speedometerPhase];
 
   if (phase === "latencia") {
-    fraction = fractionForLatency(liveValue);
-    dialNumber = liveValue ? Math.round(liveValue).toString() : "—";
-    dialUnit = "ms";
+    fraction = 0;
+    dialNumber = "0.0";
+    dialUnit = "Mbps";
+    identity = SPEEDOMETER_PHASE["preparando"];
   } else if (phase === "download") {
     fraction = fractionForThroughput(liveValue);
     dialNumber = liveValue ? liveValue.toFixed(1) : "0.0";

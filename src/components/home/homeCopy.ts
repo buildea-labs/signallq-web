@@ -15,6 +15,7 @@ export const MODO_EXPLICACAO = {
 export const DIAG_ITEMS = [
   { icon: "dns", label: "Servidores DNS", href: "/dns" },
   { icon: "sports_esports", label: "Modo gamer", href: "/jogos" },
+  { icon: "language", label: "Meu IP", href: "/meu-ip" },
 ];
 
 // Cor por nível de classificação — mesmo vocabulário de 3 valores

@@ -69,6 +69,15 @@ export function PostResultProblemPrompt({ journey }: { journey: SpeedTestJourney
             );
           })}
         </div>
+        <div className="mt-4">
+          <button
+            type="button"
+            onClick={() => journey.iniciarAprofundamento()}
+            className="h-[44px] px-[26px] rounded-full border-none bg-[color:var(--accent)] font-semibold text-[15px] text-[color:var(--on-accent)] cursor-pointer hover:scale-105 active:scale-95 transition-transform shadow-[0_4px_14px_color-mix(in_srgb,_var(--accent)_30%,_transparent)]"
+          >
+            Rodar Teste Completo
+          </button>
+        </div>
       </fieldset>
 
       {isProblemChoice && (
@@ -80,7 +89,7 @@ export function PostResultProblemPrompt({ journey }: { journey: SpeedTestJourney
           {flowState && (flowState.status === "awaiting_answer" || flowState.status === "invalid_answer") && (
             <div className="flex flex-col gap-[10px]">
               <div className="font-medium text-[11px] leading-[1.45] text-[color:var(--accent)] tracking-[.3px] uppercase">
-                Contexto do teste
+                Detalhes do problema
               </div>
               <h3 className="m-0 font-semibold text-[16px] leading-[1.38] text-[color:var(--text-primary)]">
                 {flowState.question.text}

@@ -11,7 +11,7 @@ import { STATUS_LABEL, STATUS_MESSAGE } from "./homeCopy";
 
 /** Leitura completa do resultado: conclusão+próxima ação, comparação, detalhes e ações finais. */
 export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
-  const { result, hasVisibleResult, respostaDiagnostica, retesteBase, comparacaoReteste, modo, postResultProblem, emAprofundamentoPosResultado } = journey;
+  const { result, hasVisibleResult, respostaDiagnostica, retesteBase, comparacaoReteste, modo, emAprofundamentoPosResultado } = journey;
   if (!hasVisibleResult || !result || modo === "rapido") return null;
 
   const statusCompleto = result.status === "complete";
@@ -22,7 +22,7 @@ export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
   // respostas guiadas). Sem esta guarda, esta seção duplicaria "Próxima
   // ação" com um segundo texto genérico (sem o contexto declarado) assim que
   // `modo` vira "completo" de verdade — reproduzido via teste de integração.
-  const aprofundamentoPosResultadoAtivo = Boolean(postResultProblem) && postResultProblem !== "sem-problema";
+  // aprofundamentoPosResultadoAtivo removido conforme nova especificação UX
 
   return (
     <div className="w-full max-w-[640px] flex flex-col">
@@ -38,7 +38,7 @@ export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
         </div>
       )}
 
-      {respostaDiagnostica && !aprofundamentoPosResultadoAtivo && (
+      {respostaDiagnostica && (
         <section aria-labelledby="resultado-conclusao" className="py-7 border-b border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]">
           <h1 id="resultado-conclusao" className="m-0 font-bold text-[22px] sm:text-[24px] leading-[1.25] text-[color:var(--text-primary)] tracking-tight">
             {respostaDiagnostica.conclusion}

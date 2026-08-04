@@ -47,6 +47,6 @@ export function useSpeedTest(modo: SpeedTestMode) {
 
   return {
     phase, liveValue, phaseResults, result, connectionKind, round, measurementContext,
-    cancelTest, retry, forceStart, goToIdle, restaurarResultadoAnterior,
+    cancelTest, retry, forceStart, goToIdle, restaurarResultadoAnterior, injectResult,
   }
 }

@@ -40,7 +40,7 @@ export function GuidedDiagnosis({ measurementContext, onAnswersChange }: Props) 
     return (
       <div className="flex flex-col gap-[10px]" aria-live="polite">
         <div className="font-medium text-[11px] leading-[1.45] text-[color:var(--accent)] tracking-[.3px] uppercase">
-          Contexto do teste
+          Detalhes do problema
         </div>
         <h3 className="m-0 font-semibold text-[16px] leading-[1.38] text-[color:var(--text-primary)]">{state.question.text}</h3>
         {state.status === 'invalid_answer' && (
@@ -75,7 +75,7 @@ export function GuidedDiagnosis({ measurementContext, onAnswersChange }: Props) 
   }
   return (
     <div className="flex flex-col gap-[10px]" aria-live="polite">
-      <div className="font-medium text-[11px] leading-[1.45] text-[color:var(--accent)] tracking-[.3px] uppercase">Contexto do teste</div>
+      <div className="font-medium text-[11px] leading-[1.45] text-[color:var(--accent)] tracking-[.3px] uppercase">Detalhes do problema</div>
       <p className="m-0 font-normal text-[14px] leading-[1.43] text-[color:var(--text-secondary)]">
         {answers.length ? 'Respostas registradas para a próxima etapa.' : 'Nenhuma pergunta adicional é necessária para esta sessão.'}
       </p>
@@ -87,7 +87,7 @@ export function GuidedDiagnosis({ measurementContext, onAnswersChange }: Props) 
 function FlowNotice({ title, message, onReset }: { title: string; message: string; onReset: () => void }) {
   return (
     <div className="flex flex-col gap-[10px]" role="status">
-      <div className="font-medium text-[11px] leading-[1.45] text-[color:var(--accent)] tracking-[.3px] uppercase">Contexto do teste</div>
+      <div className="font-medium text-[11px] leading-[1.45] text-[color:var(--accent)] tracking-[.3px] uppercase">Detalhes do problema</div>
       <h3 className="m-0 font-semibold text-[16px] leading-[1.38] text-[color:var(--text-primary)]">{title}</h3>
       <p className="m-0 font-normal text-[14px] leading-[1.43] text-[color:var(--text-secondary)]">{message}</p>
       <button type="button" onClick={onReset} className="w-fit border-none bg-transparent p-0 font-medium text-[13px] text-[color:var(--accent)] cursor-pointer hover:underline">Tentar novamente</button>

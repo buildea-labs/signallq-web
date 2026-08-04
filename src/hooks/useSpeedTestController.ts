@@ -167,5 +167,10 @@ export function useSpeedTestController(modo: SpeedTestMode) {
     if (result) aplicarFase(phaseFromResultStatus(result.status))
   }, [result, aplicarFase])
 
-  return { phase, liveValue, phaseResults, result, connectionKind, round, runTest, cancelTest, goToIdle, restaurarResultadoAnterior }
+  const injectResult = useCallback((r: SpeedTestResult) => {
+    setResult(r)
+    aplicarFase(phaseFromResultStatus(r.status))
+  }, [aplicarFase])
+
+  return { phase, liveValue, phaseResults, result, connectionKind, round, runTest, cancelTest, goToIdle, restaurarResultadoAnterior, injectResult }
 }

@@ -9,7 +9,7 @@ import { buildSpeedometerView } from "./speedometerView";
 
 /** Velocímetro e leitura rápida da medição corrente (conclusão/impacto vivem em CompleteDiagnosis, #71). */
 export function QuickResult({ journey }: { journey: SpeedTestJourney }) {
-  const { phase, liveValue, result, isIdle, isRunning, isProblem, isResult, terminalOutcome, modo, isAutoStarting, postResultProblem, erroDuranteAprofundamento } = journey;
+  const { phase, liveValue, result, isIdle, isRunning, isProblem, isResult, terminalOutcome, modo, isAutoStarting, erroDuranteAprofundamento } = journey;
   const { isp, region, loading } = useNetworkInfo();
   const { fraction, dialNumber, dialUnit, identity } = buildSpeedometerView({
     phase,
@@ -23,7 +23,7 @@ export function QuickResult({ journey }: { journey: SpeedTestJourney }) {
   return (
     <>
       <div className={`w-full ${modo === 'rapido' ? 'max-w-[1024px] mt-0' : 'max-w-[800px] mt-2'} flex justify-center px-4 sm:px-8`}>
-        <Velocimetro fraction={fraction} phaseColor={identity.color} isRunning={isRunning} phase={result ? "download" : phase} liveValue={result ? result.download.mbps : liveValue} value={dialNumber} unit={dialUnit} metricLabel={result ? "Download" : undefined} phaseLabel={isRunning || (isProblem && terminalOutcome === null) ? identity.label : undefined} narrative={isRunning || (isProblem && terminalOutcome === null) ? identity.narrative : undefined} compact={modo === "completo" ? (terminalOutcome !== null || isProblem) : isProblem}>
+        <Velocimetro fraction={fraction} phaseColor={identity.color} isRunning={isRunning} phase={(isResult && result) ? "download" : phase} liveValue={(isResult && result) ? result.download.mbps : liveValue} value={dialNumber} unit={dialUnit} metricLabel={(isResult && result) ? "Download" : undefined} phaseLabel={isRunning || (isProblem && terminalOutcome === null) ? identity.label : undefined} narrative={isRunning || (isProblem && terminalOutcome === null) ? identity.narrative : undefined} compact={modo === "completo" ? (terminalOutcome !== null || isProblem) : isProblem}>
             {(isIdle || isProblem) && !isAutoStarting && (
               <div className="absolute left-1/2 bottom-[26px] -translate-x-1/2 flex flex-col items-center gap-[10px] z-10">
                 <button
@@ -62,7 +62,7 @@ export function QuickResult({ journey }: { journey: SpeedTestJourney }) {
               depender só de `modo === "rapido"`: enquanto houver uma escolha
               pós-resultado ativa ou concluída, o cartão final dela continua
               aparecendo no mesmo lugar de sempre (spec Juliana §2). */}
-          {(modo === "rapido" || postResultProblem !== null) && <PostResultProblemPrompt journey={journey} />}
+          {modo === "rapido" && <PostResultProblemPrompt journey={journey} />}
         </div>
       )}
 

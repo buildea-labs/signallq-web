@@ -64,7 +64,7 @@ export function useSpeedTestJourney() {
   const [downloadMbpsAntesDoAprofundamento, setDownloadMbpsAntesDoAprofundamento] = useState<number | null>(null);
   const abandonoRegistrado = useRef(false);
   const comparacaoPersistida = useRef<string | null>(null);
-  const { phase, liveValue, phaseResults, result, measurementContext, cancelTest, retry, forceStart, restaurarResultadoAnterior } =
+  const { phase, liveValue, phaseResults, result, measurementContext, cancelTest, retry, forceStart, restaurarResultadoAnterior, injectResult } =
     useSpeedTest(modo);
   const {
     postResultProblem,
@@ -239,9 +239,14 @@ export function useSpeedTestJourney() {
 
   const selecionarProblemaPosResultado = (valor: PostResultProblema) => {
     selecionarProblemaPosResultadoBase(valor);
-    if (valor === "sem-problema") return;
-    iniciarAprofundamento();
   };
+
+  useEffect(() => {
+    if (postResultFlowState?.status === "concluded" && !emAprofundamentoPosResultado && postResultProblem && postResultProblem !== "sem-problema") {
+      iniciarAprofundamento();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [postResultFlowState?.status, emAprofundamentoPosResultado, postResultProblem]);
 
   const compartilhar = async () => {
     if (!result) return;
@@ -265,6 +270,22 @@ export function useSpeedTestJourney() {
   useEffect(() => {
     if (modo === "rapido" && !problemaPercebido && isIdle && !autoStartDisparado.current) {
       if (typeof window !== "undefined" && !window.location.search.includes("problem=")) {
+        const storedFullResult = sessionStorage.getItem("signallq_full_last_result_v1");
+        if (storedFullResult) {
+          try {
+            const parsedResult = JSON.parse(storedFullResult);
+            if (parsedResult && parsedResult.status === 'complete') {
+              autoStartDisparado.current = true;
+              setIsAutoStarting(false);
+              setModo(parsedResult.mode);
+              setTimeout(() => injectResult(parsedResult), 0);
+              return;
+            }
+          } catch {
+            // Ignora falha de parse
+          }
+        }
+
         const hasAutoStarted = sessionStorage.getItem("speedtest_autostarted") === "true";
         autoStartDisparado.current = true;
         
@@ -295,6 +316,7 @@ export function useSpeedTestJourney() {
         };
         if (typeof window !== "undefined") {
           sessionStorage.setItem("signallq_last_result", JSON.stringify(testResults));
+          sessionStorage.setItem("signallq_full_last_result_v1", JSON.stringify(result));
         }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
