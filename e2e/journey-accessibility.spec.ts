@@ -76,9 +76,9 @@ test.describe('Popover de ajuda sob demanda — não cortado em viewport estreit
   })
 })
 
-test.describe('Jornada Rápido — teclado e resultado real (#71)', () => {
-  test('navega por teclado pela pergunta pós-resultado, sem trocar o modo automaticamente, e o resultado passa no scan de acessibilidade', async ({ page }) => {
-    test.setTimeout(90_000)
+test.describe('Jornada Rápido — teclado e resultado real (#71, bug crítico #1+#2)', () => {
+  test('navega por teclado pela pergunta pós-resultado, aprofunda de verdade em modo Completo (reteste real) e o resultado passa no scan de acessibilidade', async ({ page }) => {
+    test.setTimeout(120_000)
     await page.goto('/')
 
     // Autostart do modo Rápido dispara sozinho (comportamento de produto);
@@ -92,11 +92,24 @@ test.describe('Jornada Rápido — teclado e resultado real (#71)', () => {
     await estaLenta.focus()
     await expect(estaLenta).toBeFocused()
     await page.keyboard.press('Space')
-    await expect(estaLenta).toBeChecked()
 
-    // Aprofundamento contextual aparece e é operável via teclado (Tab + Enter).
+    // Decisão de produto revertida (bug crítico #1+#2): selecionar um
+    // problema pós-resultado agora troca de verdade para o modo Completo e
+    // reinicia a medição (download+upload+latência+jitter reais) — não fica
+    // mais só perguntando sobre o download do modo Rápido. A mensagem de
+    // transição some o fieldset (substituído por `TestRunning`) e só volta a
+    // aparecer quando o teste completo concluir.
+    await expect(page.getByText('Aprofundando com um teste completo…')).toBeVisible({ timeout: 10_000 })
+    await page.screenshot({ path: `${EVIDENCE_DIR}/rapido-aprofundamento-transicao.png`, fullPage: true })
+
+    // Fases reais do teste completo (não só o download do modo Rápido).
+    await expect(page.getByText('Avaliando capacidade de download...')).toBeVisible({ timeout: 30_000 })
+    await expect(page.getByText('Quase acabando, medindo upload...')).toBeVisible({ timeout: 30_000 })
+
+    // Aprofundamento contextual aparece (agora depois do teste completo real)
+    // e é operável via teclado (Tab + Enter).
     const pergunta = page.getByText('Quando a lentidão ocorre?')
-    await expect(pergunta).toBeVisible()
+    await expect(pergunta).toBeVisible({ timeout: 60_000 })
     const primeiraOpcao = page.getByRole('button', { name: 'Em horários específicos' })
     await primeiraOpcao.focus()
     await expect(primeiraOpcao).toBeFocused()
@@ -107,9 +120,18 @@ test.describe('Jornada Rápido — teclado e resultado real (#71)', () => {
     await expect(page.getByText('Próxima ação')).toBeVisible()
     await page.screenshot({ path: `${EVIDENCE_DIR}/rapido-pos-resultado-concluido.png`, fullPage: true })
 
-    // Regra de produto preservada mesmo no fluxo real de navegador: o
-    // aprofundamento pós-resultado não força troca para o modo Completo.
+    // A escolha continua marcada. O modo Completo já ficou provado ativo
+    // pelas fases reais aguardadas acima ("Avaliando capacidade de
+    // download..."/"Quase acabando, medindo upload..." só existem no modo
+    // Completo) — regra de produto revertida: #69 dizia "nunca trocar de
+    // modo silenciosamente"; a decisão atual é justamente trocar de verdade,
+    // com aviso visível, não mais um segredo, mas também sem exigir clique extra.
     await expect(estaLenta).toBeChecked()
+
+    // Uma única "Próxima ação" na tela — `CompleteDiagnosis` (agora ligado,
+    // porque o modo é Completo de verdade) suprime a sua própria conclusão
+    // genérica para não duplicar a conclusão específica do aprofundamento.
+    await expect(page.getByText('Próxima ação')).toHaveCount(1)
 
     const results = await new AxeBuilder({ page }).analyze()
     const critical = results.violations.filter((v) => v.impact === 'critical' || v.impact === 'serious')

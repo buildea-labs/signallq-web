@@ -11,11 +11,18 @@ import { STATUS_LABEL, STATUS_MESSAGE } from "./homeCopy";
 
 /** Leitura completa do resultado: conclusão+próxima ação, comparação, detalhes e ações finais. */
 export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
-  const { result, hasVisibleResult, respostaDiagnostica, retesteBase, comparacaoReteste, modo } = journey;
+  const { result, hasVisibleResult, respostaDiagnostica, retesteBase, comparacaoReteste, modo, postResultProblem } = journey;
   if (!hasVisibleResult || !result || modo === "rapido") return null;
 
   const statusCompleto = result.status === "complete";
   const statusMensagem = STATUS_MESSAGE[result.status];
+  // Aprofundamento pós-resultado ativo (bug crítico #1+#2): a conclusão
+  // específica já aparece em `PostResultProblemPrompt`
+  // (`respostaDiagnosticaPosResultado`, calculada com o contexto declarado +
+  // respostas guiadas). Sem esta guarda, esta seção duplicaria "Próxima
+  // ação" com um segundo texto genérico (sem o contexto declarado) assim que
+  // `modo` vira "completo" de verdade — reproduzido via teste de integração.
+  const aprofundamentoPosResultadoAtivo = Boolean(postResultProblem) && postResultProblem !== "sem-problema";
 
   return (
     <div className="w-full max-w-[640px] flex flex-col">
@@ -31,7 +38,7 @@ export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
         </div>
       )}
 
-      {respostaDiagnostica && (
+      {respostaDiagnostica && !aprofundamentoPosResultadoAtivo && (
         <section aria-labelledby="resultado-conclusao" className="py-7 border-b border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]">
           <h1 id="resultado-conclusao" className="m-0 font-bold text-[22px] sm:text-[24px] leading-[1.25] text-[color:var(--text-primary)] tracking-tight">
             {respostaDiagnostica.conclusion}
@@ -60,7 +67,7 @@ export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
       {/* Única ação primária da etapa: reteste. "Ver histórico" é navegação de
           saída, rebaixada ao mesmo peso de Compartilhar/Copiar resumo (#71 §3.2/§3.4.6). */}
       <button
-        onClick={statusCompleto ? journey.iniciarReteste : journey.retry}
+        onClick={statusCompleto ? journey.iniciarReteste : () => journey.retry()}
         className="w-full h-[46px] flex items-center justify-center gap-2 rounded-[var(--radius-button)] border-none bg-[color:var(--accent)] hover:brightness-110 transition-all cursor-pointer mt-6"
       >
         <span aria-hidden="true" className="material-symbols-outlined text-[20px] text-[color:var(--on-accent)]">refresh</span>

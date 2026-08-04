@@ -20,23 +20,33 @@ export function useSpeedTest(modo: SpeedTestMode) {
     if (!measurementContext) setMeasurementContext(readMeasurementSession()?.context ?? null)
   }, [measurementContext])
 
-  const { phase, liveValue, phaseResults, result, connectionKind, round, runTest, cancelTest, goToIdle } =
+  const { phase, liveValue, phaseResults, result, connectionKind, round, runTest, cancelTest, goToIdle, restaurarResultadoAnterior } =
     useSpeedTestController(modo)
 
   const startTest = useCallback(
-    async (isRepeat: boolean, context?: MeasurementSessionContext) => {
+    async (isRepeat: boolean, context?: MeasurementSessionContext, modeOverride?: SpeedTestMode) => {
       const sessionContext = context ?? measurementContext
       if (sessionContext) {
         setMeasurementContext(sessionContext)
         beginMeasurementSession(sessionContext)
       }
-      await runTest(isRepeat)
+      await runTest(isRepeat, modeOverride)
     },
     [measurementContext, runTest]
   )
 
-  const retry = useCallback(() => startTest(true), [startTest])
-  const forceStart = useCallback((context?: MeasurementSessionContext) => startTest(false, context), [startTest])
+  // `modeOverride` força o modo desta rodada independentemente de `modo`/
+  // `modoRef` (aprofundamento pós-resultado, GH#1367 follow-up): `setModo` e o
+  // disparo do teste acontecem no mesmo handler síncrono, então ler `modoRef`
+  // sozinho arriscaria uma corrida com a propagação do novo `modo` por efeito.
+  const retry = useCallback((modeOverride?: SpeedTestMode) => startTest(true, undefined, modeOverride), [startTest])
+  const forceStart = useCallback(
+    (context?: MeasurementSessionContext, modeOverride?: SpeedTestMode) => startTest(false, context, modeOverride),
+    [startTest]
+  )
 
-  return { phase, liveValue, phaseResults, result, connectionKind, round, measurementContext, cancelTest, retry, forceStart, goToIdle }
+  return {
+    phase, liveValue, phaseResults, result, connectionKind, round, measurementContext,
+    cancelTest, retry, forceStart, goToIdle, restaurarResultadoAnterior,
+  }
 }

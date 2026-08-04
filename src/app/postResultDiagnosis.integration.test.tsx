@@ -3,14 +3,27 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
- * Teste de INTEGRAÇÃO do bug de #69 (achado por Caio): antes desta correção,
- * concluir o aprofundamento pós-resultado só exibia "Respostas registradas
- * para esta medição." — nunca o motivo nem a próxima ação, porque
- * `CompleteDiagnosis` (único lugar que os exibia) fica desligado no modo
- * Rápido. Exercita a jornada real (resultado rápido -> "Está lenta" ->
- * responde o aprofundamento até concluir) através da árvore de componentes,
- * não da lógica pura isolada — é exatamente o tipo de teste que faltou e
- * permitiu o bug passar.
+ * Teste de INTEGRAÇÃO do bug crítico #1+#2 (diagnóstico não funciona de
+ * verdade): antes desta correção, escolher um problema pós-resultado nunca
+ * trocava de modo nem reexecutava o teste — só mostrava perguntas
+ * contextuais sobre um resultado que continuava sendo só de download
+ * (`{mbps:0,peakMbps:0}` fixo de upload no modo Rápido), e `CompleteDiagnosis`
+ * ficava desligado o tempo todo (`modo === "rapido"`).
+ *
+ * Decisão de produto revertida: agora escolher um problema troca `modo` para
+ * "completo" de verdade e reinicia o teste (`journey.iniciarAprofundamento`).
+ * `useSpeedTest` é mockado aqui (fase estática "concluido", `retry` espiado)
+ * porque este teste cobre a árvore de componentes/orquestração — o motor de
+ * medição real e as fases de execução são cobertos via Playwright contra um
+ * servidor real (ver `e2e/`).
+ *
+ * Cobre também a deduplicação: uma vez que `modo` vira "completo" de verdade,
+ * `CompleteDiagnosis` deixa de retornar `null` e passaria a mostrar sua
+ * própria conclusão genérica (`respostaDiagnostica`, sem o contexto
+ * declarado) ao lado da conclusão específica de
+ * `PostResultProblemPrompt`/`respostaDiagnosticaPosResultado` — duas seções
+ * de "Próxima ação" na mesma tela. `CompleteDiagnosis` suprime a sua quando
+ * há um aprofundamento pós-resultado ativo.
  */
 
 vi.mock("@/hooks/useNetworkInfo", () => ({
@@ -49,6 +62,8 @@ const fakeResult = {
   partial: false,
 };
 
+const retrySpy = vi.fn();
+
 vi.mock("@/hooks/useSpeedTest", async () => {
   const actual = await vi.importActual<typeof import("@/hooks/useSpeedTest")>("@/hooks/useSpeedTest");
   return {
@@ -60,22 +75,24 @@ vi.mock("@/hooks/useSpeedTest", async () => {
       result: fakeResult,
       measurementContext: { version: 1, entry: "direct" },
       cancelTest: vi.fn(),
-      retry: vi.fn(),
+      retry: retrySpy,
       forceStart: vi.fn(),
+      restaurarResultadoAnterior: vi.fn(),
     }),
   };
 });
 
-describe("aprofundamento pós-resultado exibe motivo e próxima ação (#69)", () => {
+describe("aprofundamento pós-resultado exibe motivo e próxima ação (#69, bug crítico #1+#2)", () => {
   beforeEach(() => {
     window.sessionStorage.clear();
+    retrySpy.mockClear();
   });
 
   afterEach(() => {
     cleanup();
   });
 
-  it("mostra conclusão e próxima ação reais depois de concluir o aprofundamento, sem trocar para modo Completo", async () => {
+  it("troca para modo Completo, reinicia o teste e mostra conclusão/próxima ação reais uma única vez, sem duplicar com CompleteDiagnosis", async () => {
     const user = userEvent.setup();
     const { HomeClient } = await import("./HomeClient");
     render(<HomeClient />);
@@ -87,6 +104,10 @@ describe("aprofundamento pós-resultado exibe motivo e próxima ação (#69)", (
     expect(screen.queryByTestId("post-result-diagnostico")).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("radio", { name: "Está lenta" }));
+
+    // Bug crítico #1+#2 corrigido: escolher um problema reinicia o teste de
+    // verdade em modo Completo (não só mostra perguntas sobre o download antigo).
+    expect(retrySpy).toHaveBeenCalledWith("completo");
 
     // Pergunta de aprofundamento gerada pela árvore contextual (`internet_lenta_q1`).
     expect(await screen.findByText("Quando a lentidão ocorre?")).toBeInTheDocument();
@@ -101,11 +122,16 @@ describe("aprofundamento pós-resultado exibe motivo e próxima ação (#69)", (
     expect(
       screen.queryByText("Respostas registradas para esta medição.")
     ).not.toBeInTheDocument();
+    // Uma única "Próxima ação" na tela: `CompleteDiagnosis` (agora ligado,
+    // porque `modo` é "completo" de verdade) suprime sua própria conclusão
+    // genérica para não duplicar a conclusão específica já mostrada aqui.
     expect(screen.getByText("Próxima ação")).toBeInTheDocument();
     expect(diagnostico.textContent).toBeTruthy();
     expect(diagnostico.textContent!.length).toBeGreaterThan(0);
 
-    // Regra de produto: aprofundamento pós-resultado não força troca de modo.
+    // A escolha continua marcada, e o resto do resultado completo (detalhes
+    // técnicos/reteste) também aparece na tela, porque `modo` de fato mudou.
     expect(screen.getByRole("radio", { name: "Está lenta" })).toBeChecked();
+    expect(screen.getByRole("button", { name: "Fazer e testar novamente" })).toBeInTheDocument();
   });
 });
