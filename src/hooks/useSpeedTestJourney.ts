@@ -85,10 +85,19 @@ export function useSpeedTestJourney() {
   // Em caso de falha/cancelamento de um reteste, `useSpeedTest` preserva a
   // rodada anterior; ela continua visível abaixo do estado de falha.
   const hasVisibleResult = isResult || (isProblem && result !== null);
+  // Bug crítico (revisão do Caio, reprodução determinística): `result` de uma
+  // rodada anterior (ex.: `contaminated`) nunca é limpo durante um reteste
+  // (intencional em `useSpeedTestController.ts`, serve de fallback visível em
+  // caso de erro/cancelamento). Sem a guarda de `isRunning` aqui, esse
+  // resultado antigo era lido como terminal enquanto a NOVA medição ainda
+  // está rodando (fases `latencia`/`download`/`upload`/`processando`),
+  // fazendo o velocímetro mostrar cor/rótulo do resultado velho ("Contaminado",
+  // laranja) por cima de uma medição que nem terminou. Nenhuma fase de
+  // execução pode produzir um outcome terminal.
   const terminalOutcome: SpeedometerOutcome | null =
     phase === "cancelado"
       ? "cancelled"
-      : isProblem
+      : isRunning || isProblem
         ? null
         : result?.status ?? null;
   const showDial = isIdle || isRunning || terminalOutcome !== null || isProblem;
