@@ -71,8 +71,10 @@ export const PAGE_META: Record<string, PageMeta> = {
     path: '/lag-em-jogos-online',
   },
   '/comparativo': {
-    title: 'SignallQ x testes de velocidade tradicionais',
-    description: 'Um número de Mbps não diz por que a internet trava. Veja o que muda quando o teste também mede latência sob carga, DNS e o motivo provável do problema.',
+    // Rascunho de #63 (Juliana) pendente de validação final com Marcos
+    // (growth/SEO editorial), coordenado com #55/#58/#61.
+    title: 'SignallQ x teste de velocidade tradicional: comparativo',
+    description: 'Matriz comparativa entre o SignallQ e testes de velocidade tradicionais: download, upload, latência sob carga e diagnóstico, item a item.',
     path: '/comparativo',
   },
   '/internet-para-jogos': {
