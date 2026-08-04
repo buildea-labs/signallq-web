@@ -17,6 +17,22 @@ export const PAGE_META: Record<string, PageMeta> = {
     path: '/historico',
     robots: 'noindex,follow',
   },
+  '/historico/[id]': {
+    title: 'Teste salvo — Histórico — SignallQ',
+    description: 'Detalhe de um teste de velocidade salvo neste navegador.',
+    // Canonical aponta para a rota-mãe: o conteúdo depende de dado local
+    // (IndexedDB), não existe URL pública indexável por id.
+    path: '/historico',
+    robots: 'noindex,follow',
+  },
+  '/historico/comparar': {
+    title: 'Comparar testes — Histórico — SignallQ',
+    description: 'Compare duas medições salvas do histórico local deste navegador.',
+    // Mesma razão do detalhe: conteúdo depende de dois ids de dado local,
+    // não existe URL pública indexável.
+    path: '/historico',
+    robots: 'noindex,follow',
+  },
   '/como-medimos': {
     title: 'Como medimos sua conexão — SignallQ',
     description: 'Entenda como o teste web do SignallQ mede velocidade, latência e estabilidade, além dos limites naturais do navegador.',

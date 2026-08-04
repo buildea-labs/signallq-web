@@ -1,17 +1,22 @@
 import { interpretUseCases } from "@/lib/classification";
 import { formatarDataHora } from "@/lib/measurementFormat";
-import type { SpeedTestResult } from "@/lib/speedEngine";
+import type { ResultView } from "@/lib/resultView";
 import { NIVEL_COR, STATUS_LABEL, USE_CASE_ICONS, USE_CASE_LABELS } from "./homeCopy";
 
-/** Selo de status da medição + leitura por tipo de uso (navegação, streaming...). */
-export function UseCaseSummary({ result }: { result: SpeedTestResult }) {
+/**
+ * Selo de status da medição + leitura por tipo de uso (navegação, streaming...).
+ * `result.status` é opcional (#74): um `MedicaoRegistro` do Histórico nunca
+ * grava status, porque só resultados `complete` são persistidos — nesse caso
+ * o selo é sempre tratado como completo, sem ler nem inventar o campo.
+ */
+export function UseCaseSummary({ result }: { result: ResultView }) {
   const useCases = interpretUseCases({
     download: result.download.mbps,
     upload: result.upload.mbps,
     latency: result.latency.ms,
     jitter: result.jitter?.ms ?? null,
   });
-  const statusCompleto = result.status === "complete";
+  const statusCompleto = result.status === undefined || result.status === "complete";
 
   return (
     <div className="w-full flex flex-col items-center gap-4 mt-2">
@@ -24,7 +29,7 @@ export function UseCaseSummary({ result }: { result: SpeedTestResult }) {
             check_circle
           </span>
           <span className="font-medium text-[12px] leading-[1.33]" style={{ color: "var(--success)" }}>
-            {STATUS_LABEL[result.status]}
+            {result.status ? STATUS_LABEL[result.status] : STATUS_LABEL.complete}
           </span>
           <span className="font-normal text-[12px] leading-[1.33] text-[color:var(--text-tertiary)]">
             • {formatarDataHora(result.timestamp)}

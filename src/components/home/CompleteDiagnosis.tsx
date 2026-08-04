@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { PlayStoreBadge } from "@/components/PlayStoreBadge";
 import { GuidedDiagnosis } from "@/components/speedtest/GuidedDiagnosis";
 import type { SpeedTestJourney } from "@/hooks/useSpeedTestJourney";
@@ -68,13 +69,13 @@ export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
       </button>
 
       <div className="flex flex-wrap justify-center gap-[10px] mt-6">
-        <a
+        <Link
           href="/historico"
           className="flex items-center gap-[6px] h-[36px] px-2 no-underline hover:bg-[color:var(--bg-secondary)] rounded-full transition-colors"
         >
           <span aria-hidden="true" className="material-symbols-outlined text-[16px] text-[color:var(--accent)]">history</span>
           <span className="font-medium text-[12px] leading-[1.33] text-[color:var(--accent)]">Ver histórico</span>
-        </a>
+        </Link>
         <button
           onClick={journey.compartilhar}
           className="flex items-center gap-[6px] h-[36px] px-2 border-none bg-transparent cursor-pointer hover:bg-[color:var(--bg-secondary)] rounded-full transition-colors"

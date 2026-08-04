@@ -1,5 +1,5 @@
 import { formatarDataHora, formatarDuracao } from "../../lib/measurementFormat";
-import type { SpeedTestResult } from "../../lib/speedEngine";
+import type { ResultView } from "../../lib/resultView";
 import { BUFFERBLOAT_LABEL, MODE_LABEL } from "./homeCopy";
 
 /**
@@ -28,13 +28,15 @@ function estabilidadeNivel(score: number): string {
   return "Baixa";
 }
 
-export function buildTechnicalDetailGroups(result: SpeedTestResult): DetailGroup[] {
+export function buildTechnicalDetailGroups(result: ResultView): DetailGroup[] {
   const velocidade: DetailRow[] = [
     { id: "download", label: "Download", value: `${result.download.mbps.toFixed(1)} Mbps` },
   ];
   // Upload não é medido no modo Rápido: omitir por `mode`, nunca pelo valor
   // numérico (um 0.0 real de modo Completo é dado válido; em modo Rápido é
-  // placeholder do motor de medição).
+  // placeholder do motor de medição). `mode` ausente (registro legado do
+  // Histórico anterior à US #10) não é tratado como "rápido" — a linha
+  // aparece, e o aviso de versão anterior (#74) sinaliza a limitação.
   if (result.mode !== "rapido") {
     velocidade.push({ id: "upload", label: "Upload", value: `${result.upload.mbps.toFixed(1)} Mbps` });
   }
@@ -52,12 +54,17 @@ export function buildTechnicalDetailGroups(result: SpeedTestResult): DetailGroup
       help: "Variação da latência entre as amostras: quanto menor, mais estável a resposta da conexão.",
     });
   }
-  respostaDaConexao.push({
-    id: "latenciaSobCarga",
-    label: "Latência sob carga",
-    value: `${result.bufferbloat.ms.toFixed(1)} ms · ${BUFFERBLOAT_LABEL[result.bufferbloat.severity]}`,
-    help: "Também chamada de bufferbloat: quanto a latência piora quando a conexão está ocupada baixando ou enviando dados.",
-  });
+  // `bufferbloat` ausente (nunca acontece na jornada ao vivo; pode faltar
+  // para um `MedicaoRegistro` sem `bufferbloatMs` salvo) omite a linha
+  // inteira, sem inventar severidade.
+  if (result.bufferbloat) {
+    respostaDaConexao.push({
+      id: "latenciaSobCarga",
+      label: "Latência sob carga",
+      value: `${result.bufferbloat.ms.toFixed(1)} ms · ${BUFFERBLOAT_LABEL[result.bufferbloat.severity]}`,
+      help: "Também chamada de bufferbloat: quanto a latência piora quando a conexão está ocupada baixando ou enviando dados.",
+    });
+  }
   // Perda de pacotes: 0% é uma medição real (ausência de timeout) sempre que
   // houve amostra de latência — não é placeholder, não se omite por ser zero.
   if (result.latency.validSamples > 0) {
@@ -67,17 +74,24 @@ export function buildTechnicalDetailGroups(result: SpeedTestResult): DetailGroup
       value: `${result.packetLoss.percent.toFixed(1)}%`,
     });
   }
-  respostaDaConexao.push({
-    id: "estabilidade",
-    label: "Estabilidade",
-    value: `${result.stabilityScore.toFixed(0)}% · ${estabilidadeNivel(result.stabilityScore)}`,
-    help: "Indica quão constante sua conexão se manteve durante o teste.",
-  });
+  // `stabilityScore` ausente (registro legado do Histórico) omite a linha,
+  // nunca mostra 0%/"Baixa" fabricado.
+  if (result.stabilityScore !== undefined) {
+    respostaDaConexao.push({
+      id: "estabilidade",
+      label: "Estabilidade",
+      value: `${result.stabilityScore.toFixed(0)}% · ${estabilidadeNivel(result.stabilityScore)}`,
+      help: "Indica quão constante sua conexão se manteve durante o teste.",
+    });
+  }
 
-  const sobreOTeste: DetailRow[] = [
-    { id: "modo", label: "Modo", value: MODE_LABEL[result.mode] },
-    { id: "horario", label: "Horário", value: formatarDataHora(result.timestamp) },
-  ];
+  const sobreOTeste: DetailRow[] = [];
+  // `mode` ausente (registro anterior à US #10) omite a linha em vez de
+  // indexar `MODE_LABEL` com uma chave inexistente.
+  if (result.mode) {
+    sobreOTeste.push({ id: "modo", label: "Modo", value: MODE_LABEL[result.mode] });
+  }
+  sobreOTeste.push({ id: "horario", label: "Horário", value: formatarDataHora(result.timestamp) });
   if (result.durationMs != null) {
     sobreOTeste.push({ id: "duracao", label: "Duração", value: formatarDuracao(result.durationMs) });
   }

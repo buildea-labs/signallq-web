@@ -1,6 +1,6 @@
 import 'fake-indexeddb/auto'
 import { describe, expect, it } from 'vitest'
-import { addRecord, listRecords, sanitizeMetadata, updateRecordDiagnostic, type MedicaoRegistro } from './measurementRepository'
+import { addRecord, getRecordById, listRecords, sanitizeMetadata, updateRecordDiagnostic, type MedicaoRegistro } from './measurementRepository'
 
 const record = (id: string, timestamp: number, metadata?: MedicaoRegistro['userMetadata']): MedicaoRegistro => ({
   id, timestamp, download: 100, upload: 40, latency: 12, jitter: null, connectionType: null,
@@ -17,5 +17,11 @@ describe('measurementRepository', () => {
     await updateRecordDiagnostic('late-record', { conclusion: 'Leitura local', confidence: 'baixa', nextAction: 'Repetir', contractVersion: 1 })
     await addRecord(record('late-record', 4))
     expect((await listRecords()).find((item) => item.id === 'late-record')?.diagnostic).toEqual({ conclusion: 'Leitura local', confidence: 'baixa', nextAction: 'Repetir', contractVersion: 1 })
+  })
+
+  it('getRecordById finds a persisted record by id, and returns null when it does not exist (#74)', async () => {
+    await addRecord(record('detail-record', 10))
+    expect((await getRecordById('detail-record'))?.id).toBe('detail-record')
+    expect(await getRecordById('never-existed')).toBeNull()
   })
 })

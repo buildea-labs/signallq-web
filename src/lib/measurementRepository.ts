@@ -73,6 +73,19 @@ export async function listRecords(): Promise<MedicaoRegistro[]> {
   })
 }
 
+/** Leitura por id, usada pela tela de detalhe do Histórico (#74). `null`
+ * quando o registro não existe (excluído, id inválido, link antigo) — a
+ * página de detalhe distingue esse estado de "carregando" ou "vazio". */
+export async function getRecordById(id: string): Promise<MedicaoRegistro | null> {
+  const db = await openDB()
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readonly')
+    const req = tx.objectStore(STORE).get(id)
+    req.onsuccess = () => resolve((req.result as MedicaoRegistro | undefined) ?? null)
+    req.onerror = () => reject(req.error)
+  })
+}
+
 export async function deleteRecord(id: string): Promise<void> {
   const db = await openDB()
   return new Promise((resolve, reject) => {

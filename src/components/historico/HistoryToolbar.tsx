@@ -16,9 +16,11 @@ interface HistoryToolbarProps {
   onFiltroChange: (filtro: HistoryFiltro) => void
   onClearAll: () => void
   onExport: () => void
+  compareMode: boolean
+  onToggleCompareMode: () => void
 }
 
-export function HistoryToolbar({ filtro, onFiltroChange, onClearAll, onExport }: HistoryToolbarProps) {
+export function HistoryToolbar({ filtro, onFiltroChange, onClearAll, onExport, compareMode, onToggleCompareMode }: HistoryToolbarProps) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div className="flex flex-wrap border border-[color:var(--border)] rounded-full p-[2px]">
@@ -43,6 +45,19 @@ export function HistoryToolbar({ filtro, onFiltroChange, onClearAll, onExport }:
         </span>
       </button>
       <button type="button" onClick={onExport} className="flex items-center gap-[6px] whitespace-nowrap bg-transparent border-none cursor-pointer text-[color:var(--accent)]"><span aria-hidden="true" className="material-symbols-outlined text-[16px]">download</span><span className="font-medium text-[12px]">Exportar dados</span></button>
+      {/*
+        Peso visual secundário, igual a Exportar/Limpar (#75): comparação
+        fica fora da primeira leitura da lista, nunca um CTA primário.
+      */}
+      <button
+        type="button"
+        onClick={onToggleCompareMode}
+        aria-pressed={compareMode}
+        className="flex items-center gap-[6px] whitespace-nowrap bg-transparent border-none cursor-pointer text-[color:var(--accent)]"
+      >
+        <span aria-hidden="true" className="material-symbols-outlined text-[16px]">compare_arrows</span>
+        <span className="font-medium text-[12px]">{compareMode ? "Cancelar seleção" : "Comparar testes"}</span>
+      </button>
     </div>
   );
 }

@@ -3,7 +3,7 @@
 import { useState, type SyntheticEvent } from "react";
 import { HelpButton } from "@/components/HelpButton";
 import { FEATURE_DIAGNOSIS_EXPANDED, trackFeatureUsed } from "@/lib/telemetry";
-import type { SpeedTestResult } from "@/lib/speedEngine";
+import type { ResultView } from "@/lib/resultView";
 import { buildTechnicalDetailGroups, type DetailRow } from "./resultTechnicalDetailsRows";
 
 function DetailRowLine({ row, openId, onToggle }: { row: DetailRow; openId: string | null; onToggle: (id: string) => void }) {
@@ -27,7 +27,7 @@ function DetailRowLine({ row, openId, onToggle }: { row: DetailRow; openId: stri
  * agrupa Velocidade / Resposta da conexão / Sobre o teste — o `MetricSidePanel`
  * sempre-visível foi removido e fundido aqui (ver homeCopy/QuickResult).
  */
-export function ResultTechnicalDetails({ result }: { result: SpeedTestResult }) {
+export function ResultTechnicalDetails({ result }: { result: ResultView }) {
   const [openHelpId, setOpenHelpId] = useState<string | null>(null);
   const groups = buildTechnicalDetailGroups(result);
 
