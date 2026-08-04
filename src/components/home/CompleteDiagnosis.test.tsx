@@ -1,7 +1,8 @@
 import { cleanup, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { SpeedTestJourney } from "@/hooks/useSpeedTestJourney";
 import type { SpeedTestResult } from "@/lib/speedEngine";
+import { setAdConsent } from "@/lib/adConsent";
 import { CompleteDiagnosis } from "./CompleteDiagnosis";
 
 /**
@@ -96,5 +97,108 @@ describe("CompleteDiagnosis — hierarquia única de conclusão (#71 §3.1)", ()
   it("não renderiza nada no modo rápido (evita segunda instância de CompleteDiagnosis fora do modo Completo)", () => {
     const { container } = render(<CompleteDiagnosis journey={buildJourney({ modo: "rapido" })} />);
     expect(container).toBeEmptyDOMElement();
+  });
+});
+
+/**
+ * Cobertura de integração do único slot de anúncio autorizado (issue #21):
+ * confirma que `ResultAdSlot` só aparece dentro de `CompleteDiagnosis`
+ * depois do resultado completo e de TODAS as suas ações (reteste,
+ * compartilhar, copiar resumo, questionário contextual pós-resultado) —
+ * nunca antes, nunca entre elas — e que continua ausente sem consentimento
+ * ou com um resultado que não seja `status === "complete"`. Usa import
+ * dinâmico (ao contrário do restante deste arquivo) porque precisa de
+ * `config.ts` reavaliado com env vars diferentes por teste — mesmo padrão
+ * de `AdSenseScript.test.tsx`.
+ */
+const AD_PUBLISHER_ID = "ca-pub-000000000000000";
+const AD_SLOT_ID = "1234567890";
+
+function resetAdEnvAndConsent() {
+  vi.unstubAllEnvs();
+  vi.resetModules();
+  window.localStorage.clear();
+}
+
+async function renderCompleteDiagnosisFresh(journey: SpeedTestJourney) {
+  const { CompleteDiagnosis: FreshCompleteDiagnosis } = await import("./CompleteDiagnosis");
+  return render(<FreshCompleteDiagnosis journey={journey} />);
+}
+
+describe("CompleteDiagnosis — posição do slot de anúncio (issue #21)", () => {
+  // `resetModules` também antes de cada teste (não só depois): o primeiro
+  // teste deste describe roda depois do `import` estático de
+  // `CompleteDiagnosis` no topo deste arquivo, então sem isto o `import()`
+  // dinâmico devolveria a instância já cacheada (com `config.ts` avaliado
+  // sem as env vars stubadas aqui).
+  beforeEach(() => vi.resetModules());
+  afterEach(() => {
+    cleanup();
+    resetAdEnvAndConsent();
+  });
+
+  it("mostra o slot depois do resultado completo, das ações e do questionário contextual, com consentimento aceito", async () => {
+    vi.stubEnv("NEXT_PUBLIC_ADSENSE_PUBLISHER_ID", AD_PUBLISHER_ID);
+    vi.stubEnv("NEXT_PUBLIC_ADSENSE_RESULT_AD_SLOT", AD_SLOT_ID);
+    setAdConsent("accepted");
+
+    await renderCompleteDiagnosisFresh(
+      buildJourney({ shouldCollectContextualQuestions: true, measurementContext: { entry: "problem" } as never })
+    );
+
+    expect(screen.getByText("Publicidade")).toBeInTheDocument();
+    const adSlot = screen.getByTestId("result-ad-slot");
+    const repetirButton = screen.getByRole("button", { name: "Fazer e testar novamente" });
+    const compartilharButton = screen.getByRole("button", { name: "Compartilhar" });
+    const contextoDoTeste = screen.getByText("Contexto do teste");
+
+    // DOCUMENT_POSITION_FOLLOWING (4) confirma que o slot vem depois de cada
+    // elemento da jornada crítica, nunca antes ou entre eles.
+    expect(repetirButton.compareDocumentPosition(adSlot) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(compartilharButton.compareDocumentPosition(adSlot) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(contextoDoTeste.compareDocumentPosition(adSlot) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("não mostra o slot quando o resultado não é 'complete' (parcial), mesmo com consentimento aceito e ações visíveis", async () => {
+    vi.stubEnv("NEXT_PUBLIC_ADSENSE_PUBLISHER_ID", AD_PUBLISHER_ID);
+    vi.stubEnv("NEXT_PUBLIC_ADSENSE_RESULT_AD_SLOT", AD_SLOT_ID);
+    setAdConsent("accepted");
+
+    await renderCompleteDiagnosisFresh(buildJourney({ result: buildResult({ status: "partial" }) }));
+
+    expect(screen.getByRole("button", { name: "Testar novamente" })).toBeInTheDocument();
+    expect(screen.queryByTestId("result-ad-slot")).not.toBeInTheDocument();
+    expect(screen.queryByText("Publicidade")).not.toBeInTheDocument();
+  });
+
+  it("não mostra o slot sem consentimento decidido, mesmo com resultado completo e ações visíveis", async () => {
+    vi.stubEnv("NEXT_PUBLIC_ADSENSE_PUBLISHER_ID", AD_PUBLISHER_ID);
+    vi.stubEnv("NEXT_PUBLIC_ADSENSE_RESULT_AD_SLOT", AD_SLOT_ID);
+
+    await renderCompleteDiagnosisFresh(buildJourney());
+
+    expect(screen.getByRole("button", { name: "Fazer e testar novamente" })).toBeInTheDocument();
+    expect(screen.queryByTestId("result-ad-slot")).not.toBeInTheDocument();
+  });
+
+  it("não mostra o slot com consentimento recusado, mesmo com resultado completo e ações visíveis", async () => {
+    vi.stubEnv("NEXT_PUBLIC_ADSENSE_PUBLISHER_ID", AD_PUBLISHER_ID);
+    vi.stubEnv("NEXT_PUBLIC_ADSENSE_RESULT_AD_SLOT", AD_SLOT_ID);
+    setAdConsent("declined");
+
+    await renderCompleteDiagnosisFresh(buildJourney());
+
+    expect(screen.queryByTestId("result-ad-slot")).not.toBeInTheDocument();
+  });
+
+  it("não mostra o slot no modo 'rapido' (CompleteDiagnosis inteiro não renderiza)", async () => {
+    vi.stubEnv("NEXT_PUBLIC_ADSENSE_PUBLISHER_ID", AD_PUBLISHER_ID);
+    vi.stubEnv("NEXT_PUBLIC_ADSENSE_RESULT_AD_SLOT", AD_SLOT_ID);
+    setAdConsent("accepted");
+
+    const { container } = await renderCompleteDiagnosisFresh(buildJourney({ modo: "rapido" }));
+
+    expect(container).toBeEmptyDOMElement();
+    expect(screen.queryByText("Publicidade")).not.toBeInTheDocument();
   });
 });

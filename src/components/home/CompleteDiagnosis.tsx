@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { PlayStoreBadge } from "@/components/PlayStoreBadge";
+import { ResultAdSlot } from "@/components/ResultAdSlot";
 import { GuidedDiagnosis } from "@/components/speedtest/GuidedDiagnosis";
 import type { SpeedTestJourney } from "@/hooks/useSpeedTestJourney";
 import { ResultTechnicalDetails } from "./ResultTechnicalDetails";
@@ -99,6 +100,15 @@ export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
           <GuidedDiagnosis measurementContext={journey.measurementContext} onAnswersChange={journey.setRespostasContextuais} />
         </div>
       )}
+
+      {/* Único slot de anúncio autorizado (issue #21): depois de todo o
+          resultado e de todas as ações (reteste, compartilhar, copiar
+          resumo, questionário contextual) — nunca antes ou entre elas.
+          Restrito a `status === "complete"` (leitura literal de "resultado
+          completo" da autorização) — não aparece junto de um aviso de
+          resultado parcial/inconclusivo/contaminado. `ResultAdSlot` decide
+          sozinho, via consentimento e configuração, se de fato renderiza. */}
+      {statusCompleto && <ResultAdSlot />}
     </div>
   );
 }

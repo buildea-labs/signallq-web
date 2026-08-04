@@ -14,9 +14,20 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   icons: {
     icon: [
-      { url: "/assets/signallq-icon-512-play-store.png", sizes: "1024x1024", type: "image/png" },
+      {
+        url: "/assets/signallq-favicon-web-light-bg.png",
+        sizes: "1024x1024",
+        type: "image/png",
+        media: "(prefers-color-scheme: light)",
+      },
+      {
+        url: "/assets/signallq-favicon-web-dark-bg.png",
+        sizes: "1024x1024",
+        type: "image/png",
+        media: "(prefers-color-scheme: dark)",
+      },
     ],
-    apple: [{ url: "/assets/signallq-icon-512-play-store.png", sizes: "1024x1024", type: "image/png" }],
+    apple: [{ url: "/assets/signallq-icon-512-play-store-dark.png", sizes: "1024x1024", type: "image/png" }],
   },
   appleWebApp: {
     capable: true,

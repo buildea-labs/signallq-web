@@ -2,6 +2,7 @@ import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { SpeedTestJourney } from "@/hooks/useSpeedTestJourney";
+import { setAdConsent } from "@/lib/adConsent";
 import { MODO_EXPLICACAO } from "./homeCopy";
 import { QuickTestJourney } from "./QuickTestJourney";
 
@@ -64,5 +65,61 @@ describe("QuickTestJourney — explicação de modo sob demanda (#71 §3.3/§3.4
 
     await user.click(helpButton);
     expect(screen.queryByText(MODO_EXPLICACAO.rapido)).not.toBeInTheDocument();
+  });
+});
+
+/**
+ * Cobertura do único slot de anúncio autorizado (issue #21): a jornada
+ * crítica de medição (rodando, em estado de problema/erro) nunca inclui o
+ * slot — `QuickTestJourney` simplesmente não importa `ResultAdSlot`, então
+ * mesmo com publisher id, slot id e consentimento aceito configurados, o
+ * rótulo "Publicidade" não pode aparecer em nenhum desses estados.
+ */
+describe("QuickTestJourney — nunca mostra o slot de anúncio durante teste/diagnóstico (issue #21)", () => {
+  afterEach(() => {
+    cleanup();
+    vi.unstubAllEnvs();
+    window.localStorage.clear();
+  });
+
+  function stubFullAdConfig() {
+    vi.stubEnv("NEXT_PUBLIC_ADSENSE_PUBLISHER_ID", "ca-pub-000000000000000");
+    vi.stubEnv("NEXT_PUBLIC_ADSENSE_RESULT_AD_SLOT", "1234567890");
+    setAdConsent("accepted");
+  }
+
+  it("não mostra 'Publicidade' com o teste em andamento (isRunning)", () => {
+    stubFullAdConfig();
+    render(
+      <QuickTestJourney
+        journey={buildJourney({ isIdle: false, isRunning: true, showDial: true, phase: "download" }) as never}
+      />
+    );
+    expect(screen.queryByText("Publicidade")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("result-ad-slot")).not.toBeInTheDocument();
+  });
+
+  it("não mostra 'Publicidade' em estado de problema/erro (isProblem)", () => {
+    stubFullAdConfig();
+    render(
+      <QuickTestJourney
+        journey={
+          buildJourney({
+            isIdle: false,
+            isProblem: true,
+            showDial: true,
+            phase: "sem-conexao",
+          }) as never
+        }
+      />
+    );
+    expect(screen.queryByText("Publicidade")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("result-ad-slot")).not.toBeInTheDocument();
+  });
+
+  it("não mostra 'Publicidade' na tela ociosa (idle), antes de qualquer resultado", () => {
+    stubFullAdConfig();
+    render(<QuickTestJourney journey={buildJourney()} />);
+    expect(screen.queryByText("Publicidade")).not.toBeInTheDocument();
   });
 });
