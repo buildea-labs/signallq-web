@@ -147,7 +147,15 @@ const APP_COMPARE_ROWS: ComparisonRow[] = [
   },
 ]
 
-export function AppLandingHero({ onEntrar, onTestarWeb }: { onEntrar: () => void; onTestarWeb: () => void }) {
+export function AppLandingHero({
+  onEntrar,
+  onTestarWeb,
+  onVerDiferenciais,
+}: {
+  onEntrar: () => void
+  onTestarWeb: () => void
+  onVerDiferenciais: () => void
+}) {
   return (
     <div className="relative w-full box-border flex justify-center overflow-hidden p-[28px_20px_24px] sm:p-[56px_var(--safe-x)_40px]">
       <div className="sq-app-glow-a absolute left-[8%] top-[-80px] w-[420px] h-[420px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, color-mix(in srgb, var(--accent) 30%, transparent), transparent 70%)' }} />
@@ -201,16 +209,23 @@ export function AppLandingHero({ onEntrar, onTestarWeb }: { onEntrar: () => void
         </div>
       </div>
 
-      <div className="sq-app-bounce absolute left-1/2 bottom-2 -translate-x-1/2 hidden sm:block">
+      <button
+        type="button"
+        onClick={onVerDiferenciais}
+        aria-label="Ver diferenciais do app"
+        className="sq-app-bounce absolute left-1/2 bottom-2 -translate-x-1/2 hidden sm:flex items-center justify-center rounded-full border-none bg-transparent p-1 cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--accent)]"
+      >
         <span aria-hidden="true" className="material-symbols-outlined text-[24px] text-[color:var(--text-tertiary)]">expand_more</span>
-      </div>
+      </button>
     </div>
   )
 }
 
+export const APP_DIFERENCIAIS_ID = 'app-diferenciais'
+
 export function AppLandingFeatures() {
   return (
-    <div className="sq-app-reveal flex flex-col gap-4">
+    <div id={APP_DIFERENCIAIS_ID} tabIndex={-1} className="sq-app-reveal flex flex-col gap-4 scroll-mt-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--accent)]">
       <div className="text-center font-medium text-[11px] leading-[1.45] text-[color:var(--accent)] tracking-[.3px] uppercase">
         Diferenciais
       </div>

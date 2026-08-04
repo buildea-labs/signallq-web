@@ -59,8 +59,11 @@ export function useSpeedTestController(modo: SpeedTestMode) {
   const runTest = useCallback(
     // `isRepeat` está reservado para diferenciar telemetria de repetição no
     // futuro, se o Console pedir esse recorte — hoje conta como o mesmo evento
-    // de funil "iniciado".
-    async (isRepeat: boolean) => {
+    // de funil "iniciado". `modeOverride` permite forçar o modo desta rodada
+    // (ex.: aprofundamento pós-resultado, GH#1367 follow-up) sem depender do
+    // timing de propagação de `modoRef` — necessário porque, nesse caminho,
+    // `setModo` e o disparo do teste acontecem no mesmo handler síncrono.
+    async (isRepeat: boolean, modeOverride?: SpeedTestMode) => {
       acquire()
       startHeartbeat()
       liveValueRef.current = 0
@@ -82,7 +85,7 @@ export function useSpeedTestController(modo: SpeedTestMode) {
         return
       }
 
-      const engine = createSpeedTest(modoRef.current)
+      const engine = createSpeedTest(modeOverride ?? modoRef.current)
       engineRef.current = engine
       try {
         const r = await engine.run({
@@ -155,5 +158,14 @@ export function useSpeedTestController(modo: SpeedTestMode) {
     setResult(null)
   }, [aplicarFase])
 
-  return { phase, liveValue, phaseResults, result, connectionKind, round, runTest, cancelTest, goToIdle }
+  // Cancelar um reteste (isRepeat=true, ex.: aprofundamento pós-resultado)
+  // nunca limpa `result` — a rodada anterior continua no state. Esta função só
+  // reconcilia `phase`, que fica presa em 'cancelado' (um ProblemPhase) até
+  // aqui, de volta ao estado de resultado correspondente, para que a tela
+  // volte a mostrar a medição anterior em vez de travar numa tela de erro.
+  const restaurarResultadoAnterior = useCallback(() => {
+    if (result) aplicarFase(phaseFromResultStatus(result.status))
+  }, [result, aplicarFase])
+
+  return { phase, liveValue, phaseResults, result, connectionKind, round, runTest, cancelTest, goToIdle, restaurarResultadoAnterior }
 }

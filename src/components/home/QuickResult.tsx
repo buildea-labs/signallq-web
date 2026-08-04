@@ -9,7 +9,7 @@ import { buildSpeedometerView } from "./speedometerView";
 
 /** Velocímetro e leitura rápida da medição corrente (conclusão/impacto vivem em CompleteDiagnosis, #71). */
 export function QuickResult({ journey }: { journey: SpeedTestJourney }) {
-  const { phase, liveValue, result, isIdle, isRunning, isProblem, isResult, terminalOutcome, modo, isAutoStarting } = journey;
+  const { phase, liveValue, result, isIdle, isRunning, isProblem, isResult, terminalOutcome, modo, isAutoStarting, postResultProblem, erroDuranteAprofundamento } = journey;
   const { isp, region, loading } = useNetworkInfo();
   const { fraction, dialNumber, dialUnit, identity } = buildSpeedometerView({
     phase,
@@ -27,7 +27,7 @@ export function QuickResult({ journey }: { journey: SpeedTestJourney }) {
             {(isIdle || isProblem) && !isAutoStarting && (
               <div className="absolute left-1/2 bottom-[26px] -translate-x-1/2 flex flex-col items-center gap-[10px] z-10">
                 <button
-                  onClick={journey.iniciarTesteDireto}
+                  onClick={erroDuranteAprofundamento ? journey.iniciarAprofundamento : journey.iniciarTesteDireto}
                   className="h-[44px] px-[26px] rounded-full flex items-center gap-2 border-none bg-[color:var(--accent)] shadow-[0_14px_30px_color-mix(in_srgb,_var(--accent)_45%,_transparent),_0_2px_6px_rgba(0,0,0,.25)] whitespace-nowrap cursor-pointer hover:scale-105 active:scale-95 transition-transform"
                 >
                   <span aria-hidden="true" className="material-symbols-outlined text-[18px] text-[color:var(--on-accent)]">
@@ -45,12 +45,24 @@ export function QuickResult({ journey }: { journey: SpeedTestJourney }) {
           </Velocimetro>
       </div>
 
-      {result && !isProblem && (
+      {/* Gate por `isResult` (não só `result` truthy): durante um reteste
+          (isRepeat=true, incluindo o aprofundamento pós-resultado) o
+          resultado anterior fica preservado no state para servir de
+          fallback em caso de cancelamento/erro, mas não deve continuar
+          visível enquanto o novo teste roda — `TestRunning` já ocupa esse
+          lugar (spec Juliana §2: "não deixar as duas coisas visíveis ao
+          mesmo tempo"). */}
+      {isResult && result && (
         <div className="w-full max-w-[520px] mt-8 flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 mx-auto">
-          
+
           {modo === "completo" && <UseCaseSummary result={result} />}
 
-          {modo === "rapido" && <PostResultProblemPrompt journey={journey} />}
+          {/* O aprofundamento pós-resultado muda `modo` para "completo" de
+              verdade (bug crítico #1+#2) — por isso este bloco não pode mais
+              depender só de `modo === "rapido"`: enquanto houver uma escolha
+              pós-resultado ativa ou concluída, o cartão final dela continua
+              aparecendo no mesmo lugar de sempre (spec Juliana §2). */}
+          {(modo === "rapido" || postResultProblem !== null) && <PostResultProblemPrompt journey={journey} />}
         </div>
       )}
 

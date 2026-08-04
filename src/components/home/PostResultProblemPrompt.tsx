@@ -5,23 +5,41 @@ import type { SpeedTestJourney } from "@/hooks/useSpeedTestJourney";
 import { POST_RESULT_PROBLEMS } from "@/lib/postResultProblem";
 
 const TRANSITION_TEXT =
-  "Algumas perguntas rápidas ajudam a apontar o motivo mais provável — sem exigir um novo teste.";
+  "Mais um detalhe ajuda a confirmar o motivo mais provável, agora com o resultado completo.";
 
 /**
  * Pergunta pós-resultado (#69): "Você está tendo algum problema agora?".
  * Só aparece depois de um resultado do modo Rápido. Selecionar uma opção já
- * é a ação — não há botão de confirmar separado. Um problema selecionado
- * inicia o aprofundamento contextual na mesma tela, sem novo teste e sem
- * trocar o modo automaticamente para Completo.
+ * é a ação — não há botão de confirmar separado.
+ *
+ * Decisão de produto revertida (bug crítico #1+#2, substitui a regra antiga
+ * "não trocar modo silenciosamente" do #69): selecionar um problema aqui
+ * troca `modo` para "completo" de verdade e reinicia o teste
+ * (`journey.iniciarAprofundamento`, via `useSpeedTestJourney`) — a resposta
+ * deixa de ser baseada só no download da rodada Rápida. Enquanto o teste roda,
+ * este componente some (`TestRunning` ocupa o lugar); ao concluir, volta a
+ * aparecer com o resultado completo real.
  */
 export function PostResultProblemPrompt({ journey }: { journey: SpeedTestJourney }) {
-  const { postResultProblem, postResultAnswers, postResultFlowState, respostaDiagnosticaPosResultado } = journey;
+  const {
+    postResultProblem,
+    postResultAnswers,
+    postResultFlowState,
+    respostaDiagnosticaPosResultado,
+    notaAprofundamentoCancelado,
+    downloadMudouNoAprofundamento,
+  } = journey;
   const groupName = useId();
   const isProblemChoice = postResultProblem !== null && postResultProblem !== "sem-problema";
   const flowState = isProblemChoice ? postResultFlowState : null;
 
   return (
     <div className="w-full flex flex-col items-center gap-4 pt-2">
+      {notaAprofundamentoCancelado && (
+        <p className="m-0 text-center text-[13px] leading-[1.4] text-[color:var(--text-secondary)]" role="status">
+          Teste completo cancelado. O resultado rápido acima continua disponível.
+        </p>
+      )}
       <fieldset className="w-full max-w-[440px] border-none p-0 m-0 flex flex-col items-center gap-3">
         <legend className="m-0 mb-1 w-full px-0 text-center font-semibold text-[16px] leading-[1.35] text-[color:var(--text-primary)]">
           Você está tendo algum problema agora?
@@ -116,6 +134,14 @@ export function PostResultProblemPrompt({ journey }: { journey: SpeedTestJourney
                   <p className="m-0 font-semibold text-[15px] leading-[1.35] text-[color:var(--text-primary)]">
                     {respostaDiagnosticaPosResultado.conclusion}
                   </p>
+                  {/* Só quando o download do teste completo difere da
+                      estimativa rápida anterior — comparação booleana, sem
+                      mostrar os dois valores (spec Juliana §3). */}
+                  {downloadMudouNoAprofundamento && (
+                    <p className="m-0 text-[12px] sm:text-[13px] leading-[1.4] text-[color:var(--text-secondary)]">
+                      Este é o resultado do teste completo — pode variar um pouco em relação à estimativa rápida anterior.
+                    </p>
+                  )}
                   <div>
                     <h3 className="m-0 font-medium text-[11px] uppercase tracking-[.3px] text-[color:var(--text-tertiary)]">
                       Próxima ação
