@@ -20,7 +20,7 @@ export function useSpeedTest(modo: SpeedTestMode) {
     if (!measurementContext) setMeasurementContext(readMeasurementSession()?.context ?? null)
   }, [measurementContext])
 
-  const { phase, liveValue, phaseResults, result, connectionKind, round, runTest, cancelTest, goToIdle, restaurarResultadoAnterior } =
+  const { phase, liveValue, phaseResults, result, connectionKind, round, runTest, cancelTest, goToIdle, restaurarResultadoAnterior, injectResult } =
     useSpeedTestController(modo)
 
   const startTest = useCallback(
