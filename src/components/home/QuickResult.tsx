@@ -62,7 +62,7 @@ export function QuickResult({ journey }: { journey: SpeedTestJourney }) {
               depender só de `modo === "rapido"`: enquanto houver uma escolha
               pós-resultado ativa ou concluída, o cartão final dela continua
               aparecendo no mesmo lugar de sempre (spec Juliana §2). */}
-          {modo === "rapido" && <PostResultProblemPrompt journey={journey} />}
+          {(modo === "rapido" || Boolean(journey.postResultProblem)) && <PostResultProblemPrompt journey={journey} />}
         </div>
       )}
 

@@ -38,7 +38,7 @@ export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
         </div>
       )}
 
-      {respostaDiagnostica && (
+      {respostaDiagnostica && (!journey.postResultProblem || journey.postResultProblem === "sem-problema") && (
         <section aria-labelledby="resultado-conclusao" className="py-7 border-b border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]">
           <h1 id="resultado-conclusao" className="m-0 font-bold text-[22px] sm:text-[24px] leading-[1.25] text-[color:var(--text-primary)] tracking-tight">
             {respostaDiagnostica.conclusion}

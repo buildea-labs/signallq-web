@@ -150,7 +150,7 @@ describe("CompleteDiagnosis — posição do slot de anúncio (issue #21)", () =
     const adSlot = screen.getByTestId("result-ad-slot");
     const repetirButton = screen.getByRole("button", { name: "Fazer e testar novamente" });
     const compartilharButton = screen.getByRole("button", { name: "Compartilhar" });
-    const contextoDoTeste = screen.getByText("Contexto do teste");
+    const contextoDoTeste = screen.getByText("Detalhes do problema");
 
     // DOCUMENT_POSITION_FOLLOWING (4) confirma que o slot vem depois de cada
     // elemento da jornada crítica, nunca antes ou entre eles.
