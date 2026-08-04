@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useSpeedTest, type ProblemPhase } from "@/hooks/useSpeedTest";
+import { usePostResultProblem } from "@/hooks/usePostResultProblem";
 import { contextualProblemFromSearch } from "@/lib/contextualEntry";
 import type { ContextualAnswer } from "@/lib/contextualQuestionFlow";
 import { addComparison } from "@/lib/comparisonRepository";
@@ -55,6 +56,16 @@ export function useSpeedTestJourney() {
   const abandonoRegistrado = useRef(false);
   const comparacaoPersistida = useRef<string | null>(null);
   const { phase, liveValue, phaseResults, result, measurementContext, cancelTest, retry, forceStart } = useSpeedTest(modo);
+  const {
+    postResultProblem,
+    postResultAnswers,
+    postResultMeasurementContext,
+    postResultFlowState,
+    respostaDiagnosticaPosResultado,
+    selecionarProblemaPosResultado,
+    atualizarRespostasPosResultado,
+    resetarProblemaPosResultado,
+  } = usePostResultProblem(result);
 
   const isIdle = phase === "idle";
   const isRunning = RUNNING_PHASES.includes(phase);
@@ -134,6 +145,7 @@ export function useSpeedTestJourney() {
   const iniciarTesteDireto = () => {
     setProblemaPercebido(null);
     setEntradaProblemaAberta(false);
+    resetarProblemaPosResultado();
     trackFeatureUsed(FEATURE_SPEEDTEST_ENTRADA_DIRETA);
     forceStart(createMeasurementSessionContext("direct"));
   };
@@ -148,6 +160,7 @@ export function useSpeedTestJourney() {
   const iniciarTesteComProblema = () => {
     if (!problemaPercebido) return;
     abandonoRegistrado.current = true;
+    resetarProblemaPosResultado();
     forceStart(createMeasurementSessionContext("problem", problemaPercebido));
   };
 
@@ -156,6 +169,7 @@ export function useSpeedTestJourney() {
     setRetesteBase(result);
     setComparacaoReteste(null);
     setComparacaoNaoSalva(false);
+    resetarProblemaPosResultado();
     retry();
   };
 
@@ -205,6 +219,9 @@ export function useSpeedTestJourney() {
     entradaProblemaAberta, problemaPercebido, respostaDiagnostica,
     retesteBase, comparacaoReteste, comparacaoNaoSalva,
     setRespostasContextuais,
+    postResultProblem, postResultAnswers, postResultMeasurementContext,
+    postResultFlowState, respostaDiagnosticaPosResultado,
+    selecionarProblemaPosResultado, atualizarRespostasPosResultado,
     abrirEntradaPorProblema, fecharEntradaPorProblema, selecionarProblema,
     iniciarTesteDireto, iniciarTesteComProblema, iniciarReteste,
     cancelTest, retry, compartilhar, copiarResumo,

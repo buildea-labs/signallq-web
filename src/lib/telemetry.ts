@@ -107,6 +107,13 @@ export const FEATURE_SPEEDTEST_ENTRADA_PROBLEMA = 'speedtest_entrada_problema'
 export const FEATURE_SPEEDTEST_PROBLEMA_SELECIONADO = 'speedtest_problema_selecionado'
 export const FEATURE_SPEEDTEST_PROBLEMA_ABANDONADO = 'speedtest_problema_abandonado'
 
+// Pergunta pós-resultado (#69) — distinta do funil pré-teste acima: não
+// reaproveita FEATURE_SPEEDTEST_PROBLEMA_SELECIONADO porque aquele evento é
+// do momento de entrada, antes da medição.
+export const FEATURE_SPEEDTEST_RESULTADO_SEM_PROBLEMA = 'speedtest_resultado_sem_problema'
+export const FEATURE_SPEEDTEST_RESULTADO_PROBLEMA_SELECIONADO = 'speedtest_resultado_problema_selecionado'
+export const FEATURE_SPEEDTEST_RESULTADO_APROFUNDAMENTO_INICIADO = 'speedtest_resultado_aprofundamento_iniciado'
+
 // Novos feature_id do site (dentro do mesmo evento feature_used já
 // whitelistado — nenhuma mudança de schema no worker).
 export const FEATURE_DOWNLOAD_APP_CLICADO = 'download_app_clicado'

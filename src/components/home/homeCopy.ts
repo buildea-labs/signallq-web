@@ -1,6 +1,6 @@
-import type { Nivel } from "@/lib/classification";
-import type { SpeedTestResult } from "@/lib/speedEngine";
-import { SPEEDOMETER_OUTCOME } from "@/lib/speedometerIdentity";
+import type { Nivel } from "../../lib/classification";
+import type { SpeedTestResult } from "../../lib/speedEngine";
+import { SPEEDOMETER_OUTCOME } from "../../lib/speedometerIdentity";
 
 export const MODOS = [
   { value: "rapido" as const, label: "Rápido" },
@@ -45,6 +45,17 @@ export const BUFFERBLOAT_LABEL: Record<SpeedTestResult["bufferbloat"]["severity"
   mild: "Leve",
   moderate: "Moderado",
   severe: "Severo",
+};
+
+// Rótulo de exibição do modo do resultado no bloco "Sobre o teste" (#70).
+// Cobre 'triplo' mesmo que a jornada web atual (rapido/completo) nunca o
+// produza diretamente — SpeedTestResult["mode"] inclui o valor e um resultado
+// legado/histórico pode carregá-lo; sem rótulo aqui a tela quebraria (risco
+// registrado na spec de UX, seção 3.5).
+export const MODE_LABEL: Record<SpeedTestResult["mode"], string> = {
+  rapido: "Rápido",
+  completo: "Completo",
+  triplo: "Completo (3 rodadas)",
 };
 
 export const STATUS_LABEL: Record<SpeedTestResult["status"], string> = {

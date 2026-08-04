@@ -7,7 +7,7 @@ import { ResultTechnicalDetails } from "./ResultTechnicalDetails";
 import { RetestComparison } from "./RetestComparison";
 import { STATUS_LABEL, STATUS_MESSAGE } from "./homeCopy";
 
-/** Leitura completa do resultado: ação, comparação, detalhes e ações finais. */
+/** Leitura completa do resultado: conclusão+próxima ação, comparação, detalhes e ações finais. */
 export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
   const { result, hasVisibleResult, respostaDiagnostica, retesteBase, comparacaoReteste, modo } = journey;
   if (!hasVisibleResult || !result || modo === "rapido") return null;
@@ -30,12 +30,15 @@ export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
       )}
 
       {respostaDiagnostica && (
-        <section aria-labelledby="resultado-acao" className="py-7 border-b border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]">
-          <div className="grid gap-4 sm:grid-cols-1">
-            <div>
-              <h2 className="m-0 font-medium text-[11px] uppercase tracking-[.3px] text-[color:var(--text-tertiary)]">Próxima ação</h2>
-              <p className="mt-1 mb-0 text-[13px] leading-[1.4] text-[color:var(--text-secondary)]">{respostaDiagnostica.nextAction}</p>
-            </div>
+        <section aria-labelledby="resultado-conclusao" className="py-7 border-b border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]">
+          <h1 id="resultado-conclusao" className="m-0 font-bold text-[22px] sm:text-[24px] leading-[1.25] text-[color:var(--text-primary)] tracking-tight">
+            {respostaDiagnostica.conclusion}
+          </h1>
+          <p className="mt-2 mb-0 font-normal text-[14px] leading-[1.45] text-[color:var(--text-secondary)]">{respostaDiagnostica.impact}</p>
+
+          <div className="mt-4">
+            <h2 className="m-0 font-medium text-[11px] uppercase tracking-[.3px] text-[color:var(--text-tertiary)]">Próxima ação</h2>
+            <p className="mt-1 mb-0 text-[13px] leading-[1.4] text-[color:var(--text-secondary)]">{respostaDiagnostica.nextAction}</p>
           </div>
           {respostaDiagnostica.androidCta && (
             <div className="mt-4 flex flex-wrap items-center gap-[10px] rounded-xl border border-[color:var(--border)] p-3">
@@ -50,37 +53,28 @@ export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
         <RetestComparison comparacao={comparacaoReteste} comparacaoNaoSalva={journey.comparacaoNaoSalva} />
       )}
 
-
-
       <ResultTechnicalDetails result={result} />
 
-      <a
-        href="/como-medimos"
-        className="self-center mt-6 font-medium text-[14px] leading-[1.43] text-[color:var(--accent)] no-underline hover:underline"
+      {/* Única ação primária da etapa: reteste. "Ver histórico" é navegação de
+          saída, rebaixada ao mesmo peso de Compartilhar/Copiar resumo (#71 §3.2/§3.4.6). */}
+      <button
+        onClick={statusCompleto ? journey.iniciarReteste : journey.retry}
+        className="w-full h-[46px] flex items-center justify-center gap-2 rounded-[var(--radius-button)] border-none bg-[color:var(--accent)] hover:brightness-110 transition-all cursor-pointer mt-6"
       >
-        Entenda como o teste mede sua conexão
-      </a>
-
-      <div className="flex gap-3 mt-6">
-        <button
-          onClick={statusCompleto ? journey.iniciarReteste : journey.retry}
-          className="flex-1 h-[46px] flex items-center justify-center gap-2 rounded-[var(--radius-button)] border-none bg-[color:var(--accent)] hover:brightness-110 transition-all cursor-pointer"
-        >
-          <span aria-hidden="true" className="material-symbols-outlined text-[20px] text-[color:var(--on-accent)]">refresh</span>
-          <span className="font-medium text-[14px] leading-[1.43] text-[color:var(--on-accent)]">
-            {statusCompleto ? "Fazer e testar novamente" : "Testar novamente"}
-          </span>
-        </button>
-        <a
-          href="/historico"
-          className="flex-1 h-[46px] flex items-center justify-center gap-2 rounded-[var(--radius-button)] border border-[color:var(--border)] no-underline hover:bg-[color:var(--bg-secondary)] transition-colors"
-        >
-          <span aria-hidden="true" className="material-symbols-outlined text-[20px] text-[color:var(--accent)]">history</span>
-          <span className="font-medium text-[14px] leading-[1.43] text-[color:var(--accent)]">Ver histórico</span>
-        </a>
-      </div>
+        <span aria-hidden="true" className="material-symbols-outlined text-[20px] text-[color:var(--on-accent)]">refresh</span>
+        <span className="font-medium text-[14px] leading-[1.43] text-[color:var(--on-accent)]">
+          {statusCompleto ? "Fazer e testar novamente" : "Testar novamente"}
+        </span>
+      </button>
 
       <div className="flex flex-wrap justify-center gap-[10px] mt-6">
+        <a
+          href="/historico"
+          className="flex items-center gap-[6px] h-[36px] px-2 no-underline hover:bg-[color:var(--bg-secondary)] rounded-full transition-colors"
+        >
+          <span aria-hidden="true" className="material-symbols-outlined text-[16px] text-[color:var(--accent)]">history</span>
+          <span className="font-medium text-[12px] leading-[1.33] text-[color:var(--accent)]">Ver histórico</span>
+        </a>
         <button
           onClick={journey.compartilhar}
           className="flex items-center gap-[6px] h-[36px] px-2 border-none bg-transparent cursor-pointer hover:bg-[color:var(--bg-secondary)] rounded-full transition-colors"

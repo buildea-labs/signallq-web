@@ -12,6 +12,10 @@
 
 # testing
 /coverage
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
 
 # next.js
 /.next/
@@ -45,3 +49,6 @@ next-env.d.ts
 # local tooling
 .turbo/
 .eslintcache
+
+# git worktrees (local multi-branch workspaces)
+/worktree/

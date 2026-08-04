@@ -9,6 +9,7 @@ describe('measurement session serialization', () => {
       context: { version: 1, entry: 'problem', declaredProblem: 'wifi-nao-chega-bem' },
       answers: [{ questionId: 'wifi_q1', answerId: 'longe' }],
       questionnaireActive: true,
+      postResultProblem: null,
     })
     const restored = parseMeasurementSession(raw)
     expect(restored).toEqual(JSON.parse(raw))
@@ -25,9 +26,51 @@ describe('measurement session serialization', () => {
 
   it('accepts an explicit optional skip without inventing an answer', () => {
     const raw = JSON.stringify({
-      version: 1, context: { version: 1, entry: 'problem', declaredProblem: 'lenta' },
+      version: MEASUREMENT_SESSION_STORE_VERSION,
+      context: { version: 1, entry: 'problem', declaredProblem: 'lenta' },
       answers: [{ questionId: 'internet_lenta_q1', answerId: null }], questionnaireActive: true,
+      postResultProblem: null,
     })
     expect(parseMeasurementSession(raw)?.answers[0].answerId).toBeNull()
+  })
+
+  it('keeps the post-result problem (#69) as a field distinct from the pre-test declaredProblem/answers', () => {
+    const raw = JSON.stringify({
+      version: MEASUREMENT_SESSION_STORE_VERSION,
+      context: { version: 1, entry: 'problem', declaredProblem: 'wifi-nao-chega-bem' },
+      answers: [{ questionId: 'wifi_q1', answerId: 'longe' }],
+      questionnaireActive: true,
+      postResultProblem: { value: 'jogos-com-lag', answers: [{ questionId: 'web_atividade_q1', answerId: 'jogos' }] },
+    })
+    const restored = parseMeasurementSession(raw)
+    expect(restored).toEqual(JSON.parse(raw))
+    // O declaredProblem pré-teste continua intacto — não é sobrescrito pela escolha pós-resultado.
+    expect(restored?.context.declaredProblem).toBe('wifi-nao-chega-bem')
+    expect(restored?.answers).toEqual([{ questionId: 'wifi_q1', answerId: 'longe' }])
+    expect(restored?.postResultProblem).toEqual({
+      value: 'jogos-com-lag',
+      answers: [{ questionId: 'web_atividade_q1', answerId: 'jogos' }],
+    })
+  })
+
+  it('rejects an unknown postResultProblem value instead of guessing', () => {
+    const raw = JSON.stringify({
+      version: MEASUREMENT_SESSION_STORE_VERSION,
+      context: { version: 1, entry: 'direct' },
+      answers: [],
+      questionnaireActive: false,
+      postResultProblem: { value: 'nao-existe', answers: [] },
+    })
+    expect(parseMeasurementSession(raw)).toBeNull()
+  })
+
+  it('treats a session persisted by the previous schema (no postResultProblem field) as unavailable rather than guessing', () => {
+    const raw = JSON.stringify({
+      version: MEASUREMENT_SESSION_STORE_VERSION,
+      context: { version: 1, entry: 'direct' },
+      answers: [],
+      questionnaireActive: false,
+    })
+    expect(parseMeasurementSession(raw)).toBeNull()
   })
 })
