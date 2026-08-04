@@ -22,7 +22,7 @@ export const MENU_GROUPS = [
   {
     title: "Institucional",
     items: [
-      { key: "sobre", label: "Quem somos", href: "/sobre" },
+      { key: "sobre", label: "Sobre o SignallQ", href: "/sobre" },
       { key: "privacidade", label: "Política de Privacidade", href: "/privacidade" },
       { key: "termos", label: "Termos de Uso", href: "/termos" },
     ],
