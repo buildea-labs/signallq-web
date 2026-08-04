@@ -195,4 +195,50 @@ describe("HistoryDetail — detalhe de teste salvo (#74)", () => {
     await user.click(screen.getByRole("button", { name: "Salvar" }));
     expect(updateRecordMetadata).toHaveBeenCalledWith("rec-1", expect.any(Object));
   });
+
+  /**
+   * #76, item 1: `removeConnection` migrou de `window.confirm` nativo para
+   * o `ConfirmDialog` declarativo do design system — mesmo padrão de
+   * "Excluir este teste?"/"Limpar tudo". Ambas as instâncias (lista e
+   * detalhe) precisavam mudar; este arquivo cobre a de `HistoryDetail`.
+   */
+  it("excluir esta conexão abre o ConfirmDialog (não window.confirm); cancelar não chama deleteConnection e mantém a edição aberta", async () => {
+    getRecordById.mockResolvedValue(record({ userMetadata: { connectionId: "casa", connectionName: "Casa" } }));
+    const user = userEvent.setup();
+    const { HistoryDetail } = await import("./HistoryDetail");
+    render(<HistoryDetail id="rec-1" />);
+
+    await screen.findByText("87.3");
+    await user.click(screen.getByRole("button", { name: /Editar contexto/ }));
+    await user.click(screen.getByRole("button", { name: "Excluir esta conexão" }));
+
+    const dialog = screen.getByRole("dialog", { name: "Excluir esta conexão?" });
+    expect(dialog).toHaveTextContent(
+      "Remove todas as medições e comparações associadas a este local, salvas neste navegador."
+    );
+    await user.click(within(dialog).getByRole("button", { name: "Cancelar" }));
+
+    expect(deleteConnection).not.toHaveBeenCalled();
+    // O diálogo de edição continua aberto (a spec de UX permite mantê-lo
+    // atrás; cancelar volta ao estado anterior sem perda de dados digitados).
+    expect(screen.getByRole("dialog", { name: "Contexto da conexão" })).toBeInTheDocument();
+  });
+
+  it("excluir esta conexão: confirmar chama deleteConnection e volta para a tela anterior", async () => {
+    getRecordById.mockResolvedValue(record({ userMetadata: { connectionId: "casa", connectionName: "Casa" } }));
+    deleteConnection.mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    const { HistoryDetail } = await import("./HistoryDetail");
+    render(<HistoryDetail id="rec-1" />);
+
+    await screen.findByText("87.3");
+    await user.click(screen.getByRole("button", { name: /Editar contexto/ }));
+    await user.click(screen.getByRole("button", { name: "Excluir esta conexão" }));
+
+    const dialog = screen.getByRole("dialog", { name: "Excluir esta conexão?" });
+    await user.click(within(dialog).getByRole("button", { name: "Excluir" }));
+
+    expect(deleteConnection).toHaveBeenCalledWith("casa");
+    expect(back).toHaveBeenCalled();
+  });
 });

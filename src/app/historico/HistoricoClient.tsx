@@ -7,7 +7,7 @@ import { HistoryEmptyState, HistoryLoadingState, HistoryUnavailableState } from 
 import { HistoryEvolutionChart } from "@/components/historico/HistoryEvolutionChart";
 import { HistoryList } from "@/components/historico/HistoryList";
 import { HistoryDiagnosticTip, HistoryToolbar } from "@/components/historico/HistoryToolbar";
-;
+import { SelectionActionBar } from "@/components/historico/SelectionActionBar";
 import { useHistoryController } from "@/hooks/useHistoryController";
 
 export function HistoricoClient() {
@@ -57,6 +57,7 @@ export function HistoricoClient() {
             onFiltroChange={history.setFiltro}
             onClearAll={() => history.setConfirmOpen(true)}
             onExport={history.exportHistory}
+            onSelectRecords={history.enterDeleteSelectMode}
             compareMode={history.compareMode}
             onToggleCompareMode={history.toggleCompareMode}
           />
@@ -69,13 +70,22 @@ export function HistoricoClient() {
             />
           )}
 
+          {history.deleteSelectMode && (
+            <SelectionActionBar
+              selectedCount={history.selectedForDelete.length}
+              onConfirmDelete={() => history.setConfirmBulkDeleteOpen(true)}
+              onCancel={history.cancelDeleteSelectMode}
+              failure={history.bulkDeleteFailure}
+            />
+          )}
+
           <HistoryList
             groups={history.groups}
             filteredCount={history.filtered.length}
             totalCount={history.records.length}
-            selectable={history.compareMode}
-            selectedIds={history.selectedForCompare}
-            onToggleSelect={history.toggleSelectForCompare}
+            selectable={history.compareMode || history.deleteSelectMode}
+            selectedIds={history.compareMode ? history.selectedForCompare : history.selectedForDelete}
+            onToggleSelect={history.compareMode ? history.toggleSelectForCompare : history.toggleSelectForDelete}
             linkedPairByAfterId={history.linkedPairByAfterId}
             byId={history.byId}
           />
@@ -134,6 +144,32 @@ export function HistoricoClient() {
           onSave={history.saveMetadata}
           onCancel={() => history.setEditing(null)}
           onRemoveConnection={history.removeConnection}
+        />
+      )}
+
+      {history.confirmRemoveConnectionOpen && (
+        <ConfirmDialog
+          icon="delete_sweep"
+          title="Excluir esta conexão?"
+          description="Remove todas as medições e comparações associadas a este local, salvas neste navegador. Não é possível desfazer."
+          confirmLabel="Excluir"
+          cancelLabel="Cancelar"
+          danger
+          onConfirm={history.confirmRemoveConnection}
+          onCancel={history.cancelRemoveConnection}
+        />
+      )}
+
+      {history.confirmBulkDeleteOpen && (
+        <ConfirmDialog
+          icon="delete_sweep"
+          title={`Excluir ${history.selectedForDelete.length} ${history.selectedForDelete.length === 1 ? "teste selecionado" : "testes selecionados"}?`}
+          description="Remove os testes selecionados salvos neste navegador. Não é possível desfazer."
+          confirmLabel="Excluir"
+          cancelLabel="Cancelar"
+          danger
+          onConfirm={history.handleBulkDelete}
+          onCancel={() => history.setConfirmBulkDeleteOpen(false)}
         />
       )}
     </PageShell>

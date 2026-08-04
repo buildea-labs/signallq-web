@@ -69,6 +69,22 @@ export function useHistoryController() {
   const [selectedForCompare, setSelectedForCompare] = useState<string[]>([]);
   const [preselectApplied, setPreselectApplied] = useState(false);
 
+  // Exclusão de conexão (#76, item 1): `window.confirm` nativo sai,
+  // `ConfirmDialog` declarativo entra. Ficar aberto/fechado é estado, não
+  // bloqueio de thread — por isso este flag, independente de `editing`
+  // (o diálogo de edição continua aberto atrás enquanto este confirma).
+  const [confirmRemoveConnectionOpen, setConfirmRemoveConnectionOpen] = useState(false);
+
+  // Seleção múltipla para exclusão em massa (#76, item 3): mesmo esqueleto de
+  // `compareMode`/`selectedForCompare` (#75), sem teto de contagem. Os dois
+  // modos são mutuamente exclusivos — entrar em um cancela o outro.
+  const [deleteSelectMode, setDeleteSelectMode] = useState(false);
+  const [selectedForDelete, setSelectedForDelete] = useState<string[]>([]);
+  const [confirmBulkDeleteOpen, setConfirmBulkDeleteOpen] = useState(false);
+  // Falha parcial (regra de acessibilidade/segurança da issue): distinta de
+  // sucesso total, mantém os ids que falharam selecionados para nova tentativa.
+  const [bulkDeleteFailure, setBulkDeleteFailure] = useState<{ attempted: number; succeeded: number; failedIds: string[] } | null>(null);
+
   const load = async () => {
     setStatus("loading");
     try {
@@ -111,10 +127,53 @@ export function useHistoryController() {
   }, [preselectApplied, status, records, searchParams]);
 
   const toggleCompareMode = () => {
+    // Entrar em "Comparar" cancela a seleção de exclusão em massa, se ativa
+    // (modos mutuamente exclusivos).
+    setDeleteSelectMode(false);
+    setSelectedForDelete([]);
+    setBulkDeleteFailure(null);
     setCompareMode((current) => {
       if (current) setSelectedForCompare([]);
       return !current;
     });
+  };
+
+  const enterDeleteSelectMode = () => {
+    setCompareMode(false);
+    setSelectedForCompare([]);
+    setDeleteSelectMode(true);
+  };
+
+  const cancelDeleteSelectMode = () => {
+    setDeleteSelectMode(false);
+    setSelectedForDelete([]);
+    setBulkDeleteFailure(null);
+  };
+
+  const toggleSelectForDelete = (id: string) => {
+    setSelectedForDelete((current) =>
+      current.includes(id) ? current.filter((existing) => existing !== id) : [...current, id]
+    );
+  };
+
+  const handleBulkDelete = async () => {
+    const ids = selectedForDelete;
+    const results = await Promise.allSettled(ids.map((id) => deleteRecord(id)));
+    const failedIds = ids.filter((id, index) => results[index].status === "rejected");
+    const succeeded = ids.length - failedIds.length;
+    setRecords((current) => current.filter((r) => !ids.includes(r.id) || failedIds.includes(r.id)));
+    setComparisons(await listComparisons());
+    setConfirmBulkDeleteOpen(false);
+    if (failedIds.length > 0) {
+      // Falha parcial: não sai do modo de seleção, mantém só os que falharam
+      // marcados, para permitir nova tentativa sem perder o restante do lote.
+      setSelectedForDelete(failedIds);
+      setBulkDeleteFailure({ attempted: ids.length, succeeded, failedIds });
+    } else {
+      setDeleteSelectMode(false);
+      setSelectedForDelete([]);
+      setBulkDeleteFailure(null);
+    }
   };
 
   const toggleSelectForCompare = (id: string) => {
@@ -180,10 +239,17 @@ export function useHistoryController() {
     link.click();
     URL.revokeObjectURL(url);
   };
-  const removeConnection = async () => {
+  // Abre o `ConfirmDialog` declarativo (#76, item 1) em vez de bloquear a
+  // thread com `window.confirm`; o diálogo de edição fica aberto atrás.
+  const removeConnection = () => {
+    if (!editing?.userMetadata?.connectionId) return;
+    setConfirmRemoveConnectionOpen(true);
+  };
+
+  const confirmRemoveConnection = async () => {
     const connectionId = editing?.userMetadata?.connectionId;
-    if (!connectionId || !window.confirm("Excluir todas as medições deste local? Esta ação não pode ser desfeita."))
-      return;
+    setConfirmRemoveConnectionOpen(false);
+    if (!connectionId) return;
     await deleteConnection(connectionId);
     setRecords((current) => current.filter((record) => record.userMetadata?.connectionId !== connectionId));
     setComparisons(await listComparisons());
@@ -233,6 +299,9 @@ export function useHistoryController() {
     saveMetadata,
     exportHistory,
     removeConnection,
+    confirmRemoveConnectionOpen,
+    confirmRemoveConnection,
+    cancelRemoveConnection: () => setConfirmRemoveConnectionOpen(false),
     shareRecord,
     isEmpty,
     hasRecords,
@@ -247,5 +316,14 @@ export function useHistoryController() {
     toggleCompareMode,
     toggleSelectForCompare,
     confirmCompare,
+    deleteSelectMode,
+    selectedForDelete,
+    enterDeleteSelectMode,
+    cancelDeleteSelectMode,
+    toggleSelectForDelete,
+    confirmBulkDeleteOpen,
+    setConfirmBulkDeleteOpen,
+    handleBulkDelete,
+    bulkDeleteFailure,
   };
 }

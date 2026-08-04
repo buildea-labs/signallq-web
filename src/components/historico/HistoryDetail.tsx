@@ -44,6 +44,9 @@ export function HistoryDetail({ id }: { id: string }) {
   const [metadata, setMetadata] = useState<HistoryUserMetadata>({});
   const [selectedConnectionId, setSelectedConnectionId] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
+  // #76, item 1: `window.confirm` nativo sai, `ConfirmDialog` declarativo
+  // entra — consistente com "Excluir este teste?" e "Limpar tudo".
+  const [confirmRemoveConnectionOpen, setConfirmRemoveConnectionOpen] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -91,9 +94,15 @@ export function HistoryDetail({ id }: { id: string }) {
     setEditing(false);
   };
 
-  const removeConnection = async () => {
+  const removeConnection = () => {
+    if (!record?.userMetadata?.connectionId) return;
+    setConfirmRemoveConnectionOpen(true);
+  };
+
+  const confirmRemoveConnection = async () => {
     const connectionId = record?.userMetadata?.connectionId;
-    if (!connectionId || !window.confirm("Excluir todas as medições deste local? Esta ação não pode ser desfeita.")) return;
+    setConfirmRemoveConnectionOpen(false);
+    if (!connectionId) return;
     await deleteConnection(connectionId);
     setEditing(false);
     router.back();
@@ -324,6 +333,19 @@ export function HistoryDetail({ id }: { id: string }) {
           onSave={saveMetadata}
           onCancel={() => setEditing(false)}
           onRemoveConnection={removeConnection}
+        />
+      )}
+
+      {confirmRemoveConnectionOpen && (
+        <ConfirmDialog
+          icon="delete_sweep"
+          title="Excluir esta conexão?"
+          description="Remove todas as medições e comparações associadas a este local, salvas neste navegador. Não é possível desfazer."
+          confirmLabel="Excluir"
+          cancelLabel="Cancelar"
+          danger
+          onConfirm={confirmRemoveConnection}
+          onCancel={() => setConfirmRemoveConnectionOpen(false)}
         />
       )}
     </PageShell>
