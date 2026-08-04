@@ -1,10 +1,10 @@
-import type { Metadata } from 'next'
-import { PAGE_META } from "@/lib/pageMetaCatalog"
-import { routeMetadata } from "@/lib/routeMetadata"
-import { JogosClient } from "./JogosClient"
+import { PageShell } from "@/components/PageShell";
+import { JogosModal } from "@/components/jogos/JogosModal";
 
-export const metadata: Metadata = routeMetadata(PAGE_META["/jogos"])
-
-export default function Page() {
-  return <JogosClient />
+export default function JogosPage() {
+  return (
+    <PageShell align="center" contentMax="860px">
+      <JogosModal isIntercepted={false} />
+    </PageShell>
+  );
 }

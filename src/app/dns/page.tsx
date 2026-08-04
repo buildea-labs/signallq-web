@@ -1,10 +1,10 @@
-import type { Metadata } from 'next'
-import { PAGE_META } from "@/lib/pageMetaCatalog"
-import { routeMetadata } from "@/lib/routeMetadata"
-import { DnsClient } from "./DnsClient"
+import { PageShell } from "@/components/PageShell";
+import { DnsModal } from "@/components/dns/DnsModal";
 
-export const metadata: Metadata = routeMetadata(PAGE_META["/dns"])
-
-export default function Page() {
-  return <DnsClient />
+export default function DnsPage() {
+  return (
+    <PageShell align="center" contentMax="860px">
+      <DnsModal isIntercepted={false} />
+    </PageShell>
+  );
 }

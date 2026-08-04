@@ -265,20 +265,40 @@ export function useSpeedTestJourney() {
   useEffect(() => {
     if (modo === "rapido" && !problemaPercebido && isIdle && !autoStartDisparado.current) {
       if (typeof window !== "undefined" && !window.location.search.includes("problem=")) {
+        const hasAutoStarted = sessionStorage.getItem("speedtest_autostarted") === "true";
         autoStartDisparado.current = true;
-        // Espera um tick para garantir que react renderize
-        setTimeout(() => {
-          iniciarTesteDireto();
+        
+        if (!hasAutoStarted) {
+          sessionStorage.setItem("speedtest_autostarted", "true");
+          // Espera um tick para garantir que react renderize
+          setTimeout(() => {
+            iniciarTesteDireto();
+            setIsAutoStarting(false);
+          }, 0);
+        } else {
           setIsAutoStarting(false);
-        }, 0);
+        }
       } else {
         setIsAutoStarting(false);
       }
     } else if (isIdle && isAutoStarting) {
       setIsAutoStarting(false);
     }
+    
+    if (result && result.status === 'complete') {
+        const testResults = {
+          latency: result.latency.ms,
+          download: result.download.mbps,
+          upload: result.upload.mbps,
+          jitter: result.latency.p95Ms ? Math.abs(result.latency.p95Ms - result.latency.ms) : 0,
+          timestamp: Date.now()
+        };
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem("signallq_last_result", JSON.stringify(testResults));
+        }
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [modo, problemaPercebido, isIdle]);
+  }, [modo, problemaPercebido, isIdle, result]);
 
   return {
     modo, setModo, copiado,
