@@ -67,23 +67,15 @@ export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
       {/* Única ação primária da etapa: reteste. "Ver histórico" é navegação de
           saída, rebaixada ao mesmo peso de Compartilhar/Copiar resumo (#71 §3.2/§3.4.6). */}
       <button
-        onClick={
-          statusCompleto
-            ? journey.iniciarReteste
-            // Bug crítico (revisão do Caio): este botão também aparece para
-            // resultados que não são "complete" (ex.: `contaminated`, rede
-            // caiu durante o aprofundamento). Chamar `journey.retry()` puro
-            // pulava o único bookkeeping que reseta o fluxo corretamente —
-            // sem transição "Aprofundando…" e com o resultado antigo
-            // (gauge/badges/banner) preso na tela por cima do novo teste.
-            // Se a rede caiu durante um aprofundamento pós-resultado, o
-            // reteste deve continuar em modo Completo com a mesma UI de
-            // aprofundamento (`iniciarAprofundamento`); caso contrário é um
-            // reteste comum, que segue o reset padrão (`iniciarReteste`).
-            : emAprofundamentoPosResultado
-              ? journey.iniciarAprofundamento
-              : journey.iniciarReteste
-        }
+        onClick={(e) => {
+          if (statusCompleto) {
+            journey.iniciarReteste();
+          } else if (emAprofundamentoPosResultado) {
+            journey.iniciarAprofundamento();
+          } else {
+            journey.iniciarReteste();
+          }
+        }}
         className="w-full h-[46px] flex items-center justify-center gap-2 rounded-[var(--radius-button)] border-none bg-[color:var(--accent)] hover:brightness-110 transition-all cursor-pointer mt-6"
       >
         <span aria-hidden="true" className="material-symbols-outlined text-[20px] text-[color:var(--on-accent)]">refresh</span>
