@@ -127,3 +127,8 @@ export const FEATURE_PRO_LISTA_ESPERA = 'pro_lista_espera_clicado'
 // `appinstalled` do navegador ou outcome 'accepted' do prompt nativo).
 export const FEATURE_PWA_INSTALL_PROMPTED = 'pwa_install_prompted'
 export const FEATURE_PWA_INSTALLED = 'pwa_installed'
+
+// Página `/app` (#61) — CTA secundário ("Testar no navegador agora") precisa
+// de telemetria separada do CTA primário (FEATURE_DOWNLOAD_APP_CLICADO) para
+// não misturar interesse no app Android com interesse no teste Web no funil.
+export const FEATURE_APP_LANDING_WEB_TEST_CLICADO = 'app_landing_web_test_clicado'
