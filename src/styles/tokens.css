@@ -82,8 +82,17 @@
   --scrim: rgba(0,0,0,.5);
 }
 
-/* ---- Surface — Dark (apply .dark to a container) ----------------------- */
-.dark {
+/* ---- Surface — Dark ----------------------------------------------------
+   Seletor `html.dark` (0,1,1), não `.dark` (0,1,0), de propósito: o bundle
+   sincronizado do design system (`public/_ds/.../_ds_bundle.css`) declara os
+   MESMOS tokens sob `.dark` e é carregado depois deste arquivo, então com
+   especificidade igual ele vencia por ordem de documento — todo este bloco
+   era inerte. Os valores eram idênticos, então nada parecia quebrado, mas
+   qualquer override de tema feito aqui não surtia efeito (achado ao trocar
+   `--bg-primary` para preto puro). `.dark` só é aplicada ao <html>
+   (`ThemeScript`), então subir para `html.dark` não muda o alcance.
+   ------------------------------------------------------------------------ */
+html.dark {
   --accent:        #D0BCFF;
   --on-accent:     #38137E;
   --accent-blue:   #AAC7FF;
@@ -93,7 +102,12 @@
   --phase-latencia: #AAC7FF;
   --phase-download: #83DA99;
   --phase-upload:   #FFB870;
-  --bg-primary:    #131217;
+  /* Preto puro em teste (decisão do Luiz). Sobe o contraste de todos os
+     tokens de primeiro plano — nenhum piora — mas maximiza a amplitude
+     luminosa, que é o que causa halação para quem tem astigmatismo. O
+     antecessor era #131217; reverter é trocar esta linha de volta.
+     Precisa vencer o `.dark` do `_ds_bundle.css`, que ainda traz #131217. */
+  --bg-primary:    #000000;
   --bg-secondary:  #1D1B20;
   --bg-card:       #211F26;
   --text-primary:  #E6E0E9;
