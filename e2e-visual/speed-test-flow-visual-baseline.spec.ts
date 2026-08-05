@@ -37,6 +37,19 @@ const VIEWPORTS = [
   { name: 'desktop', width: 1440, height: 900 },
 ] as const
 
+/**
+ * Dá tempo ao mostrador de sair do zero antes da captura.
+ *
+ * A asserção de fase (`Quase acabando...`) passa no instante em que a fase
+ * começa — momento em que a leitura ao vivo ainda é ~0 e a captura mostraria
+ * um velocímetro vazio, que não representa o estado "medindo". Não há falha
+ * sendo escondida aqui: o estado alvo já está provado pelas asserções; isto
+ * escolhe *quando* fotografá-lo.
+ */
+async function settleDial(page: Page) {
+  await page.waitForTimeout(2_000)
+}
+
 async function capture(page: Page, state: string, viewport: (typeof VIEWPORTS)[number]) {
   await page.screenshot({
     path: `${BASELINE_DIR}/${state}-${viewport.width}x${viewport.height}.png`,
@@ -69,6 +82,7 @@ for (const viewport of VIEWPORTS) {
 
       await expect(page.getByText('Quase acabando...')).toBeVisible({ timeout: 30_000 })
       await expect(page.getByRole('button', { name: 'Cancelar teste' })).toBeVisible()
+      await settleDial(page)
 
       await capture(page, 'quick-running', viewport)
     })
@@ -91,6 +105,7 @@ for (const viewport of VIEWPORTS) {
       await page.getByRole('button', { name: 'Testar agora' }).click()
 
       await expect(page.getByText('Avaliando capacidade de download...')).toBeVisible({ timeout: 30_000 })
+      await settleDial(page)
 
       await capture(page, 'full-running', viewport)
     })
@@ -120,7 +135,7 @@ for (const viewport of VIEWPORTS) {
       // `<label>` que o embrulha — mesmo alvo que a pessoa usuária toca.
       await page.getByText('Está lenta', { exact: true }).click()
       await expect(page.getByRole('radio', { name: 'Está lenta' })).toBeChecked()
-      await page.getByRole('button', { name: 'Rodar Teste Completo' }).click()
+      await page.getByRole('button', { name: 'Fazer teste completo' }).click()
 
       // Fases que só existem no modo Completo — provam que o aprofundamento
       // reexecutou a medição de verdade, não reaproveitou o resultado rápido.

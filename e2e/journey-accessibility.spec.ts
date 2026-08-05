@@ -94,11 +94,11 @@ test.describe('Jornada Rápido — teclado e resultado real (#71, bug crítico #
     await page.keyboard.press('Space')
 
     // Escolher o problema registra a escolha e abre o detalhamento; quem
-    // dispara o teste completo é a ação explícita "Rodar Teste Completo"
+    // dispara o teste completo é a ação explícita "Fazer teste completo"
     // (`PostResultProblemPrompt` -> `journey.iniciarAprofundamento`). Este
     // teste esperava o aprofundamento automático de uma versão anterior do
     // fluxo e falhava de forma determinística por isso.
-    const rodarCompleto = page.getByRole('button', { name: 'Rodar Teste Completo' })
+    const rodarCompleto = page.getByRole('button', { name: 'Fazer teste completo' })
     await rodarCompleto.focus()
     await expect(rodarCompleto).toBeFocused()
     await page.keyboard.press('Enter')

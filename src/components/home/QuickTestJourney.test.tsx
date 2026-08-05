@@ -2,6 +2,7 @@ import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { SpeedTestJourney } from "@/hooks/useSpeedTestJourney";
+import { withDerivedJourneyState } from "@/test/fixtures/speedTestJourney";
 import { setAdConsent } from "@/lib/adConsent";
 import { MODO_EXPLICACAO } from "./homeCopy";
 import { QuickTestJourney } from "./QuickTestJourney";
@@ -18,7 +19,7 @@ vi.mock("@/hooks/useNetworkInfo", () => ({
 }));
 
 function buildJourney(overrides: Partial<SpeedTestJourney> = {}): SpeedTestJourney {
-  return {
+  return withDerivedJourneyState({
     phase: "idle",
     liveValue: 0,
     result: null,
@@ -42,7 +43,7 @@ function buildJourney(overrides: Partial<SpeedTestJourney> = {}): SpeedTestJourn
     measurementContext: null,
     setRespostasContextuais: vi.fn(),
     ...overrides,
-  } as unknown as SpeedTestJourney;
+  });
 }
 
 describe("QuickTestJourney — explicação de modo sob demanda (#71 §3.3/§3.4.7)", () => {

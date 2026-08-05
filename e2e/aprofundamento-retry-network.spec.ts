@@ -40,11 +40,11 @@ async function reproduceOfflineDuringAprofundamentoRetry(page: Page, runLabel: s
   //    `journey-accessibility.spec.ts`: foco + tecla, nunca `.check()`/
   //    `.click()` direto no input (fica fora do viewport/coberto pelo label).
   //    A escolha sozinha só registra o problema: quem inicia o teste completo
-  //    é a ação explícita "Rodar Teste Completo".
+  //    é a ação explícita "Fazer teste completo".
   const estaLenta = page.getByRole('radio', { name: 'Está lenta' })
   await estaLenta.focus()
   await page.keyboard.press('Space')
-  await page.getByRole('button', { name: 'Rodar Teste Completo' }).click()
+  await page.getByRole('button', { name: 'Fazer teste completo' }).click()
   // Sinal estável do aprofundamento em execução: `TestRunning` exibe o
   // contexto informado em todas as fases. "Aprofundando com um teste
   // completo…" só existe na fase de latência, curta demais para ser marco.
@@ -118,8 +118,8 @@ test.describe('Regressão: cancelamento do aprofundamento continua restaurando o
     await estaTravando.focus()
     await page.keyboard.press('Space')
     // A escolha registra o problema; o teste completo só começa na ação
-    // explícita "Rodar Teste Completo".
-    await page.getByRole('button', { name: 'Rodar Teste Completo' }).click()
+    // explícita "Fazer teste completo".
+    await page.getByRole('button', { name: 'Fazer teste completo' }).click()
     // O texto "Aprofundando…" só existe na fase de latência, que em redes
     // rápidas pode terminar em poucas centenas de ms (25 amostras) --
     // fugaz demais para depender dele aqui. `TestRunning` (via "Cancelar

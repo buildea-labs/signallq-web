@@ -3,14 +3,16 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { SpeedTestJourney } from "@/hooks/useSpeedTestJourney";
 import type { SpeedTestResult } from "@/lib/speedEngine";
 import { CompleteDiagnosis } from "./CompleteDiagnosis";
-import { UseCaseSummary } from "./UseCaseSummary";
 
 /**
- * Composição real da tela de resultado no modo Completo: `QuickResult`
- * (que renderiza `UseCaseSummary`) e `CompleteDiagnosis` são irmãos sob
- * `HomeClient`. Esta suíte renderiza os dois juntos, na mesma ordem da
- * página real, para provar que o rótulo de status aparece exatamente uma
- * vez no total — nunca duas vezes — para qualquer status (#71 §3.1).
+ * Composição real da tela de resultado no modo Completo: desde a
+ * implementação do protótipo, o diagnóstico lidera a tela e `UseCaseSummary`
+ * passou a viver dentro de `CompleteDiagnosis`, logo abaixo das métricas —
+ * antes era irmão dele sob `HomeClient`, via `QuickResult`.
+ *
+ * Renderizar `CompleteDiagnosis` sozinho é, portanto, a tela inteira do
+ * resultado completo: basta ela para provar que o rótulo de status aparece
+ * exatamente uma vez no total — nunca duas — para qualquer status (#71 §3.1).
  */
 
 function buildResult(overrides: Partial<SpeedTestResult> = {}): SpeedTestResult {
@@ -62,12 +64,7 @@ function buildJourney(result: SpeedTestResult): SpeedTestJourney {
 }
 
 function renderResultScreen(result: SpeedTestResult) {
-  return render(
-    <>
-      <UseCaseSummary result={result} />
-      <CompleteDiagnosis journey={buildJourney(result)} />
-    </>
-  );
+  return render(<CompleteDiagnosis journey={buildJourney(result)} />);
 }
 
 describe("Tela de resultado (Completo) — selo de status sem duplicação (#71 §3.1)", () => {

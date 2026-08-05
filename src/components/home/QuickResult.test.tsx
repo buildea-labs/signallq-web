@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { SpeedTestJourney } from "@/hooks/useSpeedTestJourney";
+import { withDerivedJourneyState } from "@/test/fixtures/speedTestJourney";
 import type { NetworkInfo } from "@/hooks/useNetworkInfo";
 import type { SpeedTestResult } from "@/lib/speedEngine";
 
@@ -46,7 +47,7 @@ function buildResult(overrides: Partial<SpeedTestResult> = {}): SpeedTestResult 
 
 function buildJourney(overrides: Partial<SpeedTestJourney> = {}): SpeedTestJourney {
   const result = overrides.result === undefined ? buildResult() : overrides.result;
-  return {
+  return withDerivedJourneyState({
     phase: "concluido",
     liveValue: 0,
     result,
@@ -59,7 +60,7 @@ function buildJourney(overrides: Partial<SpeedTestJourney> = {}): SpeedTestJourn
     modo: "completo",
     iniciarTesteDireto: vi.fn(),
     ...overrides,
-  } as unknown as SpeedTestJourney;
+  });
 }
 
 async function renderQuickResult(journey: SpeedTestJourney) {
