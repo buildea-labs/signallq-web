@@ -12,14 +12,13 @@ export const MODO_EXPLICACAO = {
   completo: "Mais amostras e mais tempo sob carga: produz evidência mais estável para a avaliação oficial.",
 } as const;
 
-// Ferramentas exibidas abaixo do resultado (protótipo, seção "Ferramentas").
-// O protótipo mostra quatro cartões — o quarto é "Ping", que não tem rota
-// própria neste repositório e não pode ser criada nesta rodada; a grade
-// responde ao número real de ferramentas em vez de reservar um espaço vazio.
+// Ferramentas exibidas abaixo do resultado (protótipo, seção "Ferramentas"),
+// na mesma ordem e com os mesmos rótulos das quatro células da grade.
 export const DIAG_ITEMS = [
+  { icon: "radio_button_checked", label: "Ping", description: "Latência da rede", href: "/ping" },
   { icon: "dns", label: "DNS", description: "Resolução de domínio", href: "/dns" },
-  { icon: "sports_esports", label: "Jogos", description: "Portas para jogos", href: "/jogos" },
   { icon: "language", label: "Meu IP", description: "Endereço público", href: "/meu-ip" },
+  { icon: "sports_esports", label: "Jogos", description: "Portas para jogos", href: "/jogos" },
 ];
 
 // Cor por nível de classificação — mesmo vocabulário de 3 valores

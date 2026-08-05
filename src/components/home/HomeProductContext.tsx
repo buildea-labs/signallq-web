@@ -17,7 +17,7 @@ export function HomeProductContext({ visible }: { visible: boolean }) {
       >
         Ferramentas
       </h2>
-      <div className="grid grid-cols-3 gap-2 sm:gap-3">
+      <div className="grid grid-cols-4 gap-2 sm:gap-3">
         {DIAG_ITEMS.map((item) => (
           <Link
             key={item.label}
