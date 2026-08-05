@@ -68,11 +68,11 @@ export function IpModal({ isIntercepted = false }: { isIntercepted?: boolean }) 
   const isCGNATLikely = !loading && ipv4 && !ipv6;
 
   const content = (
-    <div className="relative bg-[color:var(--surface)] border border-[color:var(--border)] p-6 sm:p-8 rounded-3xl shadow-2xl max-w-[480px] w-full mx-4 flex flex-col gap-6 animate-in zoom-in-95 duration-300">
+    <div className="relative bg-[color:var(--bg-card)] border border-[color:var(--border)] p-6 sm:p-8 rounded-3xl shadow-2xl max-w-[480px] w-full mx-4 flex flex-col gap-6 animate-in zoom-in-95 duration-300">
       
       <button 
         onClick={handleClose}
-        className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-[color:var(--surface-elevated)] hover:bg-[color-mix(in_srgb,_var(--surface-elevated)_80%,_white)] text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)] transition-colors"
+        className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-[color:var(--bg-secondary)] hover:bg-[color-mix(in_srgb,_var(--bg-secondary)_80%,_white)] text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)] transition-colors"
         aria-label="Fechar"
       >
         <span className="material-symbols-outlined text-[20px]">close</span>
@@ -90,7 +90,7 @@ export function IpModal({ isIntercepted = false }: { isIntercepted?: boolean }) 
 
       <div className="flex flex-col gap-4">
         {/* IPv4 */}
-        <div className="bg-[color:var(--surface-elevated)] p-4 rounded-2xl flex flex-col gap-2">
+        <div className="bg-[color:var(--bg-secondary)] p-4 rounded-2xl flex flex-col gap-2">
           <span className="text-[12px] font-semibold text-[color:var(--text-secondary)] uppercase tracking-wider">IPv4 Público</span>
           <div className="flex items-center justify-between">
             {loading ? (
@@ -114,7 +114,7 @@ export function IpModal({ isIntercepted = false }: { isIntercepted?: boolean }) 
         </div>
 
         {/* IPv6 */}
-        <div className="bg-[color:var(--surface-elevated)] p-4 rounded-2xl flex flex-col gap-2">
+        <div className="bg-[color:var(--bg-secondary)] p-4 rounded-2xl flex flex-col gap-2">
           <span className="text-[12px] font-semibold text-[color:var(--text-secondary)] uppercase tracking-wider">IPv6 Público</span>
           <div className="flex items-center justify-between gap-4">
             {loading ? (

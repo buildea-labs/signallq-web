@@ -90,11 +90,11 @@ export function JogosModal({ isIntercepted = false }: { isIntercepted?: boolean 
   }
 
   const content = (
-    <div className="relative bg-[color:var(--surface)] border border-[color:var(--border)] p-6 sm:p-8 rounded-3xl shadow-2xl max-w-[500px] w-full mx-4 flex flex-col gap-6 animate-in zoom-in-95 duration-300">
+    <div className="relative bg-[color:var(--bg-card)] border border-[color:var(--border)] p-6 sm:p-8 rounded-3xl shadow-2xl max-w-[500px] w-full mx-4 flex flex-col gap-6 animate-in zoom-in-95 duration-300">
       
       <button 
         onClick={handleClose}
-        className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-[color:var(--surface-elevated)] hover:bg-[color-mix(in_srgb,_var(--surface-elevated)_80%,_white)] text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)] transition-colors z-10"
+        className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-[color:var(--bg-secondary)] hover:bg-[color-mix(in_srgb,_var(--bg-secondary)_80%,_white)] text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)] transition-colors z-10"
         aria-label="Fechar"
       >
         <span className="material-symbols-outlined text-[20px]">close</span>
@@ -111,11 +111,11 @@ export function JogosModal({ isIntercepted = false }: { isIntercepted?: boolean 
       </div>
 
       <div className="flex flex-col gap-2">
-        <label className="text-[13px] font-bold text-[color:var(--text-primary)]">Qual jogo voc quer analisar?</label>
+        <label className="text-[13px] font-bold text-[color:var(--text-primary)]">Qual jogo você quer analisar?</label>
         <select 
           value={selectedGameId}
           onChange={(e) => setSelectedGameId(e.target.value)}
-          className="p-3 bg-[color:var(--surface-elevated)] border border-[color:var(--border)] rounded-xl text-[14px] font-medium outline-none focus:border-[color:var(--accent)] transition-colors"
+          className="p-3 bg-[color:var(--bg-secondary)] border border-[color:var(--border)] rounded-xl text-[14px] font-medium outline-none focus:border-[color:var(--accent)] transition-colors"
         >
           {GAMES.map(g => (
             <option key={g.id} value={g.id}>{g.name} ({g.category.replace('_', ' ')})</option>
@@ -137,14 +137,14 @@ export function JogosModal({ isIntercepted = false }: { isIntercepted?: boolean 
       ) : (
         <div className="flex flex-col gap-4 animate-in fade-in">
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-[color:var(--surface-elevated)] p-4 rounded-2xl flex flex-col gap-1">
+            <div className="bg-[color:var(--bg-secondary)] p-4 rounded-2xl flex flex-col gap-1">
               <span className="text-[12px] text-[color:var(--text-secondary)] font-medium">Seu Ping</span>
               <div className="flex items-baseline gap-1">
                 <span className="font-bold text-[24px] text-[color:var(--text-primary)]">{testResult.latency.toFixed(0)}</span>
                 <span className="text-[12px] font-bold text-[color:var(--text-tertiary)]">ms</span>
               </div>
             </div>
-            <div className="bg-[color:var(--surface-elevated)] p-4 rounded-2xl flex flex-col gap-1">
+            <div className="bg-[color:var(--bg-secondary)] p-4 rounded-2xl flex flex-col gap-1">
               <span className="text-[12px] text-[color:var(--text-secondary)] font-medium">Jitter</span>
               <div className="flex items-baseline gap-1">
                 <span className="font-bold text-[24px] text-[color:var(--text-primary)]">{testResult.jitter?.toFixed(0) || "--"}</span>
