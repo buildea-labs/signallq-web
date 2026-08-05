@@ -98,7 +98,7 @@ async function reproduceOfflineDuringAprofundamentoRetry(page: Page, runLabel: s
   await page.screenshot({ path: `${EVIDENCE_DIR}/${runLabel}-04-upload-real-sem-sobreposicao.png`, fullPage: true })
 }
 
-test.describe('Bug crítico Caio: rede cai durante download do aprofundamento, reteste após reconectar (2/2 determinístico)', () => {
+test.describe('Bug crítico Caio: rede cai durante download do aprofundamento, reteste após reconectar (2/2 determinístico)', { tag: '@bandwidth' }, () => {
   test('reprodução 1/2: o aprofundamento reinicia com o contexto informado e o resultado antigo nunca sobrepõe TestRunning', async ({ page }) => {
     await reproduceOfflineDuringAprofundamentoRetry(page, 'run1')
   })
@@ -108,7 +108,7 @@ test.describe('Bug crítico Caio: rede cai durante download do aprofundamento, r
   })
 })
 
-test.describe('Regressão: cancelamento do aprofundamento continua restaurando o resultado rápido', () => {
+test.describe('Regressão: cancelamento do aprofundamento continua restaurando o resultado rápido', { tag: '@bandwidth' }, () => {
   test('cancelar o teste completo durante o aprofundamento volta ao resultado rápido, sem travar', async ({ page }) => {
     test.setTimeout(90_000)
     await page.goto('/')

@@ -76,7 +76,7 @@ test.describe('Popover de ajuda sob demanda — não cortado em viewport estreit
   })
 })
 
-test.describe('Jornada Rápido — teclado e resultado real (#71, bug crítico #1+#2)', () => {
+test.describe('Jornada Rápido — teclado e resultado real (#71, bug crítico #1+#2)', { tag: '@bandwidth' }, () => {
   test('navega por teclado pela pergunta pós-resultado, aprofunda de verdade em modo Completo (reteste real) e o resultado passa no scan de acessibilidade', async ({ page }) => {
     test.setTimeout(120_000)
     await page.goto('/')
@@ -148,7 +148,7 @@ test.describe('Jornada Rápido — teclado e resultado real (#71, bug crítico #
   })
 })
 
-test.describe('Jornada Completo — teclado no controle expansível de #70 e resultado real (#71)', () => {
+test.describe('Jornada Completo — teclado no controle expansível de #70 e resultado real (#71)', { tag: '@bandwidth' }, () => {
   test('alterna para o modo Completo, navega por teclado até "Ver detalhes do teste" e expande com o teclado', async ({ page }) => {
     test.setTimeout(120_000)
     await page.goto(IDLE_URL)
