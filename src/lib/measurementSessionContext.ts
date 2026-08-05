@@ -1,3 +1,4 @@
+import type { RedeDeclarada } from './networkEntry'
 import type { ProblemaPercebido } from './problemEntry'
 
 /**
@@ -15,13 +16,21 @@ export interface MeasurementSessionContext {
   version: typeof MEASUREMENT_SESSION_CONTEXT_VERSION
   entry: MeasurementEntry
   declaredProblem?: ProblemaPercebido
+  /**
+   * Rede que a pessoa declarou no sheet de diagnóstico. Opcional em toda
+   * entrada: o sheet permite diagnosticar sem responder este grupo.
+   */
+  declaredNetwork?: RedeDeclarada
 }
 
 export function createMeasurementSessionContext(
   entry: MeasurementEntry,
   declaredProblem?: ProblemaPercebido,
+  declaredNetwork?: RedeDeclarada,
 ): MeasurementSessionContext {
-  return entry === 'problem' && declaredProblem
-    ? { version: MEASUREMENT_SESSION_CONTEXT_VERSION, entry, declaredProblem }
-    : { version: MEASUREMENT_SESSION_CONTEXT_VERSION, entry: 'direct' }
+  const base =
+    entry === 'problem' && declaredProblem
+      ? { version: MEASUREMENT_SESSION_CONTEXT_VERSION, entry, declaredProblem }
+      : { version: MEASUREMENT_SESSION_CONTEXT_VERSION, entry: 'direct' as const }
+  return declaredNetwork ? { ...base, declaredNetwork } : base
 }

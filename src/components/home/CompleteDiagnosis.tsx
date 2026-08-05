@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { PlayStoreBadge } from "@/components/PlayStoreBadge";
 import { ResultAdSlot } from "@/components/ResultAdSlot";
 import { GuidedDiagnosis } from "@/components/speedtest/GuidedDiagnosis";
@@ -13,8 +12,13 @@ import { STATUS_LABEL, STATUS_MESSAGE } from "./homeCopy";
 
 /** Leitura completa do resultado: conclusão+próxima ação, comparação, detalhes e ações finais. */
 export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
-  const { result, hasVisibleResult, respostaDiagnostica, retesteBase, comparacaoReteste, modo, emAprofundamentoPosResultado } = journey;
+  const { result, hasVisibleResult, retesteBase, comparacaoReteste, modo, emAprofundamentoPosResultado } = journey;
   if (!hasVisibleResult || !result || modo === "rapido") return null;
+
+  // Uma única conclusão na tela. Quando a pessoa declarou contexto no sheet, a
+  // resposta calculada com esse contexto é a boa; sem contexto declarado, vale
+  // a genérica. Antes eram dois blocos concorrentes em componentes diferentes.
+  const respostaDiagnostica = journey.respostaDiagnosticaPosResultado ?? journey.respostaDiagnostica;
 
   const statusCompleto = result.status === "complete";
   const statusMensagem = STATUS_MESSAGE[result.status];
@@ -40,8 +44,12 @@ export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
         </div>
       )}
 
-      {respostaDiagnostica && (!journey.postResultProblem || journey.postResultProblem === "sem-problema") && (
-        <section aria-labelledby="resultado-conclusao" className="py-7 border-b border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]">
+      {respostaDiagnostica && (
+        <section
+          aria-labelledby="resultado-conclusao"
+          data-testid="post-result-diagnostico"
+          className="py-7 border-b border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]"
+        >
           {/* O diagnóstico lidera a tela do resultado completo (protótipo,
               tela 2.4): overline curta e a conclusão em seguida — sem cartão,
               sem ícone decorativo. */}
@@ -52,6 +60,15 @@ export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
             {respostaDiagnostica.conclusion}
           </h1>
           <p className="mt-2 mb-0 font-normal text-[14px] leading-[1.45] text-[color:var(--text-secondary)]">{respostaDiagnostica.impact}</p>
+
+          {/* Só quando o download do teste completo difere da estimativa
+              rápida anterior — comparação booleana, sem mostrar os dois
+              valores (spec Juliana §3). */}
+          {journey.downloadMudouNoAprofundamento && (
+            <p className="mt-2 mb-0 text-[12px] leading-[1.4] text-[color:var(--text-tertiary)]">
+              Este é o resultado do teste completo — pode variar um pouco em relação à estimativa rápida anterior.
+            </p>
+          )}
 
           <div className="mt-4">
             <h2 className="m-0 font-medium text-[11px] uppercase tracking-[.3px] text-[color:var(--text-tertiary)]">Próxima ação</h2>
@@ -82,50 +99,36 @@ export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
 
       {/* Única ação primária da etapa: reteste. "Ver histórico" é navegação de
           saída, rebaixada ao mesmo peso de Compartilhar/Copiar resumo (#71 §3.2/§3.4.6). */}
-      <button
-        onClick={() => {
-          if (statusCompleto) {
-            journey.iniciarReteste();
-          } else if (emAprofundamentoPosResultado) {
-            journey.iniciarAprofundamento();
-          } else {
-            journey.iniciarReteste();
-          }
-        }}
-        className="mt-6 flex h-[48px] w-full cursor-pointer items-center justify-center gap-2 rounded-[14px] border-[1.5px] border-[color:var(--accent)] bg-transparent transition-colors hover:bg-[color:color-mix(in_srgb,var(--accent)_10%,transparent)]"
-      >
-        <span aria-hidden="true" className="material-symbols-outlined text-[20px] text-[color:var(--accent)]">refresh</span>
-        <span className="font-bold text-[13.5px] leading-[1.43] text-[color:var(--accent)]">
-          {statusCompleto ? "Fazer e testar novamente" : "Testar novamente"}
-        </span>
-      </button>
-
-      <div className="flex flex-wrap justify-center gap-[10px] mt-6">
-        <Link
-          href="/historico"
-          className="flex items-center gap-[6px] h-[36px] px-2 no-underline hover:bg-[color:var(--bg-secondary)] rounded-full transition-colors"
-        >
-          <span aria-hidden="true" className="material-symbols-outlined text-[16px] text-[color:var(--accent)]">history</span>
-          <span className="font-medium text-[12px] leading-[1.33] text-[color:var(--accent)]">Ver histórico</span>
-        </Link>
+      {/* Ações da tela 2.4: reteste ocupa a largura, compartilhar é um botão
+          quadrado ao lado. "Ver histórico" e "Copiar resumo" saíram daqui —
+          navegação de saída e utilitário não competem com a ação principal;
+          o Histórico continua no menu do site. */}
+      <div className="mt-6 flex gap-2">
         <button
-          onClick={journey.compartilhar}
-          className="flex items-center gap-[6px] h-[36px] px-2 border-none bg-transparent cursor-pointer hover:bg-[color:var(--bg-secondary)] rounded-full transition-colors"
+          onClick={() => {
+            if (!statusCompleto && emAprofundamentoPosResultado) {
+              journey.iniciarAprofundamento();
+              return;
+            }
+            journey.iniciarReteste();
+          }}
+          className="flex h-[48px] flex-1 cursor-pointer items-center justify-center gap-2 rounded-[14px] border-[1.5px] border-[color:var(--accent)] bg-transparent transition-colors hover:bg-[color:color-mix(in_srgb,var(--accent)_10%,transparent)]"
         >
-          <span aria-hidden="true" className="material-symbols-outlined text-[16px] text-[color:var(--accent)]">share</span>
-          <span className="font-medium text-[12px] leading-[1.33] text-[color:var(--accent)]">Compartilhar</span>
+          <span aria-hidden="true" className="material-symbols-outlined text-[20px] text-[color:var(--accent)]">refresh</span>
+          <span className="font-bold text-[13.5px] leading-[1.43] text-[color:var(--accent)]">Testar novamente</span>
         </button>
         <button
-          onClick={journey.copiarResumo}
-          className="flex items-center gap-[6px] h-[36px] px-2 border-none bg-transparent cursor-pointer hover:bg-[color:var(--bg-secondary)] rounded-full transition-colors"
+          onClick={journey.compartilhar}
+          aria-label="Compartilhar"
+          className="flex h-[48px] w-[52px] shrink-0 cursor-pointer items-center justify-center rounded-[14px] border border-[color:color-mix(in_srgb,var(--border)_45%,transparent)] bg-transparent transition-colors hover:bg-[color:var(--bg-secondary)]"
         >
-          <span aria-hidden="true" className="material-symbols-outlined text-[16px] text-[color:var(--accent)]">content_copy</span>
-          <span className="font-medium text-[12px] leading-[1.33] text-[color:var(--accent)]">
-            {journey.copiado ? "Copiado!" : "Copiar resumo"}
-          </span>
+          <span aria-hidden="true" className="material-symbols-outlined text-[20px] text-[color:var(--text-primary)]">share</span>
         </button>
       </div>
 
+      {/* Entrada por rota editorial (`/?context=...`): o problema veio da URL,
+          mas as perguntas que refinam a causa continuam sendo feitas aqui —
+          é o único caminho que não passa pelo sheet de diagnóstico. */}
       {journey.shouldCollectContextualQuestions && (
         <div className="mt-6 pt-6 border-t border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]">
           <GuidedDiagnosis measurementContext={journey.measurementContext} onAnswersChange={journey.setRespostasContextuais} />

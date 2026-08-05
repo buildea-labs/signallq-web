@@ -5,7 +5,6 @@ import { ResultStamp } from "@/components/speedtest/ResultStamp";
 import type { SpeedTestJourney } from "@/hooks/useSpeedTestJourney";
 import { useNetworkInfo } from "@/hooks/useNetworkInfo";
 import { classifyDownload } from "@/lib/classification";
-import { PostResultProblemPrompt } from "./PostResultProblemPrompt";
 import { QuickResultDetails } from "./QuickResultDetails";
 import { NIVEL_COR } from "./homeCopy";
 import { buildSpeedometerView } from "./speedometerView";
@@ -105,18 +104,40 @@ export function QuickResult({ journey }: { journey: SpeedTestJourney }) {
           visível enquanto o novo teste roda — `TestRunning` já ocupa esse
           lugar (spec Juliana §2: "não deixar as duas coisas visíveis ao
           mesmo tempo"). */}
-      {isResult && result && (
-        <div className="mx-auto flex w-full max-w-[520px] flex-col gap-6 sq-fade-up">
-          {/* O aprofundamento pós-resultado muda `modo` para "completo" de
-              verdade (bug crítico #1+#2) — por isso este bloco não pode mais
-              depender só de `modo === "rapido"`: enquanto houver uma escolha
-              pós-resultado ativa ou concluída, o cartão final dela continua
-              aparecendo no mesmo lugar de sempre (spec Juliana §2). */}
-          {(modo === "rapido" || Boolean(journey.postResultProblem)) && <PostResultProblemPrompt journey={journey} />}
+      {/* Resultado rápido (tela 1.3): link discreto para declarar contexto,
+          CTA para o teste completo e os detalhes curtos da rodada. Nada disso
+          é diagnóstico — a rodada rápida só mede download. No resultado
+          completo esta seção não existe: quem lidera lá é o diagnóstico. */}
+      {isSettled && modo === "rapido" && result && (
+        <div className="mx-auto flex w-full max-w-[440px] flex-col items-center gap-[22px] sq-fade-up">
+          {journey.notaAprofundamentoCancelado && (
+            <p className="m-0 text-center text-[13px] leading-[1.4] text-[color:var(--text-secondary)]" role="status">
+              Teste completo cancelado. O resultado rápido acima continua disponível.
+            </p>
+          )}
 
-          {/* Só no resultado rápido: no completo, o bloco técnico completo
-              (`ResultTechnicalDetails`) já cobre — e supera — estes campos. */}
-          {isSettled && modo === "rapido" && <QuickResultDetails result={result} />}
+          <button
+            type="button"
+            onClick={journey.abrirSheetDiagnostico}
+            className="flex min-h-[44px] items-center gap-[5px] border-none bg-transparent p-0 font-semibold text-[13px] text-[color:var(--accent)] cursor-pointer"
+          >
+            {/* O sublinhado fica só no texto: no ícone ele vira um traço solto
+                à direita da frase. */}
+            <span className="underline underline-offset-4">Problemas com a sua internet?</span>
+            <span aria-hidden="true" className="material-symbols-outlined text-[16px]">
+              expand_more
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={journey.iniciarAprofundamento}
+            className="min-h-[50px] w-full max-w-[260px] rounded-[14px] border-none bg-[color:var(--accent)] px-6 font-bold text-[14.5px] text-[color:var(--on-accent)] shadow-[0_8px_20px_color-mix(in_srgb,var(--accent)_30%,transparent)] transition-[filter] hover:brightness-110 cursor-pointer"
+          >
+            Fazer teste completo
+          </button>
+
+          <QuickResultDetails result={result} />
         </div>
       )}
     </>

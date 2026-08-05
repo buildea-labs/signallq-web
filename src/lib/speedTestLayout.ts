@@ -29,13 +29,18 @@ export function speedTestLayoutFor(visualState: SpeedTestVisualState, phase: Fas
       return { stage: 'stage', dial: 'forming', contentMax: STAGE_MAX }
 
     case 'quick-running':
-      return { stage: 'stage', dial: 'measuring', contentMax: STAGE_MAX }
+      // `preparando` é a fase anterior à primeira amostra: mostrar um número
+      // (ou um travessão) sugeriria uma leitura que ainda não existe.
+      return phase === 'preparando'
+        ? { stage: 'stage', dial: 'forming', contentMax: STAGE_MAX }
+        : { stage: 'stage', dial: 'measuring', contentMax: STAGE_MAX }
 
     case 'full-running':
       // Medição terminada e diagnóstico rodando (tela 2.3): a lista de etapas
       // ocupa a tela sozinha — o mostrador não tem mais o que ler.
-      return phase === 'processando'
-        ? { stage: 'stage', dial: 'hidden', contentMax: STAGE_MAX }
+      if (phase === 'processando') return { stage: 'stage', dial: 'hidden', contentMax: STAGE_MAX }
+      return phase === 'preparando'
+        ? { stage: 'stage', dial: 'forming', contentMax: STAGE_MAX }
         : { stage: 'stage', dial: 'measuring', contentMax: STAGE_MAX }
 
     case 'quick-result':

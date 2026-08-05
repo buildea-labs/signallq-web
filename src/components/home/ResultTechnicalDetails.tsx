@@ -40,7 +40,7 @@ export function ResultTechnicalDetails({ result }: { result: ResultView }) {
   return (
     <section className="py-7 border-b border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]">
       <details onToggle={handleToggleDetails}>
-        <summary className="cursor-pointer font-medium text-[14px] text-[color:var(--accent)]">Ver detalhes do teste</summary>
+        <summary className="cursor-pointer font-medium text-[14px] text-[color:var(--accent)]">Ver detalhes da medição</summary>
 
         <div className="mt-[18px] grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
           {groups.map((group) => (

@@ -8,17 +8,13 @@ import type { ContextualAnswer } from "@/lib/contextualQuestionFlow";
 import { updateRecordDiagnostic } from "@/lib/measurementRepository";
 import { createMeasurementSessionContext } from "@/lib/measurementSessionContext";
 import { readMeasurementSession } from "@/lib/measurementSessionStore";
+import type { RedeDeclarada } from "@/lib/networkEntry";
 import type { PostResultProblema } from "@/lib/postResultProblem";
 import type { ProblemaPercebido } from "@/lib/problemEntry";
 import type { RetestComparison } from "@/lib/retestComparison";
 import type { SpeedTestResult } from "@/lib/speedEngine";
 import { persistRetestComparison, retestComparisonId } from "@/lib/speedTestJourneyComparison";
-import {
-  hasSpeedTestAutoStarted,
-  markSpeedTestAutoStarted,
-  persistRestorableSpeedTestResult,
-  readRestorableSpeedTestResult,
-} from "@/lib/speedTestJourneySession";
+import { persistRestorableSpeedTestResult, readRestorableSpeedTestResult } from "@/lib/speedTestJourneySession";
 import { copySpeedTestResult, shareSpeedTestResult } from "@/lib/speedTestJourneySharing";
 import { speedTestLayoutFor } from "@/lib/speedTestLayout";
 import { RUNNING_PHASES } from "@/lib/speedTestPhase";
@@ -28,7 +24,6 @@ import {
   FEATURE_SPEEDTEST_COMPARTILHOU,
   FEATURE_SPEEDTEST_ENTRADA_DIRETA,
   FEATURE_SPEEDTEST_ENTRADA_PROBLEMA,
-  FEATURE_SPEEDTEST_PROBLEMA_ABANDONADO,
   FEATURE_SPEEDTEST_PROBLEMA_SELECIONADO,
   trackFeatureUsed,
 } from "@/lib/telemetry";
@@ -46,16 +41,19 @@ export const PROBLEM_PHASES: ProblemPhase[] = [
 export type SpeedTestJourney = ReturnType<typeof useSpeedTestJourney>;
 
 /**
- * Estado e orquestração da jornada da Home: modo de teste, entrada por
- * problema, questionário contextual, reteste/comparação, telemetria,
- * persistência e compartilhamento. A UI só consome o que este hook devolve.
+ * Estado e orquestração da jornada de Velocidade: início automático,
+ * restauração, sheet de diagnóstico, aprofundamento, reteste/comparação,
+ * telemetria, persistência e compartilhamento. A UI só consome o que este
+ * hook devolve.
  */
 export function useSpeedTestJourney() {
   const [modo, setModo] = useState<"rapido" | "completo">("rapido");
   const [copiado, setCopiado] = useState(false);
-  const [entradaProblemaAberta, setEntradaProblemaAberta] = useState(false);
-  const [problemaPercebido, setProblemaPercebido] = useState<ProblemaPercebido | null>(null);
-  const [questionarioRetomavel, setQuestionarioRetomavel] = useState(false);
+  // Sheet "Diagnosticar minha internet" (protótipo, tela 2.1) e o que ele
+  // declara. Substituiu a tela ociosa de entrada por problema: o protótipo não
+  // tem tela ociosa — a rota entra medindo.
+  const [sheetDiagnosticoAberto, setSheetDiagnosticoAberto] = useState(false);
+  const [redeDeclarada, setRedeDeclarada] = useState<RedeDeclarada | null>(null);
   const [respostasContextuais, setRespostasContextuais] = useState<ContextualAnswer[]>(
     () => readMeasurementSession()?.answers ?? []
   );
@@ -71,7 +69,6 @@ export function useSpeedTestJourney() {
   const [notaAprofundamentoCancelado, setNotaAprofundamentoCancelado] = useState(false);
   const [downloadMbpsAntesDoAprofundamento, setDownloadMbpsAntesDoAprofundamento] = useState<number | null>(null);
   const [resultadoRestaurado, setResultadoRestaurado] = useState(false);
-  const abandonoRegistrado = useRef(false);
   const comparacaoPersistida = useRef<string | null>(null);
   const { phase, liveValue, phaseResults, result, measurementContext, cancelTest, retry, forceStart, restaurarResultadoAnterior, injectResult } =
     useSpeedTest(modo);
@@ -111,7 +108,6 @@ export function useSpeedTestJourney() {
         : result?.status ?? null;
   const showDial = isIdle || isRunning || terminalOutcome !== null || isProblem;
   const shouldCollectContextualQuestions = isResult && measurementContext?.entry === "problem";
-  const shouldResumeContextualQuestions = isIdle && questionarioRetomavel && measurementContext?.entry === "problem";
   // Falha (não cancelamento) durante o aprofundamento: mantém o mesmo cartão
   // de erro genérico já usado no fluxo principal (`problemStates.ts`), só
   // acrescido de contexto — nunca um componente novo.
@@ -138,31 +134,8 @@ export function useSpeedTestJourney() {
   }, [phase, emAprofundamentoPosResultado, restaurarResultadoAnterior, resetarProblemaPosResultado]);
 
   useEffect(() => {
-    const session = readMeasurementSession();
-    setQuestionarioRetomavel(Boolean(session?.questionnaireActive));
-    setRespostasContextuais(session?.answers ?? []);
+    setRespostasContextuais(readMeasurementSession()?.answers ?? []);
   }, []);
-
-  useEffect(() => {
-    const contextualProblem = contextualProblemFromSearch(window.location.search);
-    if (!contextualProblem) return;
-    // A rota editorial só prepara uma escolha local; nunca inicia teste nem
-    // envia dados sem uma nova ação explícita da pessoa.
-    setEntradaProblemaAberta(true);
-    setProblemaPercebido(contextualProblem);
-    window.history.replaceState(null, "", window.location.pathname);
-  }, []);
-
-  useEffect(() => {
-    const registrarAbandono = () => {
-      if (phase === "idle" && problemaPercebido && !abandonoRegistrado.current) {
-        abandonoRegistrado.current = true;
-        trackFeatureUsed(FEATURE_SPEEDTEST_PROBLEMA_ABANDONADO);
-      }
-    };
-    window.addEventListener("pagehide", registrarAbandono);
-    return () => window.removeEventListener("pagehide", registrarAbandono);
-  }, [phase, problemaPercebido]);
 
   useEffect(() => {
     if (!retesteBase || !result || retesteBase.id === result.id) return;
@@ -189,39 +162,28 @@ export function useSpeedTestJourney() {
     });
   }, [result, respostaDiagnostica]);
 
-  const selecionarProblema = (valor: ProblemaPercebido) => {
-    abandonoRegistrado.current = false;
-    setProblemaPercebido(valor);
-    trackFeatureUsed(FEATURE_SPEEDTEST_PROBLEMA_SELECIONADO);
-  };
-
-  const iniciarTesteDireto = () => {
-    setProblemaPercebido(null);
-    setEntradaProblemaAberta(false);
+  const iniciarTesteDireto = (contextualProblem?: ProblemaPercebido) => {
     resetarProblemaPosResultado();
     setResultadoRestaurado(false);
     setEmAprofundamentoPosResultado(false);
     setNotaAprofundamentoCancelado(false);
+    setModo("rapido");
+    if (contextualProblem) {
+      // Entrada vinda de uma rota editorial (`/?context=...`): o problema já
+      // foi declarado lá, então a medição começa com esse contexto em vez de
+      // abrir uma tela para declarar de novo o que a pessoa já disse.
+      trackFeatureUsed(FEATURE_SPEEDTEST_ENTRADA_PROBLEMA);
+      trackFeatureUsed(FEATURE_SPEEDTEST_PROBLEMA_SELECIONADO);
+      forceStart(createMeasurementSessionContext("problem", contextualProblem));
+      return;
+    }
     trackFeatureUsed(FEATURE_SPEEDTEST_ENTRADA_DIRETA);
     forceStart(createMeasurementSessionContext("direct"));
   };
 
-  const abrirEntradaPorProblema = () => {
-    setEntradaProblemaAberta(true);
-    trackFeatureUsed(FEATURE_SPEEDTEST_ENTRADA_PROBLEMA);
-  };
-
-  const fecharEntradaPorProblema = () => setEntradaProblemaAberta(false);
-
-  const iniciarTesteComProblema = () => {
-    if (!problemaPercebido) return;
-    abandonoRegistrado.current = true;
-    resetarProblemaPosResultado();
-    setResultadoRestaurado(false);
-    setEmAprofundamentoPosResultado(false);
-    setNotaAprofundamentoCancelado(false);
-    forceStart(createMeasurementSessionContext("problem", problemaPercebido));
-  };
+  const abrirSheetDiagnostico = () => setSheetDiagnosticoAberto(true);
+  const fecharSheetDiagnostico = () => setSheetDiagnosticoAberto(false);
+  const declararRede = (valor: RedeDeclarada) => setRedeDeclarada(valor);
 
   const iniciarReteste = () => {
     if (!result) return;
@@ -255,12 +217,17 @@ export function useSpeedTestJourney() {
     selecionarProblemaPosResultadoBase(valor);
   };
 
-  useEffect(() => {
-    if (postResultFlowState?.status === "concluded" && !emAprofundamentoPosResultado && postResultProblem && postResultProblem !== "sem-problema") {
-      iniciarAprofundamento();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [postResultFlowState?.status, emAprofundamentoPosResultado, postResultProblem]);
+  /**
+   * CTA do sheet. O aprofundamento passou a exigir esta ação explícita: antes,
+   * um efeito o disparava assim que o fluxo de perguntas concluía, então a
+   * medição começava sozinha por causa de uma resposta — nunca de um "sim,
+   * pode medir". Sem problema escolhido, roda o teste completo mesmo assim,
+   * como o protótipo permite.
+   */
+  const confirmarDiagnostico = () => {
+    fecharSheetDiagnostico();
+    iniciarAprofundamento();
+  };
 
   const compartilhar = async () => {
     if (!result) return;
@@ -281,44 +248,47 @@ export function useSpeedTestJourney() {
   const autoStartDisparado = useRef(false);
   const [isAutoStarting, setIsAutoStarting] = useState(true);
 
+  /**
+   * Entrada na rota (protótipo, tela 1.1): não existe tela ociosa.
+   *
+   * - Com resultado restaurável na sessão: restaura e **não** mede de novo.
+   * - Sem resultado restaurável: o velocímetro se forma e o teste rápido
+   *   começa sozinho — inclusive quando a pessoa chega de uma rota editorial
+   *   com `?problem=`, caso em que o problema declarado lá vira o contexto da
+   *   medição.
+   *
+   * Não há guarda de "já autostartou nesta sessão": cancelar leva ao estado de
+   * falha (com "Tentar novamente" explícito) e concluir deixa um resultado
+   * restaurável, então nenhum caminho volta a `idle` e cria laço de medição.
+   */
   useEffect(() => {
-    if (modo === "rapido" && !problemaPercebido && isIdle && !autoStartDisparado.current) {
-      if (typeof window !== "undefined" && !window.location.search.includes("problem=")) {
-        const storedFullResult = readRestorableSpeedTestResult();
-        if (storedFullResult) {
-          autoStartDisparado.current = true;
-          setIsAutoStarting(false);
-          setResultadoRestaurado(true);
-          setModo(storedFullResult.mode === "rapido" ? "rapido" : "completo");
-          setTimeout(() => injectResult(storedFullResult), 0);
-          return;
-        }
+    if (!isIdle || autoStartDisparado.current) {
+      if (isIdle && isAutoStarting) setIsAutoStarting(false);
+      return;
+    }
+    autoStartDisparado.current = true;
 
-        const hasAutoStarted = hasSpeedTestAutoStarted();
-        autoStartDisparado.current = true;
-        
-        if (!hasAutoStarted) {
-          markSpeedTestAutoStarted();
-          // Espera um tick para garantir que react renderize
-          setTimeout(() => {
-            iniciarTesteDireto();
-            setIsAutoStarting(false);
-          }, 0);
-        } else {
-          setIsAutoStarting(false);
-        }
-      } else {
-        setIsAutoStarting(false);
-      }
-    } else if (isIdle && isAutoStarting) {
+    const storedFullResult = readRestorableSpeedTestResult();
+    if (storedFullResult) {
       setIsAutoStarting(false);
+      setResultadoRestaurado(true);
+      setModo(storedFullResult.mode === "rapido" ? "rapido" : "completo");
+      setTimeout(() => injectResult(storedFullResult), 0);
+      return;
     }
-    
-    if (result && result.status === 'complete') {
-        persistRestorableSpeedTestResult(result);
-    }
+
+    const contextualProblem = contextualProblemFromSearch(window.location.search);
+    if (contextualProblem) window.history.replaceState(null, "", window.location.pathname);
+    setTimeout(() => {
+      iniciarTesteDireto(contextualProblem ?? undefined);
+      setIsAutoStarting(false);
+    }, 0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [modo, problemaPercebido, isIdle, result]);
+  }, [isIdle]);
+
+  useEffect(() => {
+    if (result && result.status === "complete") persistRestorableSpeedTestResult(result);
+  }, [result]);
 
   const visualState = deriveSpeedTestVisualState({
     phase,
@@ -338,13 +308,13 @@ export function useSpeedTestJourney() {
   const shellAlign: "center" | "start" = layout.stage === "stage" ? "center" : "start";
 
   return {
-    modo, setModo, copiado,
+    modo, copiado,
     phase, liveValue, phaseResults, result, measurementContext,
     isIdle, isRunning, isResult, isProblem, hasVisibleResult, terminalOutcome, showDial, shellAlign,
     isAutoStarting,
     visualState, layout,
-    shouldCollectContextualQuestions, shouldResumeContextualQuestions,
-    entradaProblemaAberta, problemaPercebido, respostaDiagnostica,
+    shouldCollectContextualQuestions,
+    sheetDiagnosticoAberto, redeDeclarada, respostaDiagnostica,
     retesteBase, comparacaoReteste, comparacaoNaoSalva,
     setRespostasContextuais,
     postResultProblem, postResultAnswers, postResultMeasurementContext,
@@ -352,8 +322,8 @@ export function useSpeedTestJourney() {
     selecionarProblemaPosResultado, atualizarRespostasPosResultado,
     emAprofundamentoPosResultado, notaAprofundamentoCancelado,
     erroDuranteAprofundamento, downloadMudouNoAprofundamento, iniciarAprofundamento,
-    abrirEntradaPorProblema, fecharEntradaPorProblema, selecionarProblema,
-    iniciarTesteDireto, iniciarTesteComProblema, iniciarReteste,
+    abrirSheetDiagnostico, fecharSheetDiagnostico, declararRede, confirmarDiagnostico,
+    iniciarTesteDireto, iniciarReteste,
     cancelTest, retry, compartilhar, copiarResumo,
   };
 }

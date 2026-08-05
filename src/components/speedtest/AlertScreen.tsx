@@ -1,12 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import type { ReactNode } from "react";
 
-export interface AlertScreenAction {
+/** Ação da tela: mede de novo (`onClick`) ou leva a outra ferramenta (`href`). */
+export type AlertScreenAction = {
   label: string;
-  onClick: () => void;
   variant: "primary" | "secondary";
-}
+} & ({ onClick: () => void; href?: never } | { href: string; onClick?: never });
 
 /**
  * Tela cheia de falha/ausência de conexão — telas 1.4 e 1.5 do protótipo:
@@ -53,20 +54,22 @@ export function AlertScreen({
       {children}
 
       <div className="mt-[6px] flex w-full flex-col gap-[10px] sm:w-auto sm:flex-row sm:justify-center">
-        {actions.map((action) => (
-          <button
-            key={action.label}
-            type="button"
-            onClick={action.onClick}
-            className={
-              action.variant === "primary"
-                ? "min-h-[48px] w-full rounded-[14px] border-none bg-[color:var(--accent)] px-7 font-bold text-[14px] text-[color:var(--on-accent)] transition-[filter] hover:brightness-110 cursor-pointer sm:w-auto"
-                : "min-h-[48px] w-full rounded-[14px] border border-[color:color-mix(in_srgb,var(--border)_45%,transparent)] bg-transparent px-7 font-bold text-[14px] text-[color:var(--text-primary)] transition-colors hover:bg-[color:var(--bg-secondary)] cursor-pointer sm:w-auto"
-            }
-          >
-            {action.label}
-          </button>
-        ))}
+        {actions.map((action) => {
+          const className =
+            action.variant === "primary"
+              ? "flex min-h-[48px] w-full items-center justify-center rounded-[14px] border-none bg-[color:var(--accent)] px-7 font-bold text-[14px] text-[color:var(--on-accent)] no-underline transition-[filter] hover:brightness-110 cursor-pointer sm:w-auto"
+              : "flex min-h-[48px] w-full items-center justify-center rounded-[14px] border border-[color:color-mix(in_srgb,var(--border)_45%,transparent)] bg-transparent px-7 font-bold text-[14px] text-[color:var(--text-primary)] no-underline transition-colors hover:bg-[color:var(--bg-secondary)] cursor-pointer sm:w-auto";
+
+          return action.href ? (
+            <Link key={action.label} href={action.href} className={className}>
+              {action.label}
+            </Link>
+          ) : (
+            <button key={action.label} type="button" onClick={action.onClick} className={className}>
+              {action.label}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
