@@ -16,16 +16,17 @@ restauração e reteste seguem intactos.
 
 | Protótipo | Estado visual (`SpeedTestVisualState`) | Componentes |
 | --- | --- | --- |
-| 1.1 Entrada e formação do velocímetro | `forming` | `QuickTestJourney` → `QuickResult` → `Velocimetro` (mode `forming`, sem número, sem escala) + linha "Preparando sua medição…" |
+| 1.1 Entrada e formação do velocímetro | `forming` (e `*-running` na fase `preparando`) | `QuickTestJourney` → `QuickResult` → `Velocimetro` (mode `forming`, sem número, sem escala) + "Preparando sua medição…". **Sem tela ociosa**: nenhum controle de entrada. |
 | 1.2 Teste rápido em execução | `quick-running` | `QuickResult` (`Velocimetro` mode `measuring`) + `TestRunning` → `MeasurementStatusLine` + "Cancelar teste" |
-| 1.3 Resultado do teste rápido | `quick-result` | `ResultStamp` + `Velocimetro` (mode `settled`, rótulo `Download`) + `PostResultProblemPrompt` + `QuickResultDetails` + `HomeProductContext` (Ferramentas) |
-| 1.4 Falha na medição | `error` | `AlertScreen` (ícone em círculo, título, ação primária) |
-| 1.5 Sem conexão | `offline` | `AlertScreen` (tom de erro, ícone `wifi_off`) |
-| 2.1 Seleção do motivo | — (não é estado próprio) | `PostResultProblemPrompt` — chips de problema no próprio fluxo, ver §5.2 |
+| 1.3 Resultado do teste rápido | `quick-result` | `ResultStamp` + `Velocimetro` (mode `settled`, rótulo `Download`) + link "Problemas com a sua internet?" + CTA "Fazer teste completo" + `QuickResultDetails` + `HomeProductContext` (Ferramentas) |
+| 1.4 Falha na medição | `error` | `AlertScreen` — duas saídas: "Tentar novamente" e "Verificar conexão" (`/ping`) |
+| 1.5 Sem conexão | `offline` | `AlertScreen` com uma saída só — sem internet não há o que verificar |
+| 2.1 Seleção do motivo | — (não é estado próprio) | `DiagnoseSheet` — modal sobre o resultado rápido: grupos *Rede* e *Problema*, pergunta de aprofundamento e CTA "Diagnosticar minha internet" |
 | 2.2 Teste completo em execução | `full-running` | `QuickResult` + `TestRunning` com o passo "1 de 2 · Download" / "2 de 2 · Upload" |
 | 2.3 Processando diagnóstico | `full-running` na fase `processando` | `DiagnosingSteps` (lista de etapas derivada da fase real do motor) |
-| 2.4 Resultado completo com diagnóstico | `full-result` / `diagnosing` | `CompleteDiagnosis` (overline "Diagnóstico" + conclusão) → `FullResultMetrics` → `UseCaseSummary` → `ResultTechnicalDetails` → ações → `HomeProductContext` → `ResultAdSlot` |
+| 2.4 Resultado completo com diagnóstico | `full-result` / `diagnosing` | `CompleteDiagnosis` (overline "Diagnóstico" + conclusão única) → `FullResultMetrics` → `UseCaseSummary` → ações (reteste + compartilhar) → `ResultTechnicalDetails` ("Ver detalhes da medição") → `HomeProductContext` → `ResultAdSlot`. **Sem questionário.** |
 | Desktop 1.1 Painel de velocidade | `forming` / `*-running` / `quick-result` | Mesma árvore; `PageShell align="center"` + `layout.contentMax` |
+| Ferramentas (4 células) | — | `HomeProductContext` → Ping, DNS, Meu IP, Jogos |
 | Desktop 2.1 Diagnóstico completo | `full-result` | `FullResultMetrics` vira grade de 4 tiles a partir de `lg` |
 | Desktop 1.2/1.3 e 2.2 | `error` / `offline` / `processando` | Mesmos componentes, mesma composição |
 | Último resultado restaurado | `restored-result` | `ResultStamp` "Último resultado · …" + mostrador (rápido) ou diagnóstico (completo) |
@@ -34,7 +35,7 @@ restauração e reteste seguem intactos.
 
 `HomeClient`, `PageShell`, `useSpeedTestJourney`, `deriveSpeedTestVisualState`,
 `useSpeedTest`, `useSpeedTestController`, `QuickTestJourney`, `QuickResult`,
-`TestRunning`, `CompleteDiagnosis`, `ProblemPrompt`, `PostResultProblemPrompt`,
+`TestRunning`, `CompleteDiagnosis`, `usePostResultProblem`,
 `Velocimetro`, `gaugeMath`, `speedometerView`, `speedometerIdentity`,
 `problemStates`, `homeCopy`, `UseCaseSummary`, `ResultTechnicalDetails`,
 `RetestComparison`, `GuidedDiagnosis`, `ResultAdSlot`, `HomeProductContext`,
@@ -58,6 +59,9 @@ responsiva, alimentada pelo mesmo hook.
 | `src/components/home/FullResultMetrics.tsx` | Hierarquia de métricas do resultado completo (+ `buildFullResultMetrics`, puro). |
 | `src/components/home/QuickResultDetails.tsx` | "Detalhes da medição" do resultado rápido (disclosure curto). |
 | `src/hooks/usePrefersReducedMotion.ts` | Lê `prefers-reduced-motion` para o mostrador, que interpola em JavaScript. |
+| `src/components/speedtest/DiagnoseSheet.tsx` | Sheet "Diagnosticar minha internet" (tela 2.1): modal com trava de foco, Esc, scroll lock e devolução de foco ao gatilho. |
+| `src/lib/networkEntry.ts` | Vocabulário da rede **declarada** (Wi-Fi / Dados móveis / Outra rede) — declaração, não detecção. |
+| `src/app/ping/page.tsx`, `src/components/ping/PingTool.tsx`, `src/hooks/usePingTool.ts` | Ferramenta de Ping: quarta célula da grade do protótipo, sobre a mesma coleta de latência do motor. |
 | `src/test/fixtures/speedTestJourney.ts` | `withDerivedJourneyState` — dublês de jornada com `visualState`/`layout` derivados pelas funções reais. |
 
 ## 4. Arquivos alterados
@@ -102,6 +106,12 @@ responsiva, alimentada pelo mesmo hook.
 - `src/components/historico/HistoryDetail.tsx` — usa `mode="quiet"` (leitura
   arquivada não "se forma" agora).
 - `.gitignore` — ignora `docs/prototypes/` (arquivo local do Luiz).
+- `public/sitemap.xml` — registra `/ping` junto das demais ferramentas
+  indexáveis. **Indexação é alçada do Renan**: se a decisão for não indexar a
+  ferramenta, basta remover essa linha.
+- Removidos: `src/components/home/ProblemPrompt.tsx` e
+  `src/components/home/PostResultProblemPrompt.tsx` — a entrada por problema
+  pré-teste e o questionário inline não existem mais na jornada.
 - Testes: ver §8.
 
 ## 5. Decisões arquiteturais e divergências registradas
@@ -112,19 +122,40 @@ responsiva, alimentada pelo mesmo hook.
 velocímetro sai de cena" — a segunda fonte de verdade que o protótipo torna
 inevitável (telas 2.3 e 2.4 não têm mostrador).
 
-### 5.2 As perguntas de contexto ficam no fluxo, não num sheet modal
-O protótipo (tela 2.1) abre um *bottom sheet* sobre o resultado. A
-implementação mantém os mesmos elementos (título curto, chips, CTA) **no
-próprio fluxo da página**. Motivos: sem trava de foco/scroll-lock, sem
-portal, sem segunda URL para o mesmo resultado — que é justamente a razão
-que o próprio protótipo dá para não usar página dedicada. Divergência
-consciente de forma, não de conteúdo.
+### 5.2 A jornada é a do protótipo, e ela não tem tela ociosa
+Correção da primeira entrega, que preservou a jornada antiga e trocou só o
+acabamento. Saíram o seletor Rápido/Completo e a declaração de problema
+antes da medição: nenhum dos dois existe no protótipo, e ambos ofereciam um
+caminho paralelo ao que ele desenha. A rota entra medindo; o único caminho
+declarado para o teste completo é o resultado rápido — pelo CTA direto ou
+pelo sheet.
 
-### 5.3 Ferramentas: três, não quatro
-O protótipo mostra quatro cartões (Ping, DNS, Meu IP, Jogos). Não existe rota
-de Ping neste repositório e criar páginas novas de ferramentas está fora do
-escopo desta rodada. A grade responde ao número real de ferramentas em vez de
-reservar um espaço vazio ou inventar uma página.
+Consequências registradas: a telemetria `FEATURE_SPEEDTEST_PROBLEMA_ABANDONADO`
+deixou de ter evento que a dispare (não havia mais tela para abandonar) e foi
+removida do fluxo; `FEATURE_SPEEDTEST_ENTRADA_PROBLEMA` e
+`FEATURE_SPEEDTEST_PROBLEMA_SELECIONADO` passaram a marcar a entrada por rota
+editorial. Nenhuma constante de telemetria foi apagada de `telemetry.ts`.
+
+### 5.3 O contexto vive num sheet modal, como no protótipo
+Também correção da primeira entrega, que havia posto os chips inline. O
+`DiagnoseSheet` sobe sobre o resultado pelo motivo que o próprio protótipo
+dá: o resultado do teste continua com uma única URL indexável. Ele é modal de
+verdade (trava de foco, Esc, scroll lock, foco devolvido ao gatilho) e fica
+acima do banner de consentimento — que, em `z-[1010]`, cobriria o CTA no
+mobile.
+
+A pergunta de aprofundamento do fluxo contextual foi movida para dentro dele.
+É o que permite a tela 2.4 cumprir "não reapresentar o questionário" sem
+perder a funcionalidade.
+
+### 5.3.1 A ferramenta de Ping passou a existir
+A grade do protótipo tem quatro células e a primeira é Ping. Em vez de
+mostrar três e fingir que a grade era essa, a rota `/ping` foi criada,
+reaproveitando a mesma coleta de latência do motor (`collectLatency` +
+`summarizeLatency`) contra a mesma sonda — não há uma segunda definição de
+"ping" no produto. A página declara o que mede: o navegador não faz ICMP,
+então o número é o tempo de ida e volta de 20 requisições HTTP até a borda da
+sonda.
 
 ### 5.4 Tipografia: uma família só
 O protótipo usa `Sora` para display e `Plus Jakarta Sans` para texto. O
@@ -146,6 +177,13 @@ Upload/Ping/Servidor sob o rótulo "Teste rápido". Isso contradiz o contrato
 funcional ("resultado rápido apenas com download", e a rodada rápida não mede
 upload). O contrato funcional venceu; o desktop mostra a mesma leitura do
 mobile.
+
+### 5.6.1 Medir passou a exigir ação explícita
+Antes, um efeito disparava o aprofundamento assim que o fluxo de perguntas
+concluía — a medição começava por causa de uma resposta, não de um "pode
+medir". Agora só o CTA do sheet ("Diagnosticar minha internet") ou o "Fazer
+teste completo" do resultado iniciam. O segundo segue disponível sem
+nenhum contexto declarado, como o protótipo permite.
 
 ### 5.7 "Processando diagnóstico" é uma fase, não um estado terminal
 A tela 2.3 do protótipo corresponde à fase `processando` do modo Completo,
@@ -191,11 +229,20 @@ Os nove estados de `SpeedTestVisualState`: `forming`, `quick-running`,
 `restored-result`, `error`, `offline` — mais a fase `processando` do modo
 Completo, que ganhou tela própria (tela 2.3).
 
+Mais o sheet de diagnóstico (tela 2.1), que não é um estado da jornada mas é
+uma tela do fluxo, e por isso também tem captura própria na baseline.
+
 Jornada: sem resultado restaurável, o velocímetro se forma e o teste rápido
-começa sozinho; com resultado restaurável, o último resultado é restaurado e
-**nenhuma** medição é disparada (provado por contagem de requisições no teste
-visual). Reteste só por ação explícita. Cancelamento, erro, offline e
-resultados parcial/inconclusivo/contaminado seguem os contratos existentes.
+começa sozinho — inclusive vindo de rota editorial (`/?context=...`), caso em
+que o problema declarado lá vira o contexto da medição e sai da URL. Com
+resultado restaurável, o último resultado é restaurado e **nenhuma** medição
+é disparada (provado por contagem de requisições no teste visual). Reteste só
+por ação explícita. Cancelamento, erro, offline e resultados
+parcial/inconclusivo/contaminado seguem os contratos existentes.
+
+Não há guarda de "já autostartou nesta sessão": cancelar leva ao estado de
+falha (com "Tentar novamente" explícito) e concluir deixa um resultado
+restaurável — nenhum caminho volta a `idle`, então não há laço de medição.
 
 ## 8. Cobertura de teste
 
@@ -231,7 +278,12 @@ Novos/atualizados:
 - `underline` da Política de Privacidade e o cancelamento pendente do
   controller não foram tocados.
 - Sem overflow horizontal em 320/360/390/430/600/768/1024/1280/1440.
-- `journey-accessibility.spec.ts` (axe, foco, teclado) segue verde.
+- `DiagnoseSheet` é modal de verdade: `role="dialog"`, `aria-modal`,
+  `aria-labelledby`, trava de foco em Tab/Shift+Tab, Esc fecha, o foco volta
+  ao gatilho e o corpo não rola por trás. Os dois grupos de chips são
+  `radiogroup`/`radio` com `aria-checked`.
+- `journey-accessibility.spec.ts` (axe, foco, teclado) segue verde, agora
+  cobrindo o sheet no lugar do popover do seletor de modo.
 
 ## 10. Comandos executados e resultados
 
@@ -239,33 +291,44 @@ Novos/atualizados:
 | --- | --- |
 | `npm run lint` | verde (0 erros, `--max-warnings=0`) |
 | `npm run typecheck` | verde (`tsc --noEmit`, sem `any`, sem cast genérico, sem `eslint-disable` novo) |
-| `npm test` | **311 testes / 56 arquivos**, todos verdes (baseline da rodada: 291) |
-| `npm run build` | verde — 28 rotas geradas |
-| `npm run test:visual` | **18/18** (9 estados × 2 viewports) |
+| `npm test` | **317 testes / 56 arquivos**, todos verdes (baseline da rodada: 291) |
+| `npm run build` | verde — 29 rotas geradas (com `/ping`) |
+| `npm run test:visual` | **20/20** (9 estados + sheet de diagnóstico, × 2 viewports) |
 | `npm run test:e2e` | **24/24** |
 
 Nenhum timeout foi aumentado, nenhum teste foi desativado e nenhuma falha foi
-mascarada. A única falha real encontrada nesta rodada foi de acessibilidade —
-axe `definition-list`, causada por um invólucro extra dentro do `<dl>` de
-`FullResultMetrics` — e foi corrigida na estrutura, não na asserção.
+mascarada. Três falhas reais apareceram e foram corrigidas na origem:
+
+- axe `definition-list`: invólucro extra dentro do `<dl>` de
+  `FullResultMetrics` — corrigido na estrutura, não na asserção;
+- o banner de consentimento (`z-[1010]`) cobria o CTA do sheet no mobile,
+  deixando-o inalcançável — o sheet subiu para `z-[1100]`;
+- a fase `preparando` mostrava um travessão no centro do mostrador, como se
+  houvesse leitura — passou a manter o mostrador em formação.
 
 ## 11. Screenshots
 
-`test-results/speed-test-flow-baseline/` — nove estados × duas viewports
-(390×844 e 1440×900), gerados por `npm run test:visual`.
+`test-results/speed-test-flow-baseline/` — dez telas × duas viewports
+(390×844 e 1440×900), geradas por `npm run test:visual`: os nove estados de
+`SpeedTestVisualState` mais o sheet de diagnóstico.
 
 ## 12. Diferenças restantes em relação ao protótipo
 
-1. Sheet modal das perguntas de contexto → disclosure no fluxo (§5.2).
-2. Quatro cartões de ferramenta → três (não existe rota de Ping) (§5.3).
-3. `Sora` + `Plus Jakarta Sans` → família única do design system (§5.4).
-4. Resultado rápido no desktop não mostra upload/ping (§5.6).
-5. Placeholders de anúncio do protótipo → `ResultAdSlot` real, que só aparece
+1. `Sora` + `Plus Jakarta Sans` → família única do design system (§5.4).
+2. Resultado rápido no desktop não mostra upload/ping (§5.6) — o protótipo
+   mostra, mas a rodada rápida não os mede.
+3. Placeholders de anúncio do protótipo → `ResultAdSlot` real, que só aparece
    com consentimento e configuração (regra existente da issue #21).
-6. Segunda ação "Verificar conexão" na tela de falha não foi implementada:
-   ela aponta para a ferramenta de Ping, que não existe neste repositório.
-7. Cores do protótipo em `oklch` → tokens do design system do repositório
+4. Cores do protótipo em `oklch` → tokens do design system do repositório
    (mesma família de roxo/verde/âmbar/vermelho).
+5. Textos de falha/offline usam os de `problemStates.ts` (específicos por
+   causa: "Servidor indisponível", "Conexão interrompida", "Teste cancelado")
+   em vez do genérico "Não conseguimos concluir a medição." do protótipo — a
+   mensagem específica diz mais e já era o contrato funcional.
+
+Divergências da primeira entrega que **deixaram de existir** nesta rodada: a
+tela ociosa com seletor de modo, os chips de contexto inline no lugar do
+sheet, e a grade de três ferramentas.
 
 ## 13. Escopo
 
@@ -281,7 +344,14 @@ repositório. O ZIP do protótipo não foi movido, renomeado nem alterado.
 | `ea47b7a` | `feat(speed-test): redesenha o velocímetro conforme o protótipo` |
 | `4417582` | `feat(speed-test): implementa o fluxo do protótipo em uma árvore responsiva` |
 | `703d2d8` | `test(speed-test): cobre a geometria, o layout e as telas novas do fluxo` |
-| _(commit deste arquivo)_ | `docs(speed-test): registra o handoff da implementação do protótipo` |
+| `b17fd19` | `docs(speed-test): registra o handoff da implementação do protótipo` |
+| `c3536c4` | `feat(speed-test): adota a jornada do protótipo, sem tela ociosa` |
+| `4440fa6` | `feat(ping): cria a ferramenta de Ping e completa a grade de ferramentas` |
+| `dbaf8f4` | `test(speed-test): alinha a cobertura à jornada do protótipo` |
+| _(commit deste arquivo)_ | `docs(speed-test): atualiza o handoff para a jornada do protótipo` |
+
+Os quatro primeiros são a implementação visual; os três seguintes corrigem a
+jornada, que a primeira entrega havia preservado da versão antiga.
 
 Branch `feat/prototipos-webapp-desktop`. Sem merge em `main`, sem deploy, sem
 release, sem alteração de configuração de domínio, sem PR.
@@ -292,12 +362,15 @@ release, sem alteração de configuração de domínio, sem PR.
 $ git status --short
 (vazio — árvore de trabalho limpa)
 
-$ git log --oneline -5
-<este commit> docs(speed-test): registra o handoff da implementação do protótipo
+$ git log --oneline -8
+<este commit> docs(speed-test): atualiza o handoff para a jornada do protótipo
+dbaf8f4 test(speed-test): alinha a cobertura à jornada do protótipo
+4440fa6 feat(ping): cria a ferramenta de Ping e completa a grade de ferramentas
+c3536c4 feat(speed-test): adota a jornada do protótipo, sem tela ociosa
+b17fd19 docs(speed-test): registra o handoff da implementação do protótipo
 703d2d8 test(speed-test): cobre a geometria, o layout e as telas novas do fluxo
 4417582 feat(speed-test): implementa o fluxo do protótipo em uma árvore responsiva
 ea47b7a feat(speed-test): redesenha o velocímetro conforme o protótipo
-1c87666 test(e2e): isolate bandwidth-dependent scenarios
 ```
 
 `docs/prototypes/` continua fora do versionamento (agora via `.gitignore`) e
