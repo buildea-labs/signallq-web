@@ -17,6 +17,16 @@ export interface SpeedometerView {
   identity: SpeedometerIdentity;
 }
 
+/**
+ * O número central do mostrador é inteiro (protótipo, `formatValue`): com uma
+ * casa decimal o bloco fica largo o bastante para encostar nos rótulos da
+ * escala, e a casa não muda nenhuma decisão de quem lê. As casas decimais
+ * continuam disponíveis nos detalhes da medição.
+ */
+function formatDialNumber(mbps: number): string {
+  return Math.round(mbps).toString();
+}
+
 export function buildSpeedometerView(input: {
   phase: FasePainel;
   liveValue: number;
@@ -41,22 +51,22 @@ export function buildSpeedometerView(input: {
 
   if (phase === "latencia") {
     fraction = 0;
-    dialNumber = "0.0";
+    dialNumber = "0";
     dialUnit = "Mbps";
     identity = SPEEDOMETER_PHASE["preparando"];
   } else if (phase === "download") {
     fraction = fractionForThroughput(liveValue);
-    dialNumber = liveValue ? liveValue.toFixed(1) : "0.0";
+    dialNumber = formatDialNumber(liveValue);
     dialUnit = "Mbps";
   } else if (phase === "upload") {
     fraction = fractionForThroughput(liveValue);
-    dialNumber = liveValue ? liveValue.toFixed(1) : "0.0";
+    dialNumber = formatDialNumber(liveValue);
     dialUnit = "Mbps";
   } else if (phase === "processando") {
     fraction = 1;
   } else if (isResult && result) {
     fraction = fractionForThroughput(result.download.mbps);
-    dialNumber = result.download.mbps.toFixed(1);
+    dialNumber = formatDialNumber(result.download.mbps);
     dialUnit = "Mbps";
   }
 

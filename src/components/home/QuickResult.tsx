@@ -1,15 +1,25 @@
 "use client";
 
-import { Velocimetro } from "@/components/Velocimetro";
+import { Velocimetro, type VelocimetroMode } from "@/components/Velocimetro";
+import { ResultStamp } from "@/components/speedtest/ResultStamp";
 import type { SpeedTestJourney } from "@/hooks/useSpeedTestJourney";
 import { useNetworkInfo } from "@/hooks/useNetworkInfo";
+import { classifyDownload } from "@/lib/classification";
 import { PostResultProblemPrompt } from "./PostResultProblemPrompt";
-import { UseCaseSummary } from "./UseCaseSummary";
+import { QuickResultDetails } from "./QuickResultDetails";
+import { NIVEL_COR } from "./homeCopy";
 import { buildSpeedometerView } from "./speedometerView";
 
-/** Velocímetro e leitura rápida da medição corrente (conclusão/impacto vivem em CompleteDiagnosis, #71). */
+const DIAL_MODE = {
+  hidden: "settled",
+  forming: "forming",
+  measuring: "measuring",
+  result: "settled",
+} as const satisfies Record<SpeedTestJourney["layout"]["dial"], VelocimetroMode>;
+
+/** Mostrador e leitura rápida da medição corrente (conclusão/impacto vivem em CompleteDiagnosis, #71). */
 export function QuickResult({ journey }: { journey: SpeedTestJourney }) {
-  const { phase, liveValue, result, isIdle, isRunning, isProblem, isResult, terminalOutcome, modo, isAutoStarting, erroDuranteAprofundamento } = journey;
+  const { phase, liveValue, result, isRunning, isProblem, isResult, terminalOutcome, modo, layout, visualState } = journey;
   const { isp, region, loading } = useNetworkInfo();
   const { fraction, dialNumber, dialUnit, identity } = buildSpeedometerView({
     phase,
@@ -20,42 +30,73 @@ export function QuickResult({ journey }: { journey: SpeedTestJourney }) {
     terminalOutcome,
   });
 
+  const showsDial = layout.dial !== "hidden";
+  const isSettled = layout.dial === "result";
+  const restored = visualState.state === "restored-result";
+  // Cor do arco:
+  // - medindo, é sempre o accent (protótipo, telas 1.2/2.2). As cores por
+  //   fase do motor fariam o arco pular de verde (download) para âmbar
+  //   (upload) no meio da mesma medição, sem que nada tivesse piorado;
+  // - assentado, vem da leitura e não do fato de o teste ter acabado — um
+  //   download ruim não fica verde só porque a medição concluiu.
+  const dialColor = isRunning
+    ? "var(--accent)"
+    : isSettled && result && terminalOutcome === "complete"
+      ? NIVEL_COR[classifyDownload(result.download.mbps).nivel]
+      : identity.color;
+
   return (
     <>
-      <div className={`w-full ${modo === 'rapido' ? 'max-w-[1024px] mt-0' : 'max-w-[800px] mt-2'} flex flex-col items-center justify-center px-4 sm:px-8`}>
-        <div className="w-full flex justify-center">
-          <Velocimetro fraction={fraction} phaseColor={identity.color} isRunning={isRunning} phase={(isResult && result) ? "download" : phase} liveValue={(isResult && result) ? result.download.mbps : liveValue} value={dialNumber} unit={dialUnit} metricLabel={(isResult && result) ? "Download" : undefined} phaseLabel={isRunning || (isProblem && terminalOutcome === null) ? identity.label : undefined} narrative={isRunning || (isProblem && terminalOutcome === null) ? identity.narrative : undefined} compact={modo === "completo" ? (terminalOutcome !== null || isProblem) : isProblem}>
-            {(isIdle || isProblem) && !isAutoStarting && (
-              <div className="absolute left-1/2 bottom-[26px] -translate-x-1/2 flex flex-col items-center gap-[10px] z-10">
-                <button
-                  onClick={erroDuranteAprofundamento ? journey.iniciarAprofundamento : journey.iniciarTesteDireto}
-                  className="h-[44px] px-[26px] rounded-full flex items-center gap-2 border-none bg-[color:var(--accent)] shadow-[0_14px_30px_color-mix(in_srgb,_var(--accent)_45%,_transparent),_0_2px_6px_rgba(0,0,0,.25)] whitespace-nowrap cursor-pointer hover:scale-105 active:scale-95 transition-transform"
-                >
-                  <span aria-hidden="true" className="material-symbols-outlined text-[18px] text-[color:var(--on-accent)]">
-                    {isProblem ? "refresh" : "speed"}
-                  </span>
-                  <span className="font-semibold text-[16px] leading-[1.15] text-[color:var(--on-accent)]">
-                    {isProblem ? "Tentar novamente" : "Testar agora"}
-                  </span>
-                </button>
-                <span className="font-normal text-[12px] leading-[1.3] text-[color:var(--text-tertiary)]">
-                  {modo === "rapido" ? "Rápido · ~20 s" : "Completo · ~40 s"}
-                </span>
-              </div>
-            )}
-          </Velocimetro>
-        </div>
+      {/* Selo de procedência do resultado (protótipo, tela 1.3). Fica fora do
+          bloco do mostrador de propósito: no resultado completo o velocímetro
+          sai de cena, e sem o selo nada distinguiria um resultado restaurado
+          de um recém-medido. */}
+      {isResult && result && (
+        <ResultStamp
+          label={
+            restored
+              ? `Último resultado · ${modo === "rapido" ? "Teste rápido" : "Teste completo"}`
+              : `Teste ${modo === "rapido" ? "rápido" : "completo"} · Executado agora`
+          }
+          tone={terminalOutcome === "complete" ? "success" : "neutral"}
+        />
+      )}
 
-        {/* Só exibida quando ambos os valores são conhecidos — "Desconhecido" é
-            ruído para quem não pediu essa informação (#71 §3.1/§3.4.8). */}
-        {!isProblem && isResult && !loading && isp && region && (
-          <div className="w-full flex justify-center items-center gap-2 mt-2 text-[color:var(--text-secondary)] text-[10px] sm:text-[11px]">
-            <span className="font-semibold line-clamp-1">{isp}</span>
-            <span className="text-[color:var(--accent)] font-bold">|</span>
-            <span className="line-clamp-1">{region}</span>
-          </div>
-        )}
-      </div>
+      {showsDial && (
+        <div className="flex w-full flex-col items-center gap-2">
+          {/* Sem rótulo de fase sob o mostrador: quem narra a etapa é a linha
+              de estado de `TestRunning`, que já é `aria-live`. Dois textos
+              simultâneos sobre a mesma fase seriam ruído visual e leitura
+              duplicada para tecnologia assistiva. */}
+          <Velocimetro
+            fraction={fraction}
+            phaseColor={dialColor}
+            isRunning={isRunning}
+            phase={isSettled && result ? "download" : phase}
+            liveValue={isSettled && result ? result.download.mbps : liveValue}
+            value={layout.dial === "forming" ? undefined : dialNumber}
+            unit={layout.dial === "forming" ? undefined : dialUnit}
+            metricLabel={isSettled && result ? "Download" : undefined}
+            mode={restored && isSettled ? "restored" : DIAL_MODE[layout.dial]}
+            hideValue={layout.dial === "forming"}
+          />
+
+        </div>
+      )}
+
+      {/* Só exibida quando ambos os valores são conhecidos — "Desconhecido" é
+          ruído para quem não pediu essa informação (#71 §3.1/§3.4.8).
+          Independe do mostrador: no resultado completo o velocímetro sai de
+          cena, mas a origem da medição continua sendo informação do resultado. */}
+      {isResult && !isProblem && !loading && isp && region && (
+        <p className="m-0 flex items-center justify-center gap-2 text-[10px] text-[color:var(--text-secondary)] sm:text-[11px]">
+          <span className="line-clamp-1 font-semibold">{isp}</span>
+          <span aria-hidden="true" className="font-bold text-[color:var(--accent)]">
+            |
+          </span>
+          <span className="line-clamp-1">{region}</span>
+        </p>
+      )}
 
       {/* Gate por `isResult` (não só `result` truthy): durante um reteste
           (isRepeat=true, incluindo o aprofundamento pós-resultado) o
@@ -65,16 +106,17 @@ export function QuickResult({ journey }: { journey: SpeedTestJourney }) {
           lugar (spec Juliana §2: "não deixar as duas coisas visíveis ao
           mesmo tempo"). */}
       {isResult && result && (
-        <div className="w-full max-w-[520px] mt-8 flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 mx-auto">
-
-          {modo === "completo" && <UseCaseSummary result={result} />}
-
+        <div className="mx-auto flex w-full max-w-[520px] flex-col gap-6 sq-fade-up">
           {/* O aprofundamento pós-resultado muda `modo` para "completo" de
               verdade (bug crítico #1+#2) — por isso este bloco não pode mais
               depender só de `modo === "rapido"`: enquanto houver uma escolha
               pós-resultado ativa ou concluída, o cartão final dela continua
               aparecendo no mesmo lugar de sempre (spec Juliana §2). */}
           {(modo === "rapido" || Boolean(journey.postResultProblem)) && <PostResultProblemPrompt journey={journey} />}
+
+          {/* Só no resultado rápido: no completo, o bloco técnico completo
+              (`ResultTechnicalDetails`) já cobre — e supera — estes campos. */}
+          {isSettled && modo === "rapido" && <QuickResultDetails result={result} />}
         </div>
       )}
     </>

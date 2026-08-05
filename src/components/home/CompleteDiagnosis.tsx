@@ -5,8 +5,10 @@ import { PlayStoreBadge } from "@/components/PlayStoreBadge";
 import { ResultAdSlot } from "@/components/ResultAdSlot";
 import { GuidedDiagnosis } from "@/components/speedtest/GuidedDiagnosis";
 import type { SpeedTestJourney } from "@/hooks/useSpeedTestJourney";
+import { FullResultMetrics } from "./FullResultMetrics";
 import { ResultTechnicalDetails } from "./ResultTechnicalDetails";
 import { RetestComparison } from "./RetestComparison";
+import { UseCaseSummary } from "./UseCaseSummary";
 import { STATUS_LABEL, STATUS_MESSAGE } from "./homeCopy";
 
 /** Leitura completa do resultado: conclusão+próxima ação, comparação, detalhes e ações finais. */
@@ -25,7 +27,7 @@ export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
   // aprofundamentoPosResultadoAtivo removido conforme nova especificação UX
 
   return (
-    <div className="w-full max-w-[640px] flex flex-col">
+    <div className="w-full max-w-[720px] flex flex-col">
 
       {statusMensagem && (
         <div className="flex items-start justify-center gap-2 py-4 border-b border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]">
@@ -40,7 +42,13 @@ export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
 
       {respostaDiagnostica && (!journey.postResultProblem || journey.postResultProblem === "sem-problema") && (
         <section aria-labelledby="resultado-conclusao" className="py-7 border-b border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]">
-          <h1 id="resultado-conclusao" className="m-0 font-bold text-[22px] sm:text-[24px] leading-[1.25] text-[color:var(--text-primary)] tracking-tight">
+          {/* O diagnóstico lidera a tela do resultado completo (protótipo,
+              tela 2.4): overline curta e a conclusão em seguida — sem cartão,
+              sem ícone decorativo. */}
+          <p className="m-0 mb-[6px] font-bold text-[10.5px] uppercase leading-[1.4] tracking-[.4px] text-[color:var(--accent)]">
+            Diagnóstico
+          </p>
+          <h1 id="resultado-conclusao" className="m-0 font-bold text-[20px] sm:text-[24px] leading-[1.3] text-[color:var(--text-primary)] tracking-tight">
             {respostaDiagnostica.conclusion}
           </h1>
           <p className="mt-2 mb-0 font-normal text-[14px] leading-[1.45] text-[color:var(--text-secondary)]">{respostaDiagnostica.impact}</p>
@@ -57,6 +65,14 @@ export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
           )}
         </section>
       )}
+
+      {/* Métricas em hierarquia (protótipo, tela 2.4 e painel `desktop-2`):
+          download/upload lideram, ping e latência sob carga vêm em seguida.
+          O detalhamento completo continua no bloco expansível abaixo. */}
+      <section aria-label="Métricas da medição" className="flex flex-col gap-6 py-7 border-b border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]">
+        <FullResultMetrics result={result} />
+        <UseCaseSummary result={result} />
+      </section>
 
       {retesteBase && comparacaoReteste && (
         <RetestComparison comparacao={comparacaoReteste} comparacaoNaoSalva={journey.comparacaoNaoSalva} />
@@ -76,10 +92,10 @@ export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
             journey.iniciarReteste();
           }
         }}
-        className="w-full h-[46px] flex items-center justify-center gap-2 rounded-[var(--radius-button)] border-none bg-[color:var(--accent)] hover:brightness-110 transition-all cursor-pointer mt-6"
+        className="mt-6 flex h-[48px] w-full cursor-pointer items-center justify-center gap-2 rounded-[14px] border-[1.5px] border-[color:var(--accent)] bg-transparent transition-colors hover:bg-[color:color-mix(in_srgb,var(--accent)_10%,transparent)]"
       >
-        <span aria-hidden="true" className="material-symbols-outlined text-[20px] text-[color:var(--on-accent)]">refresh</span>
-        <span className="font-medium text-[14px] leading-[1.43] text-[color:var(--on-accent)]">
+        <span aria-hidden="true" className="material-symbols-outlined text-[20px] text-[color:var(--accent)]">refresh</span>
+        <span className="font-bold text-[13.5px] leading-[1.43] text-[color:var(--accent)]">
           {statusCompleto ? "Fazer e testar novamente" : "Testar novamente"}
         </span>
       </button>

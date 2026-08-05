@@ -72,9 +72,13 @@ export default function RootLayout({
             layout raiz, pra persistir entre navegações (guia §1) — mover
             página não deve remontar o header/rodapé (achado 01/08/2026,
             "topbar sambando" ao trocar de rota). */}
-        <div className="min-h-screen w-full">
+        <div className="flex min-h-screen w-full flex-col">
           <SiteNav />
-          <main className="w-full">
+          {/* `flex-1` aqui é o que dá altura ao miolo: sem isso, o
+              `align="center"` do `PageShell` não tinha espaço para centralizar
+              e as etapas curtas do fluxo de velocidade (formação, medição,
+              falha) ficavam ancoradas no topo com um vazio embaixo. */}
+          <main className="flex w-full flex-1 flex-col">
             {children}
             {modal}
           </main>

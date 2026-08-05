@@ -1,5 +1,7 @@
 "use client";
 
+import { DiagnosingSteps } from "@/components/speedtest/DiagnosingSteps";
+import { MeasurementStatusLine } from "@/components/speedtest/MeasurementStatusLine";
 import type { MeasurementSessionContext } from "@/lib/measurementSessionContext";
 import { POST_RESULT_PROBLEMS } from "@/lib/postResultProblem";
 import type { PostResultProblema } from "@/lib/postResultProblem";
@@ -15,7 +17,7 @@ interface TestRunningProps {
   onCancel: () => void;
 }
 
-/** Trio de métricas ao vivo e cancelamento, enquanto o teste executa. */
+/** Etapa em execução: passo, estado da medição e cancelamento explícito. */
 export function TestRunning({
   phase,
   mode,
@@ -38,6 +40,15 @@ export function TestRunning({
   } else if (phase === "upload") statusText = "Quase acabando, medindo upload...";
   else if (phase === "processando") statusText = "Consolidando resultado...";
 
+  // "1 de 2 · Download" (protótipo, tela 2.2): só no modo Completo, que é o
+  // único com mais de uma etapa de throughput.
+  const step =
+    mode === "completo" && phase === "download"
+      ? "1 de 2 · Download"
+      : mode === "completo" && phase === "upload"
+        ? "2 de 2 · Upload"
+        : undefined;
+
   // O contexto pré-teste (`measurementContext.declaredProblem`) e a escolha
   // pós-resultado são vocabulários e fontes distintos (ver `postResultProblem.ts`);
   // aqui só reaproveitamos o mesmo padrão de exibição ("Contexto informado: ..."),
@@ -48,24 +59,36 @@ export function TestRunning({
       ? POST_RESULT_PROBLEMS.find((opcao) => opcao.value === postResultProblem)?.label
       : undefined;
 
+  const contextLine = declaredProblemLabel ? (
+    <p className="m-0 text-center text-[12px] leading-[1.4] text-[color:var(--text-secondary)]">
+      Contexto informado: {declaredProblemLabel}
+    </p>
+  ) : null;
+
+  // Medição concluída e diagnóstico rodando (tela 2.3): a lista de etapas
+  // substitui o mostrador, sem skeleton pesado.
+  if (mode === "completo" && phase === "processando") {
+    return (
+      <>
+        {contextLine}
+        <span className="sr-only" role="status" aria-live="polite">
+          {statusText}
+        </span>
+        <DiagnosingSteps phase={phase} onCancel={onCancel} />
+      </>
+    );
+  }
+
   return (
     <>
-      {declaredProblemLabel && (
-        <p className="m-0 text-center text-[12px] leading-[1.4] text-[color:var(--text-secondary)]">
-          Contexto informado: {declaredProblemLabel}
-        </p>
-      )}
-      <p className="m-0 mt-4 text-center text-[16px] font-medium text-[color:var(--text-primary)] animate-pulse">
-        {statusText}
-      </p>
+      {contextLine}
+      <MeasurementStatusLine text={statusText} step={step} />
       <button
+        type="button"
         onClick={onCancel}
-        className="h-[40px] flex items-center gap-[6px] border-none bg-transparent cursor-pointer"
+        className="min-h-[44px] border-none bg-transparent p-0 text-[12px] font-medium text-[color:var(--text-secondary)] underline underline-offset-4 cursor-pointer hover:text-[color:var(--text-primary)]"
       >
-        <span aria-hidden="true" className="material-symbols-outlined text-[18px] text-[color:var(--text-primary)]">close</span>
-        <span className="font-medium text-[14px] leading-[1.43] text-[color:var(--text-primary)]">
-          Cancelar teste
-        </span>
+        Cancelar teste
       </button>
     </>
   );

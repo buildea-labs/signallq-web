@@ -48,7 +48,10 @@ export function ProblemPrompt({
           <span aria-hidden="true" className="material-symbols-outlined text-[20px]">close</span>
         </button>
       </div>
-      <div className="mt-4 flex flex-wrap gap-2">
+      <p className="m-0 mt-4 font-bold text-[11px] uppercase leading-[1.4] tracking-[.4px] text-[color:var(--text-secondary)]">
+        Problema
+      </p>
+      <div className="mt-2 flex flex-wrap gap-2">
         {PROBLEMAS_PERCEBIDOS.map((opcao) => (
           <button
             key={opcao.value}
@@ -69,7 +72,7 @@ export function ProblemPrompt({
         type="button"
         onClick={onStartWithProblem}
         disabled={!selectedProblem}
-        className="mt-4 h-[44px] rounded-full px-5 border-none bg-[color:var(--accent)] cursor-pointer font-semibold text-[14px] text-[color:var(--on-accent)] disabled:cursor-not-allowed disabled:opacity-50"
+        className="mt-5 h-[48px] w-full rounded-[14px] border-none bg-[color:var(--accent)] px-5 font-bold text-[14.5px] text-[color:var(--on-accent)] shadow-[0_8px_20px_color-mix(in_srgb,var(--accent)_30%,transparent)] transition-[filter] hover:brightness-110 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
       >
         Testar agora
       </button>

@@ -38,7 +38,11 @@ export function PostResultProblemPrompt({ journey }: { journey: SpeedTestJourney
         </p>
       )}
       <fieldset className="w-full max-w-[440px] border-none p-0 m-0 flex flex-col items-center gap-3">
-        <legend className="m-0 mb-1 w-full px-0 text-center font-semibold text-[16px] leading-[1.35] text-[color:var(--text-primary)]">
+        {/* O protótipo abre esta escolha num sheet sobre o resultado; aqui ela
+            fica no próprio fluxo da página — mesma composição visual (título
+            curto + chips + CTA), sem modal, sem trava de foco e sem uma
+            segunda URL para o mesmo resultado. */}
+        <legend className="m-0 mb-1 w-full px-0 text-center font-bold text-[16px] leading-[1.35] tracking-[-0.1px] text-[color:var(--text-primary)]">
           Você está tendo algum problema agora?
         </legend>
         <div className="flex flex-wrap justify-center gap-2">
@@ -66,13 +70,13 @@ export function PostResultProblemPrompt({ journey }: { journey: SpeedTestJourney
             );
           })}
         </div>
-        <div className="mt-4">
+        <div className="mt-4 w-full flex justify-center">
           <button
             type="button"
             onClick={() => journey.iniciarAprofundamento()}
-            className="h-[44px] px-[26px] rounded-full border-none bg-[color:var(--accent)] font-semibold text-[15px] text-[color:var(--on-accent)] cursor-pointer hover:scale-105 active:scale-95 transition-transform shadow-[0_4px_14px_color-mix(in_srgb,_var(--accent)_30%,_transparent)]"
+            className="min-h-[48px] w-full max-w-[260px] rounded-[14px] border-none bg-[color:var(--accent)] px-6 font-bold text-[14.5px] text-[color:var(--on-accent)] shadow-[0_8px_20px_color-mix(in_srgb,var(--accent)_30%,transparent)] transition-[filter] hover:brightness-110 cursor-pointer"
           >
-            Rodar Teste Completo
+            Fazer teste completo
           </button>
         </div>
       </fieldset>

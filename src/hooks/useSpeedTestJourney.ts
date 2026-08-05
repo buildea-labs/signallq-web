@@ -20,6 +20,7 @@ import {
   readRestorableSpeedTestResult,
 } from "@/lib/speedTestJourneySession";
 import { copySpeedTestResult, shareSpeedTestResult } from "@/lib/speedTestJourneySharing";
+import { speedTestLayoutFor } from "@/lib/speedTestLayout";
 import { RUNNING_PHASES } from "@/lib/speedTestPhase";
 import { deriveSpeedTestVisualState } from "@/lib/speedTestVisualState";
 import type { SpeedometerOutcome } from "@/lib/speedometerIdentity";
@@ -109,7 +110,6 @@ export function useSpeedTestJourney() {
         ? null
         : result?.status ?? null;
   const showDial = isIdle || isRunning || terminalOutcome !== null || isProblem;
-  const shellAlign: "center" | "start" = isRunning || isProblem ? "center" : "start";
   const shouldCollectContextualQuestions = isResult && measurementContext?.entry === "problem";
   const shouldResumeContextualQuestions = isIdle && questionarioRetomavel && measurementContext?.entry === "problem";
   // Falha (não cancelamento) durante o aprofundamento: mantém o mesmo cartão
@@ -332,12 +332,17 @@ export function useSpeedTestJourney() {
     deepeningAfterQuickResult: emAprofundamentoPosResultado,
   });
 
+  // Layout é consequência do estado visual, nunca uma segunda decisão tomada
+  // dentro dos componentes.
+  const layout = speedTestLayoutFor(visualState, phase);
+  const shellAlign: "center" | "start" = layout.stage === "stage" ? "center" : "start";
+
   return {
     modo, setModo, copiado,
     phase, liveValue, phaseResults, result, measurementContext,
     isIdle, isRunning, isResult, isProblem, hasVisibleResult, terminalOutcome, showDial, shellAlign,
     isAutoStarting,
-    visualState,
+    visualState, layout,
     shouldCollectContextualQuestions, shouldResumeContextualQuestions,
     entradaProblemaAberta, problemaPercebido, respostaDiagnostica,
     retesteBase, comparacaoReteste, comparacaoNaoSalva,
