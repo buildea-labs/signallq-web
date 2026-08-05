@@ -51,6 +51,13 @@ export function useSpeedTestController(modo: SpeedTestMode) {
   // guard de rede na interface pública do hook.
   const redeInicialTipoRef = useRef<TipoRede | null>(null)
 
+  // "Cancelar teste" já está na tela durante a fase 'preparando', mas nessa
+  // janela `engineRef.current` ainda aponta para o motor da rodada anterior
+  // (ou é null): `cancel()` caía num motor já encerrado e o clique não fazia
+  // nada — a medição seguia até o fim. Este ref guarda o pedido de
+  // cancelamento até haver um motor novo para recebê-lo.
+  const cancelamentoPendenteRef = useRef(false)
+
   const aplicarFase = useCallback((novaFase: FasePainel) => {
     phaseRef.current = novaFase
     setPhase(novaFase)
@@ -66,6 +73,7 @@ export function useSpeedTestController(modo: SpeedTestMode) {
     async (isRepeat: boolean, modeOverride?: SpeedTestMode) => {
       acquire()
       startHeartbeat()
+      cancelamentoPendenteRef.current = false
       liveValueRef.current = 0
       aplicarFase('preparando')
       setLiveValue(0)
@@ -87,6 +95,9 @@ export function useSpeedTestController(modo: SpeedTestMode) {
 
       const engine = createSpeedTest(modeOverride ?? modoRef.current)
       engineRef.current = engine
+      // Cancelamento pedido antes de o motor existir (fase 'preparando' /
+      // checagem de rede): honra agora, no motor certo.
+      if (cancelamentoPendenteRef.current) engine.cancel()
       try {
         const r = await engine.run({
           onPhase: (p) => {
@@ -148,6 +159,7 @@ export function useSpeedTestController(modo: SpeedTestMode) {
   }, [])
 
   const cancelTest = useCallback(() => {
+    cancelamentoPendenteRef.current = true
     if (engineRef.current) engineRef.current.cancel()
   }, [])
 

@@ -29,7 +29,11 @@ export function CookieConsentBanner() {
         <p className="m-0 max-w-[640px] font-normal text-[13px] leading-[1.45] text-[color:var(--text-secondary)]">
           Guardamos sua decisão de anúncios no navegador. Só com sua autorização carregamos o Google
           AdSense, que pode usar cookies e tecnologias próprias de publicidade. Veja a{" "}
-          <Link href="/privacidade" className="text-[color:var(--accent)]">
+          {/* `underline` não é enfeite: dentro de um bloco de texto, este link
+              se distinguia só pela cor, com contraste de 1.17:1 contra o texto
+              vizinho — falha séria de WCAG 1.4.1 (axe `link-in-text-block`),
+              registrada como pendência em #71/#75 e corrigida aqui. */}
+          <Link href="/privacidade" className="text-[color:var(--accent)] underline">
             Política de Privacidade
           </Link>
           .

@@ -93,13 +93,22 @@ test.describe('Jornada Rápido — teclado e resultado real (#71, bug crítico #
     await expect(estaLenta).toBeFocused()
     await page.keyboard.press('Space')
 
-    // Decisão de produto revertida (bug crítico #1+#2): selecionar um
-    // problema pós-resultado agora troca de verdade para o modo Completo e
-    // reinicia a medição (download+upload+latência+jitter reais) — não fica
-    // mais só perguntando sobre o download do modo Rápido. A mensagem de
-    // transição some o fieldset (substituído por `TestRunning`) e só volta a
-    // aparecer quando o teste completo concluir.
-    await expect(page.getByText('Aprofundando com um teste completo…')).toBeVisible({ timeout: 10_000 })
+    // Escolher o problema registra a escolha e abre o detalhamento; quem
+    // dispara o teste completo é a ação explícita "Rodar Teste Completo"
+    // (`PostResultProblemPrompt` -> `journey.iniciarAprofundamento`). Este
+    // teste esperava o aprofundamento automático de uma versão anterior do
+    // fluxo e falhava de forma determinística por isso.
+    const rodarCompleto = page.getByRole('button', { name: 'Rodar Teste Completo' })
+    await rodarCompleto.focus()
+    await expect(rodarCompleto).toBeFocused()
+    await page.keyboard.press('Enter')
+
+    // Sinal estável do aprofundamento: `TestRunning` mostra o contexto
+    // informado em todas as fases de execução. O texto "Aprofundando com um
+    // teste completo…" só existe na fase de latência, curta demais (25
+    // amostras) para ser um marco confiável — mesma conclusão já registrada
+    // em `aprofundamento-retry-network.spec.ts`.
+    await expect(page.getByText('Contexto informado: Está lenta')).toBeVisible({ timeout: 10_000 })
     await page.screenshot({ path: `${EVIDENCE_DIR}/rapido-aprofundamento-transicao.png`, fullPage: true })
 
     // Fases reais do teste completo (não só o download do modo Rápido).
