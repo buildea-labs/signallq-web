@@ -67,7 +67,7 @@ export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
       {/* Única ação primária da etapa: reteste. "Ver histórico" é navegação de
           saída, rebaixada ao mesmo peso de Compartilhar/Copiar resumo (#71 §3.2/§3.4.6). */}
       <button
-        onClick={(e) => {
+        onClick={() => {
           if (statusCompleto) {
             journey.iniciarReteste();
           } else if (emAprofundamentoPosResultado) {

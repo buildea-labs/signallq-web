@@ -130,6 +130,13 @@ a:hover {
   animation: sq-pulse-dot 1.4s ease-in-out infinite;
 }
 
+.sq-diagnostico-bg {
+  background: var(--bg-primary);
+}
+.dark .sq-diagnostico-bg {
+  background: #000000;
+}
+
 /* PwaToastStack — some quando o rodapé (SiteFooter) entra na viewport, senão
    o toast fixed fica sobreposto ao conteúdo do rodapé (bug real, 2026-07-26).
    Classe `sq-footer-visible` publicada no <html> pelo próprio SiteFooter via
