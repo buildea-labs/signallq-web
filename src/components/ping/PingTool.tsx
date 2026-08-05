@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { ToolBackLink } from "@/components/ToolBackLink";
 import { Velocimetro } from "@/components/Velocimetro";
 import { MeasurementStatusLine } from "@/components/speedtest/MeasurementStatusLine";
 import { usePingTool, PING_SAMPLE_COUNT } from "@/hooks/usePingTool";
@@ -35,6 +36,10 @@ export function PingTool() {
 
   return (
     <div className="flex w-full flex-col items-center gap-6">
+      <div className="w-full">
+        <ToolBackLink />
+      </div>
+
       <h1 className="m-0 text-center font-bold text-[20px] leading-[1.3] text-[color:var(--text-primary)] sm:text-[24px]">
         Ping — tempo de resposta da sua conexão
       </h1>
