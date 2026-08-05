@@ -1,17 +1,31 @@
 "use client";
 
-import type { SpeedTestJourney } from "@/hooks/useSpeedTestJourney";
+import type { ProblemaPercebido } from "@/lib/problemEntry";
 import { PROBLEMAS_PERCEBIDOS } from "@/lib/problemEntry";
 
-/** Entrada por problema percebido, antes de iniciar a medição. */
-export function ProblemPrompt({ journey }: { journey: SpeedTestJourney }) {
-  const { entradaProblemaAberta, problemaPercebido } = journey;
+interface ProblemPromptProps {
+  open: boolean;
+  selectedProblem: ProblemaPercebido | null;
+  onOpen: () => void;
+  onClose: () => void;
+  onSelectProblem: (problem: ProblemaPercebido) => void;
+  onStartWithProblem: () => void;
+}
 
-  if (!entradaProblemaAberta) {
+/** Entrada por problema percebido, antes de iniciar a medição. */
+export function ProblemPrompt({
+  open,
+  selectedProblem,
+  onOpen,
+  onClose,
+  onSelectProblem,
+  onStartWithProblem,
+}: ProblemPromptProps) {
+  if (!open) {
     return (
       <button
         type="button"
-        onClick={journey.abrirEntradaPorProblema}
+        onClick={onOpen}
         className="h-[40px] rounded-full px-4 border border-[color:var(--border)] bg-transparent cursor-pointer font-medium text-[14px] leading-[1.43] text-[color:var(--text-primary)] hover:bg-[color:var(--bg-secondary)]"
       >
         Minha internet está com problema
@@ -27,7 +41,7 @@ export function ProblemPrompt({ journey }: { journey: SpeedTestJourney }) {
         </h2>
         <button
           type="button"
-          onClick={journey.fecharEntradaPorProblema}
+          onClick={onClose}
           className="h-9 w-9 shrink-0 border-none bg-transparent cursor-pointer text-[color:var(--text-secondary)]"
           aria-label="Fechar opções de problema"
         >
@@ -39,10 +53,10 @@ export function ProblemPrompt({ journey }: { journey: SpeedTestJourney }) {
           <button
             key={opcao.value}
             type="button"
-            aria-pressed={problemaPercebido === opcao.value}
-            onClick={() => journey.selecionarProblema(opcao.value)}
+            aria-pressed={selectedProblem === opcao.value}
+            onClick={() => onSelectProblem(opcao.value)}
             className={`h-9 px-[14px] rounded-full border flex items-center justify-center font-medium text-[13px] sm:text-[14px] leading-[1.2] cursor-pointer transition-colors ${
-              problemaPercebido === opcao.value
+              selectedProblem === opcao.value
                 ? "border-[color:var(--accent)] bg-[color:color-mix(in_srgb,var(--accent)_12%,transparent)] text-[color:var(--text-primary)]"
                 : "border-[color:var(--border)] bg-transparent text-[color:var(--text-primary)] hover:bg-[color:var(--bg-secondary)]"
             }`}
@@ -53,8 +67,8 @@ export function ProblemPrompt({ journey }: { journey: SpeedTestJourney }) {
       </div>
       <button
         type="button"
-        onClick={journey.iniciarTesteComProblema}
-        disabled={!problemaPercebido}
+        onClick={onStartWithProblem}
+        disabled={!selectedProblem}
         className="mt-4 h-[44px] rounded-full px-5 border-none bg-[color:var(--accent)] cursor-pointer font-semibold text-[14px] text-[color:var(--on-accent)] disabled:cursor-not-allowed disabled:opacity-50"
       >
         Testar agora

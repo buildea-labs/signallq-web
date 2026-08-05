@@ -34,7 +34,14 @@ export function QuickTestJourney({ journey }: { journey: SpeedTestJourney }) {
 
           {(isIdle || isProblem) && (
             <>
-              <ProblemPrompt journey={journey} />
+              <ProblemPrompt
+                open={journey.entradaProblemaAberta}
+                selectedProblem={journey.problemaPercebido}
+                onOpen={journey.abrirEntradaPorProblema}
+                onClose={journey.fecharEntradaPorProblema}
+                onSelectProblem={journey.selecionarProblema}
+                onStartWithProblem={journey.iniciarTesteComProblema}
+              />
               <div className="w-full max-w-[260px] flex items-center justify-center gap-1">
                 <SegmentedControl options={MODOS} value={modo} onChange={journey.setModo} />
                 <HelpButton
@@ -64,7 +71,16 @@ export function QuickTestJourney({ journey }: { journey: SpeedTestJourney }) {
             </>
           )}
 
-          {isRunning && <TestRunning journey={journey} />}
+          {isRunning && (
+            <TestRunning
+              phase={journey.phase}
+              mode={journey.modo}
+              measurementContext={journey.measurementContext}
+              deepeningAfterQuickResult={journey.emAprofundamentoPosResultado}
+              postResultProblem={journey.postResultProblem}
+              onCancel={journey.cancelTest}
+            />
+          )}
         </div>
       )}
     </>

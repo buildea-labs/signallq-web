@@ -5,16 +5,23 @@ import { useSpeedTest, type ProblemPhase } from "@/hooks/useSpeedTest";
 import { usePostResultProblem } from "@/hooks/usePostResultProblem";
 import { contextualProblemFromSearch } from "@/lib/contextualEntry";
 import type { ContextualAnswer } from "@/lib/contextualQuestionFlow";
-import { addComparison } from "@/lib/comparisonRepository";
 import { updateRecordDiagnostic } from "@/lib/measurementRepository";
 import { createMeasurementSessionContext } from "@/lib/measurementSessionContext";
 import { readMeasurementSession } from "@/lib/measurementSessionStore";
 import type { PostResultProblema } from "@/lib/postResultProblem";
 import type { ProblemaPercebido } from "@/lib/problemEntry";
-import { compareRetest, comparisonMode, type RetestComparison } from "@/lib/retestComparison";
-import { copyMeasurement, shareMeasurement } from "@/lib/sharing";
+import type { RetestComparison } from "@/lib/retestComparison";
 import type { SpeedTestResult } from "@/lib/speedEngine";
+import { persistRetestComparison, retestComparisonId } from "@/lib/speedTestJourneyComparison";
+import {
+  hasSpeedTestAutoStarted,
+  markSpeedTestAutoStarted,
+  persistRestorableSpeedTestResult,
+  readRestorableSpeedTestResult,
+} from "@/lib/speedTestJourneySession";
+import { copySpeedTestResult, shareSpeedTestResult } from "@/lib/speedTestJourneySharing";
 import { RUNNING_PHASES } from "@/lib/speedTestPhase";
+import { deriveSpeedTestVisualState } from "@/lib/speedTestVisualState";
 import type { SpeedometerOutcome } from "@/lib/speedometerIdentity";
 import {
   FEATURE_SPEEDTEST_COMPARTILHOU,
@@ -62,6 +69,7 @@ export function useSpeedTestJourney() {
   const [emAprofundamentoPosResultado, setEmAprofundamentoPosResultado] = useState(false);
   const [notaAprofundamentoCancelado, setNotaAprofundamentoCancelado] = useState(false);
   const [downloadMbpsAntesDoAprofundamento, setDownloadMbpsAntesDoAprofundamento] = useState<number | null>(null);
+  const [resultadoRestaurado, setResultadoRestaurado] = useState(false);
   const abandonoRegistrado = useRef(false);
   const comparacaoPersistida = useRef<string | null>(null);
   const { phase, liveValue, phaseResults, result, measurementContext, cancelTest, retry, forceStart, restaurarResultadoAnterior, injectResult } =
@@ -158,14 +166,16 @@ export function useSpeedTestJourney() {
 
   useEffect(() => {
     if (!retesteBase || !result || retesteBase.id === result.id) return;
-    const comparison = compareRetest(retesteBase, result);
-    setComparacaoReteste(comparison);
-    const mode = comparisonMode(result.mode);
     const comparisonId = `${retesteBase.id}:${result.id}`;
-    if (!comparison.compatible || !mode || comparacaoPersistida.current === comparisonId) return;
-    comparacaoPersistida.current = comparisonId;
-    void addComparison({ id: comparisonId, createdAt: Date.now(), beforeId: retesteBase.id, afterId: result.id, mode })
-      .catch(() => setComparacaoNaoSalva(true));
+    void persistRetestComparison(retesteBase, result, comparacaoPersistida.current)
+      .then(({ comparison, persisted }) => {
+        if (comparison) setComparacaoReteste(comparison);
+        if (persisted) comparacaoPersistida.current = retestComparisonId(retesteBase, result);
+      })
+      .catch(() => {
+        setComparacaoReteste(null);
+        if (comparacaoPersistida.current !== comparisonId) setComparacaoNaoSalva(true);
+      });
   }, [result, retesteBase]);
 
   const respostaDiagnostica = result ? createWebDiagnosticResponse(result, measurementContext, respostasContextuais) : null;
@@ -189,6 +199,7 @@ export function useSpeedTestJourney() {
     setProblemaPercebido(null);
     setEntradaProblemaAberta(false);
     resetarProblemaPosResultado();
+    setResultadoRestaurado(false);
     setEmAprofundamentoPosResultado(false);
     setNotaAprofundamentoCancelado(false);
     trackFeatureUsed(FEATURE_SPEEDTEST_ENTRADA_DIRETA);
@@ -206,6 +217,7 @@ export function useSpeedTestJourney() {
     if (!problemaPercebido) return;
     abandonoRegistrado.current = true;
     resetarProblemaPosResultado();
+    setResultadoRestaurado(false);
     setEmAprofundamentoPosResultado(false);
     setNotaAprofundamentoCancelado(false);
     forceStart(createMeasurementSessionContext("problem", problemaPercebido));
@@ -217,6 +229,7 @@ export function useSpeedTestJourney() {
     setComparacaoReteste(null);
     setComparacaoNaoSalva(false);
     resetarProblemaPosResultado();
+    setResultadoRestaurado(false);
     setEmAprofundamentoPosResultado(false);
     setNotaAprofundamentoCancelado(false);
     retry();
@@ -232,6 +245,7 @@ export function useSpeedTestJourney() {
   const iniciarAprofundamento = () => {
     setNotaAprofundamentoCancelado(false);
     setDownloadMbpsAntesDoAprofundamento(result ? result.download.mbps : null);
+    setResultadoRestaurado(false);
     setEmAprofundamentoPosResultado(true);
     setModo("completo");
     retry("completo");
@@ -250,13 +264,13 @@ export function useSpeedTestJourney() {
 
   const compartilhar = async () => {
     if (!result) return;
-    const outcome = await shareMeasurement({ timestamp: result.timestamp, downloadMbps: result.download.mbps, uploadMbps: result.upload.mbps, latencyMs: result.latency.ms, conclusion: respostaDiagnostica?.conclusion, nextAction: respostaDiagnostica?.nextAction });
+    const outcome = await shareSpeedTestResult(result, respostaDiagnostica);
     if (outcome !== "cancelled") trackFeatureUsed(FEATURE_SPEEDTEST_COMPARTILHOU);
   };
 
   const copiarResumo = async () => {
     if (!result) return;
-    const outcome = await copyMeasurement({ timestamp: result.timestamp, downloadMbps: result.download.mbps, uploadMbps: result.upload.mbps, latencyMs: result.latency.ms, conclusion: respostaDiagnostica?.conclusion, nextAction: respostaDiagnostica?.nextAction });
+    const outcome = await copySpeedTestResult(result, respostaDiagnostica);
     if (outcome === "copied" || outcome === "manual-copy") {
       setCopiado(true);
       setTimeout(() => setCopiado(false), 2500);
@@ -270,27 +284,21 @@ export function useSpeedTestJourney() {
   useEffect(() => {
     if (modo === "rapido" && !problemaPercebido && isIdle && !autoStartDisparado.current) {
       if (typeof window !== "undefined" && !window.location.search.includes("problem=")) {
-        const storedFullResult = sessionStorage.getItem("signallq_full_last_result_v1");
+        const storedFullResult = readRestorableSpeedTestResult();
         if (storedFullResult) {
-          try {
-            const parsedResult = JSON.parse(storedFullResult);
-            if (parsedResult && parsedResult.status === 'complete') {
-              autoStartDisparado.current = true;
-              setIsAutoStarting(false);
-              setModo(parsedResult.mode);
-              setTimeout(() => injectResult(parsedResult), 0);
-              return;
-            }
-          } catch {
-            // Ignora falha de parse
-          }
+          autoStartDisparado.current = true;
+          setIsAutoStarting(false);
+          setResultadoRestaurado(true);
+          setModo(storedFullResult.mode === "rapido" ? "rapido" : "completo");
+          setTimeout(() => injectResult(storedFullResult), 0);
+          return;
         }
 
-        const hasAutoStarted = sessionStorage.getItem("speedtest_autostarted") === "true";
+        const hasAutoStarted = hasSpeedTestAutoStarted();
         autoStartDisparado.current = true;
         
         if (!hasAutoStarted) {
-          sessionStorage.setItem("speedtest_autostarted", "true");
+          markSpeedTestAutoStarted();
           // Espera um tick para garantir que react renderize
           setTimeout(() => {
             iniciarTesteDireto();
@@ -307,26 +315,29 @@ export function useSpeedTestJourney() {
     }
     
     if (result && result.status === 'complete') {
-        const testResults = {
-          latency: result.latency.ms,
-          download: result.download.mbps,
-          upload: result.upload.mbps,
-          jitter: result.latency.p95Ms ? Math.abs(result.latency.p95Ms - result.latency.ms) : 0,
-          timestamp: Date.now()
-        };
-        if (typeof window !== "undefined") {
-          sessionStorage.setItem("signallq_last_result", JSON.stringify(testResults));
-          sessionStorage.setItem("signallq_full_last_result_v1", JSON.stringify(result));
-        }
+        persistRestorableSpeedTestResult(result);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [modo, problemaPercebido, isIdle, result]);
+
+  const visualState = deriveSpeedTestVisualState({
+    phase,
+    mode: modo,
+    result,
+    liveValue,
+    phaseResults,
+    measurementContext,
+    isAutoStarting,
+    restoredResult: resultadoRestaurado,
+    deepeningAfterQuickResult: emAprofundamentoPosResultado,
+  });
 
   return {
     modo, setModo, copiado,
     phase, liveValue, phaseResults, result, measurementContext,
     isIdle, isRunning, isResult, isProblem, hasVisibleResult, terminalOutcome, showDial, shellAlign,
     isAutoStarting,
+    visualState,
     shouldCollectContextualQuestions, shouldResumeContextualQuestions,
     entradaProblemaAberta, problemaPercebido, respostaDiagnostica,
     retesteBase, comparacaoReteste, comparacaoNaoSalva,

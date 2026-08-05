@@ -1,24 +1,40 @@
 "use client";
 
-import type { SpeedTestJourney } from "@/hooks/useSpeedTestJourney";
+import type { MeasurementSessionContext } from "@/lib/measurementSessionContext";
 import { POST_RESULT_PROBLEMS } from "@/lib/postResultProblem";
+import type { PostResultProblema } from "@/lib/postResultProblem";
 import { PROBLEMAS_PERCEBIDOS } from "@/lib/problemEntry";
+import type { FasePainel } from "@/lib/speedTestPhase";
+
+interface TestRunningProps {
+  phase: FasePainel;
+  mode: "rapido" | "completo";
+  measurementContext: MeasurementSessionContext | null;
+  deepeningAfterQuickResult: boolean;
+  postResultProblem: PostResultProblema | null;
+  onCancel: () => void;
+}
 
 /** Trio de métricas ao vivo e cancelamento, enquanto o teste executa. */
-export function TestRunning({ journey }: { journey: SpeedTestJourney }) {
-  const { phase, measurementContext, emAprofundamentoPosResultado, postResultProblem } = journey;
-
+export function TestRunning({
+  phase,
+  mode,
+  measurementContext,
+  deepeningAfterQuickResult,
+  postResultProblem,
+  onCancel,
+}: TestRunningProps) {
   // Aprofundamento pós-resultado (spec Juliana §1): na primeira fase, troca
   // literalmente o texto padrão de latência pela frase de transição — nas
   // fases seguintes (download/upload/processando), os textos já existentes
   // do modo Completo não mudam, sem variante "pós-problema".
   let statusText = "Preparando teste...";
   if (phase === "latencia") {
-    statusText = emAprofundamentoPosResultado
+    statusText = deepeningAfterQuickResult
       ? "Aprofundando com um teste completo…"
       : "Medindo tempo de resposta inicial...";
   } else if (phase === "download") {
-    statusText = journey.modo === "rapido" ? "Quase acabando..." : "Avaliando capacidade de download...";
+    statusText = mode === "rapido" ? "Quase acabando..." : "Avaliando capacidade de download...";
   } else if (phase === "upload") statusText = "Quase acabando, medindo upload...";
   else if (phase === "processando") statusText = "Consolidando resultado...";
 
@@ -43,7 +59,7 @@ export function TestRunning({ journey }: { journey: SpeedTestJourney }) {
         {statusText}
       </p>
       <button
-        onClick={journey.cancelTest}
+        onClick={onCancel}
         className="h-[40px] flex items-center gap-[6px] border-none bg-transparent cursor-pointer"
       >
         <span aria-hidden="true" className="material-symbols-outlined text-[18px] text-[color:var(--text-primary)]">close</span>
