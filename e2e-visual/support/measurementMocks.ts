@@ -120,20 +120,14 @@ export async function mockMeasurementNetwork(page: Page, options: MeasurementMoc
  * de teste extra é adicionado ao código de produção.
  */
 export interface SessionSeed {
-  /** Suprime o autostart da medição, deixando a Home ociosa. */
-  autoStarted?: boolean
   /** Resultado completo restaurável (estado `restored-result`). */
   restorableResult?: unknown
 }
 
 export async function seedJourneySession(page: Page, seed: SessionSeed) {
   await page.addInitScript((value: SessionSeed) => {
-    if (value.autoStarted) sessionStorage.setItem('speedtest_autostarted', 'true')
     if (value.restorableResult) {
       sessionStorage.setItem('signallq_full_last_result_v1', JSON.stringify(value.restorableResult))
     }
   }, seed)
 }
-
-/** Home ociosa: `?problem=` é a chave que a própria jornada usa para não autostartar. */
-export const IDLE_URL = '/?problem=visual-baseline-idle'

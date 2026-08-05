@@ -28,7 +28,7 @@
 import { expect, test, type Page } from '@playwright/test'
 import { restoredResultFixture } from '../src/test/fixtures/speedTestResults'
 import { SPEEDTEST_DOWNLOAD_URL } from '../src/lib/config'
-import { IDLE_URL, mockMeasurementNetwork, seedJourneySession } from './support/measurementMocks'
+import { mockMeasurementNetwork, seedJourneySession } from './support/measurementMocks'
 
 const BASELINE_DIR = 'test-results/speed-test-flow-baseline'
 
@@ -64,12 +64,15 @@ for (const viewport of VIEWPORTS) {
       await page.setViewportSize({ width: viewport.width, height: viewport.height })
     })
 
-    test('forming: Home ociosa, antes de qualquer medição', async ({ page }) => {
+    test('forming: entrada na rota, com a medição já começando sozinha', async ({ page }) => {
       await mockMeasurementNetwork(page)
-      await page.goto(IDLE_URL)
+      await page.goto('/')
 
-      await expect(page.getByRole('button', { name: 'Testar agora' })).toBeVisible()
-      await expect(page.getByRole('button', { name: 'Minha internet está com problema' })).toBeVisible()
+      await expect(page.getByText('Preparando sua medição…')).toBeVisible({ timeout: 15_000 })
+      // A jornada do protótipo não tem tela ociosa: nenhum controle de entrada
+      // compete com a medição que já começou.
+      await expect(page.getByRole('button', { name: 'Testar agora' })).toHaveCount(0)
+      await expect(page.getByRole('button', { name: 'Completo' })).toHaveCount(0)
 
       await capture(page, 'forming', viewport)
     })
@@ -87,61 +90,72 @@ for (const viewport of VIEWPORTS) {
       await capture(page, 'quick-running', viewport)
     })
 
-    test('quick-result: resultado do modo Rápido com a pergunta pós-resultado', async ({ page }) => {
+    test('quick-result: resultado do modo Rápido, com contexto opcional e CTA', async ({ page }) => {
       await mockMeasurementNetwork(page)
       await page.goto('/')
 
-      await expect(page.getByText('Você está tendo algum problema agora?')).toBeVisible({ timeout: 60_000 })
+      await expect(page.getByRole('button', { name: 'Fazer teste completo' })).toBeVisible({ timeout: 60_000 })
+      await expect(page.getByRole('button', { name: /Problemas com a sua internet/ })).toBeVisible()
+      // Sem questionário na tela: o contexto vive no sheet, que está fechado.
+      // (`getByRole('dialog')` sozinho pegaria também o banner de consentimento.)
+      await expect(page.getByRole('dialog', { name: 'Diagnosticar minha internet' })).toHaveCount(0)
 
       await capture(page, 'quick-result', viewport)
     })
 
+    test('diagnose-sheet: declaração de rede e problema sobre o resultado rápido', async ({ page }) => {
+      await mockMeasurementNetwork(page)
+      await page.goto('/')
+
+      await page.getByRole('button', { name: /Problemas com a sua internet/ }).click({ timeout: 60_000 })
+
+      await expect(page.getByRole('dialog', { name: 'Diagnosticar minha internet' })).toBeVisible()
+      await page.getByRole('radio', { name: 'Wi-Fi' }).click()
+      await page.getByRole('radio', { name: 'Está lenta' }).click()
+
+      await capture(page, 'diagnose-sheet', viewport)
+    })
+
     test('full-running: medição do modo Completo em andamento', async ({ page }) => {
       await mockMeasurementNetwork(page)
-      await seedJourneySession(page, { autoStarted: true })
-      await page.goto(IDLE_URL)
+      await page.goto('/')
 
-      await page.getByRole('button', { name: 'Completo' }).click()
-      await page.getByRole('button', { name: 'Testar agora' }).click()
+      // Único caminho para o teste completo na jornada do protótipo.
+      await page.getByRole('button', { name: 'Fazer teste completo' }).click({ timeout: 60_000 })
 
-      await expect(page.getByText('Avaliando capacidade de download...')).toBeVisible({ timeout: 30_000 })
+      await expect(page.getByText('Avaliando capacidade de download...')).toBeVisible({ timeout: 60_000 })
       await settleDial(page)
 
       await capture(page, 'full-running', viewport)
     })
 
-    test('full-result: resultado do modo Completo, sem aprofundamento', async ({ page }) => {
+    test('full-result: resultado do modo Completo, sem contexto declarado', async ({ page }) => {
       await mockMeasurementNetwork(page)
-      await seedJourneySession(page, { autoStarted: true })
-      await page.goto(IDLE_URL)
+      await page.goto('/')
 
-      await page.getByRole('button', { name: 'Completo' }).click()
-      await page.getByRole('button', { name: 'Testar agora' }).click()
+      await page.getByRole('button', { name: 'Fazer teste completo' }).click({ timeout: 60_000 })
 
-      await expect(page.getByText('Ver detalhes do teste')).toBeVisible({ timeout: 120_000 })
-      // Discriminante contra `diagnosing`: sem escolha pós-resultado ativa, o
-      // cartão da pergunta não existe nesta tela.
-      await expect(page.getByText('Você está tendo algum problema agora?')).toHaveCount(0)
+      await expect(page.getByText('Ver detalhes da medição')).toBeVisible({ timeout: 120_000 })
+      // O resultado completo nunca reapresenta questionário (protótipo, 2.4).
+      await expect(page.getByRole('radio')).toHaveCount(0)
 
       await capture(page, 'full-result', viewport)
     })
 
-    test('diagnosing: aprofundamento pós-resultado concluído em modo Completo', async ({ page }) => {
+    test('diagnosing: diagnóstico declarado no sheet e medido de verdade', async ({ page }) => {
       await mockMeasurementNetwork(page)
       await page.goto('/')
 
-      await expect(page.getByText('Você está tendo algum problema agora?')).toBeVisible({ timeout: 60_000 })
-      // O `input[type=radio]` é `sr-only`; quem recebe o clique na tela é o
-      // `<label>` que o embrulha — mesmo alvo que a pessoa usuária toca.
-      await page.getByText('Está lenta', { exact: true }).click()
-      await expect(page.getByRole('radio', { name: 'Está lenta' })).toBeChecked()
-      await page.getByRole('button', { name: 'Fazer teste completo' }).click()
+      await page.getByRole('button', { name: /Problemas com a sua internet/ }).click({ timeout: 60_000 })
+      await page.getByRole('radio', { name: 'Está lenta' }).click()
+      await page.getByRole('radio', { name: 'Em horários específicos' }).click()
+      await page.getByRole('button', { name: 'Diagnosticar minha internet' }).click()
 
-      // Fases que só existem no modo Completo — provam que o aprofundamento
-      // reexecutou a medição de verdade, não reaproveitou o resultado rápido.
+      // Fase que só existe no modo Completo — prova que o aprofundamento
+      // reexecutou a medição, não reaproveitou o resultado rápido.
       await expect(page.getByText('Quase acabando, medindo upload...')).toBeVisible({ timeout: 60_000 })
-      await expect(page.getByText('Ver detalhes do teste')).toBeVisible({ timeout: 120_000 })
-      await expect(page.getByText('Você está tendo algum problema agora?')).toBeVisible()
+      await expect(page.getByText('Ver detalhes da medição')).toBeVisible({ timeout: 120_000 })
+      await expect(page.getByTestId('post-result-diagnostico')).toBeVisible()
 
       await capture(page, 'diagnosing', viewport)
     })
@@ -163,7 +177,7 @@ for (const viewport of VIEWPORTS) {
 
       await page.goto('/')
 
-      await expect(page.getByText('Ver detalhes do teste')).toBeVisible({ timeout: 30_000 })
+      await expect(page.getByText('Ver detalhes da medição')).toBeVisible({ timeout: 30_000 })
       await expect(page.getByRole('button', { name: 'Cancelar teste' })).toHaveCount(0)
       // A restauração não pode disparar medição: só a sonda de checagem ativa
       // de internet toca o endpoint de download, e ela nem chega a rodar aqui.
@@ -188,10 +202,7 @@ for (const viewport of VIEWPORTS) {
 
     test('offline: sem internet real detectada antes de medir', async ({ page }) => {
       await mockMeasurementNetwork(page, { offline: true })
-      await seedJourneySession(page, { autoStarted: true })
-      await page.goto(IDLE_URL)
-
-      await page.getByRole('button', { name: 'Testar agora' }).click()
+      await page.goto('/')
 
       await expect(page.getByText('Sem conexão')).toBeVisible({ timeout: 30_000 })
 

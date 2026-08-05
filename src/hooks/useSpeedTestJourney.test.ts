@@ -4,7 +4,7 @@ import { goodFullResultFixture, quickResultFixture } from '@/test/fixtures/speed
 import type { FasePainel, PhaseResults } from '@/lib/speedTestPhase'
 import type { MeasurementSessionContext } from '@/lib/measurementSessionContext'
 import type { SpeedTestResult } from '@/lib/speedEngine'
-import { hasSpeedTestAutoStarted, persistRestorableSpeedTestResult } from '@/lib/speedTestJourneySession'
+import { persistRestorableSpeedTestResult } from '@/lib/speedTestJourneySession'
 
 const speedTestMock = vi.hoisted(() => ({
   phase: 'idle' as FasePainel,
@@ -70,12 +70,23 @@ describe('useSpeedTestJourney composition', () => {
     window.sessionStorage.clear()
   })
 
-  it('inicia automaticamente uma primeira medição direta quando não há resultado restaurável', async () => {
+  it('inicia automaticamente uma medição direta quando não há resultado restaurável', async () => {
     const { useSpeedTestJourney } = await import('./useSpeedTestJourney')
     renderHook(() => useSpeedTestJourney())
 
     await waitFor(() => expect(speedTestMock.forceStart).toHaveBeenCalledWith({ version: 1, entry: 'direct' }))
-    expect(hasSpeedTestAutoStarted()).toBe(true)
+  })
+
+  it('entra medindo com o contexto de uma rota editorial, sem tela intermediária', async () => {
+    window.history.replaceState(null, '', '/?context=lenta')
+    const { useSpeedTestJourney } = await import('./useSpeedTestJourney')
+    renderHook(() => useSpeedTestJourney())
+
+    await waitFor(() =>
+      expect(speedTestMock.forceStart).toHaveBeenCalledWith({ version: 1, entry: 'problem', declaredProblem: 'lenta' })
+    )
+    // O parâmetro sai da URL para o resultado ter um endereço único e limpo.
+    expect(window.location.search).toBe('')
   })
 
   it('restaura resultado completo sem disparar novo teste automático', async () => {

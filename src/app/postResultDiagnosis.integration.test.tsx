@@ -3,27 +3,26 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
- * Teste de INTEGRAÇÃO do bug crítico #1+#2 (diagnóstico não funciona de
- * verdade): antes desta correção, escolher um problema pós-resultado nunca
- * trocava de modo nem reexecutava o teste — só mostrava perguntas
- * contextuais sobre um resultado que continuava sendo só de download
- * (`{mbps:0,peakMbps:0}` fixo de upload no modo Rápido), e `CompleteDiagnosis`
- * ficava desligado o tempo todo (`modo === "rapido"`).
+ * Teste de INTEGRAÇÃO do caminho declarado do diagnóstico, sobre a jornada do
+ * protótipo: do resultado rápido, o link "Problemas com a sua internet?" abre
+ * o sheet (tela 2.1); dentro dele a pessoa declara rede e problema, responde a
+ * pergunta de aprofundamento e confirma. Só então o teste completo roda.
  *
- * Decisão de produto revertida: agora escolher um problema troca `modo` para
- * "completo" de verdade e reinicia o teste (`journey.iniciarAprofundamento`).
- * `useSpeedTest` é mockado aqui (fase estática "concluido", `retry` espiado)
- * porque este teste cobre a árvore de componentes/orquestração — o motor de
- * medição real e as fases de execução são cobertos via Playwright contra um
- * servidor real (ver `e2e/`).
+ * Duas regressões ficam travadas aqui:
  *
- * Cobre também a deduplicação: uma vez que `modo` vira "completo" de verdade,
- * `CompleteDiagnosis` deixa de retornar `null` e passaria a mostrar sua
- * própria conclusão genérica (`respostaDiagnostica`, sem o contexto
- * declarado) ao lado da conclusão específica de
- * `PostResultProblemPrompt`/`respostaDiagnosticaPosResultado` — duas seções
- * de "Próxima ação" na mesma tela. `CompleteDiagnosis` suprime a sua quando
- * há um aprofundamento pós-resultado ativo.
+ * 1. O aprofundamento reexecuta a medição de verdade (`retry("completo")`) —
+ *    antes, escolher um problema só mostrava perguntas contextuais sobre um
+ *    resultado que continuava sendo só de download.
+ * 2. A medição não começa sozinha por causa de uma resposta: antes, um efeito
+ *    disparava o teste assim que o fluxo de perguntas concluía. Agora só o CTA
+ *    "Diagnosticar minha internet" inicia.
+ *
+ * E a tela 2.4 é verificada no que o protótipo exige dela: uma única conclusão
+ * com "Próxima ação", e nenhum questionário reapresentado.
+ *
+ * `useSpeedTest` é mockado (fase estática "concluido", `retry` espiado) porque
+ * este teste cobre a árvore de componentes/orquestração — o motor real e as
+ * fases de execução são cobertos via Playwright (ver `e2e/`).
  */
 
 vi.mock("@/hooks/useNetworkInfo", () => ({
@@ -78,11 +77,12 @@ vi.mock("@/hooks/useSpeedTest", async () => {
       retry: retrySpy,
       forceStart: vi.fn(),
       restaurarResultadoAnterior: vi.fn(),
+      injectResult: vi.fn(),
     }),
   };
 });
 
-describe("aprofundamento pós-resultado exibe motivo e próxima ação (#69, bug crítico #1+#2)", () => {
+describe("diagnóstico declarado pelo sheet, sobre o resultado rápido", () => {
   beforeEach(() => {
     window.sessionStorage.clear();
     retrySpy.mockClear();
@@ -92,48 +92,51 @@ describe("aprofundamento pós-resultado exibe motivo e próxima ação (#69, bug
     cleanup();
   });
 
-  it("troca para modo Completo, reinicia o teste e mostra conclusão/próxima ação reais uma única vez, sem duplicar com CompleteDiagnosis", async () => {
+  it("declara rede e problema no sheet, confirma e só então reexecuta a medição em modo Completo", async () => {
     const user = userEvent.setup();
     const { HomeClient } = await import("./HomeClient");
     render(<HomeClient />);
 
-    // Resultado rápido já visível (mock de useSpeedTest força fase "concluido").
-    expect(await screen.findByText("Você está tendo algum problema agora?")).toBeInTheDocument();
+    // Resultado rápido já visível (mock força fase "concluido"), sem
+    // questionário na própria tela.
+    const abrirSheet = await screen.findByRole("button", { name: /Problemas com a sua internet/ });
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
-    // Antes de concluir o aprofundamento, o bug nunca chegava a aparecer aqui.
-    expect(screen.queryByTestId("post-result-diagnostico")).not.toBeInTheDocument();
+    await user.click(abrirSheet);
+    const sheet = screen.getByRole("dialog", { name: "Diagnosticar minha internet" });
 
-    // Bug crítico #1+#2 corrigido: aprofundamento do teste ocorre após responder o diagnóstico.
-    expect(retrySpy).not.toHaveBeenCalled();
-
+    await user.click(screen.getByRole("radio", { name: "Wi-Fi" }));
     await user.click(screen.getByRole("radio", { name: "Está lenta" }));
 
-    // Pergunta de aprofundamento gerada pela árvore contextual (`internet_lenta_q1`).
+    // Pergunta de aprofundamento gerada pela árvore contextual
+    // (`internet_lenta_q1`), dentro do sheet — não na tela de resultado.
     expect(await screen.findByText("Quando a lentidão ocorre?")).toBeInTheDocument();
+    await user.click(screen.getByRole("radio", { name: "Em horários específicos" }));
 
-    // Resposta que conclui o aprofundamento em uma única pergunta.
-    await user.click(screen.getByRole("button", { name: "Em horários específicos" }));
+    // Responder não mede: só o CTA mede.
+    expect(retrySpy).not.toHaveBeenCalled();
 
-    // Agora sim o teste completo deve iniciar, pois as perguntas terminaram.
+    await user.click(
+      screen.getByRole("button", { name: "Diagnosticar minha internet" })
+    );
     expect(retrySpy).toHaveBeenCalledWith("completo");
+    expect(sheet).not.toBeInTheDocument();
 
+    // Tela 2.4: uma única conclusão, com "Próxima ação", e nenhum
+    // questionário reapresentado.
     const diagnostico = await screen.findByTestId("post-result-diagnostico");
-    expect(diagnostico).toBeInTheDocument();
-
-    // Bug corrigido: motivo real (não mais o texto fixo "Respostas registradas...").
-    expect(
-      screen.queryByText("Respostas registradas para esta medição.")
-    ).not.toBeInTheDocument();
-    // Uma única "Próxima ação" na tela: `CompleteDiagnosis` (agora ligado,
-    // porque `modo` é "completo" de verdade) suprime sua própria conclusão
-    // genérica para não duplicar a conclusão específica já mostrada aqui.
-    expect(screen.getByText("Próxima ação")).toBeInTheDocument();
     expect(diagnostico.textContent).toBeTruthy();
-    expect(diagnostico.textContent!.length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Próxima ação")).toHaveLength(1);
+    expect(screen.queryByRole("radio", { name: "Está lenta" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Testar novamente" })).toBeInTheDocument();
+  });
 
-    // A escolha continua marcada, e o resto do resultado completo (detalhes
-    // técnicos/reteste) também aparece na tela, porque `modo` de fato mudou.
-    expect(screen.getByRole("radio", { name: "Está lenta" })).toBeChecked();
-    expect(screen.getByRole("button", { name: "Fazer e testar novamente" })).toBeInTheDocument();
+  it("permite ir ao teste completo sem declarar nada, direto pelo CTA do resultado", async () => {
+    const user = userEvent.setup();
+    const { HomeClient } = await import("./HomeClient");
+    render(<HomeClient />);
+
+    await user.click(await screen.findByRole("button", { name: "Fazer teste completo" }));
+    expect(retrySpy).toHaveBeenCalledWith("completo");
   });
 });

@@ -31,20 +31,17 @@ async function reproduceOfflineDuringAprofundamentoRetry(page: Page, runLabel: s
   await page.goto('/')
 
   // 1. Resultado rápido inicial (autostart real, sem mocks).
-  await expect(page.getByText('Você está tendo algum problema agora?')).toBeVisible({ timeout: 60_000 })
+  const gatilhoSheet = page.getByRole('button', { name: /Problemas com a sua internet/ })
+  await expect(gatilhoSheet).toBeVisible({ timeout: 60_000 })
 
-  // 2. Reporta um problema pós-resultado e dispara o aprofundamento real
-  //    (troca de verdade para modo Completo e reinicia a medição, GH#1367
-  //    follow-up). O radio real é `sr-only` (visualmente escondido, estilo
-  //    aplicado no `<label>` que o envolve) -- mesmo padrão de
-  //    `journey-accessibility.spec.ts`: foco + tecla, nunca `.check()`/
-  //    `.click()` direto no input (fica fora do viewport/coberto pelo label).
-  //    A escolha sozinha só registra o problema: quem inicia o teste completo
-  //    é a ação explícita "Fazer teste completo".
-  const estaLenta = page.getByRole('radio', { name: 'Está lenta' })
-  await estaLenta.focus()
-  await page.keyboard.press('Space')
-  await page.getByRole('button', { name: 'Fazer teste completo' }).click()
+  // 2. Declara o problema no sheet e confirma, disparando o aprofundamento
+  //    real (troca de verdade para modo Completo e reinicia a medição,
+  //    GH#1367 follow-up). Declarar sozinho não mede: quem inicia o teste
+  //    completo é a confirmação explícita "Diagnosticar minha internet".
+  await gatilhoSheet.click()
+  await page.getByRole('radio', { name: 'Está lenta' }).click()
+  await page.getByRole('radio', { name: 'Em horários específicos' }).click()
+  await page.getByRole('button', { name: 'Diagnosticar minha internet' }).click()
   // Sinal estável do aprofundamento em execução: `TestRunning` exibe o
   // contexto informado em todas as fases. "Aprofundando com um teste
   // completo…" só existe na fase de latência, curta demais para ser marco.
@@ -113,13 +110,13 @@ test.describe('Regressão: cancelamento do aprofundamento continua restaurando o
     test.setTimeout(90_000)
     await page.goto('/')
 
-    await expect(page.getByText('Você está tendo algum problema agora?')).toBeVisible({ timeout: 60_000 })
-    const estaTravando = page.getByRole('radio', { name: 'Está travando' })
-    await estaTravando.focus()
-    await page.keyboard.press('Space')
-    // A escolha registra o problema; o teste completo só começa na ação
-    // explícita "Fazer teste completo".
-    await page.getByRole('button', { name: 'Fazer teste completo' }).click()
+    const gatilhoSheet = page.getByRole('button', { name: /Problemas com a sua internet/ })
+    await expect(gatilhoSheet).toBeVisible({ timeout: 60_000 })
+    await gatilhoSheet.click()
+    await page.getByRole('radio', { name: 'Está travando' }).click()
+    // Declarar registra o problema; o teste completo só começa na
+    // confirmação explícita do sheet.
+    await page.getByRole('button', { name: 'Diagnosticar minha internet' }).click()
     // O texto "Aprofundando…" só existe na fase de latência, que em redes
     // rápidas pode terminar em poucas centenas de ms (25 amostras) --
     // fugaz demais para depender dele aqui. `TestRunning` (via "Cancelar
@@ -134,7 +131,8 @@ test.describe('Regressão: cancelamento do aprofundamento continua restaurando o
     await expect(page.getByText('Teste completo cancelado. O resultado rápido acima continua disponível.')).toBeVisible({
       timeout: 15_000,
     })
-    // Volta a mostrar a pergunta pós-resultado, disponível para nova escolha.
-    await expect(page.getByText('Você está tendo algum problema agora?')).toBeVisible()
+    // Volta ao resultado rápido, com o caminho de diagnóstico disponível
+    // para uma nova tentativa.
+    await expect(page.getByRole('button', { name: /Problemas com a sua internet/ })).toBeVisible()
   })
 })

@@ -22,6 +22,11 @@ describe('layout dos nove estados do fluxo de velocidade', () => {
     })
   })
 
+  it('mantém o mostrador em formação enquanto a fase de preparo não produziu leitura', () => {
+    expect(speedTestLayoutFor(state({ state: 'quick-running' }), 'preparando').dial).toBe('forming')
+    expect(speedTestLayoutFor(state({ state: 'full-running', mode: 'completo' }), 'preparando').dial).toBe('forming')
+  })
+
   it('entrega a tela às etapas do diagnóstico quando a medição acabou e o motor está processando', () => {
     expect(speedTestLayoutFor(state({ state: 'full-running', mode: 'completo' }), 'processando')).toMatchObject({
       stage: 'stage',

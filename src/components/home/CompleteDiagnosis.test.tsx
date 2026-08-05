@@ -148,7 +148,7 @@ describe("CompleteDiagnosis — posição do slot de anúncio (issue #21)", () =
 
     expect(screen.getByText("Publicidade")).toBeInTheDocument();
     const adSlot = screen.getByTestId("result-ad-slot");
-    const repetirButton = screen.getByRole("button", { name: "Fazer e testar novamente" });
+    const repetirButton = screen.getByRole("button", { name: "Testar novamente" });
     const compartilharButton = screen.getByRole("button", { name: "Compartilhar" });
     const contextoDoTeste = screen.getByText("Detalhes do problema");
 
@@ -177,7 +177,7 @@ describe("CompleteDiagnosis — posição do slot de anúncio (issue #21)", () =
 
     await renderCompleteDiagnosisFresh(buildJourney());
 
-    expect(screen.getByRole("button", { name: "Fazer e testar novamente" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Testar novamente" })).toBeInTheDocument();
     expect(screen.queryByTestId("result-ad-slot")).not.toBeInTheDocument();
   });
 
