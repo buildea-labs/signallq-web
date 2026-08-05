@@ -112,3 +112,132 @@ export function latencyGaugeLabelPositions(): Array<{ text: string; fraction: nu
 export function fractionForGaugeScale(value: number, scale: number): number {
   return clamp(value / scale, 0, 1)
 }
+
+/* ===========================================================================
+   Geometria do velocímetro do protótipo (`Speedometer.dc.html`).
+
+   O arco antigo era um semicírculo de 180° com escala linear; o protótipo usa
+   um arco de 196° que começa abaixo da horizontal esquerda (188°) e termina
+   abaixo da horizontal direita (-8°), com progressão `t^0.78` — mais resolução
+   na parte baixa da escala, que é onde as conexões domésticas vivem.
+
+   Tudo aqui é função pura sobre a viewBox 300×200, para que o componente
+   React só interpole e desenhe.
+   =========================================================================== */
+
+export const GAUGE_VIEWBOX_WIDTH = 300
+export const GAUGE_VIEWBOX_HEIGHT = 206
+export const DIAL_CX = 150
+export const DIAL_CY = 170
+export const DIAL_R = 125
+export const DIAL_START_ANGLE = 188
+export const DIAL_SWEEP = 196
+
+/** Progressão do arco: `t^0.78` — mesma curva do protótipo. */
+export function dialCurve(fraction: number): number {
+  return Math.pow(clamp(fraction, 0, 1), 0.78)
+}
+
+export function dialPolar(angleDeg: number, radius: number): { x: number; y: number } {
+  const rad = (angleDeg * Math.PI) / 180
+  return { x: DIAL_CX + radius * Math.cos(rad), y: DIAL_CY - radius * Math.sin(rad) }
+}
+
+/** Ângulo (graus) da posição `t` (0..1) já curvada do arco. */
+export function dialAngle(t: number): number {
+  return DIAL_START_ANGLE - clamp(t, 0, 1) * DIAL_SWEEP
+}
+
+/** Caminho SVG do arco entre duas posições curvadas `t0`/`t1` (0..1). */
+export function dialArcPath(t0: number, t1: number, radius: number = DIAL_R): string {
+  const a0 = dialAngle(t0)
+  const a1 = dialAngle(t1)
+  const p0 = dialPolar(a0, radius)
+  const p1 = dialPolar(a1, radius)
+  const large = Math.abs(a0 - a1) > 180 ? 1 : 0
+  return `M ${p0.x.toFixed(2)} ${p0.y.toFixed(2)} A ${radius} ${radius} 0 ${large} 1 ${p1.x.toFixed(2)} ${p1.y.toFixed(2)}`
+}
+
+const DIAL_SCALE_SETS: Record<number, readonly number[]> = {
+  10: [0, 2.5, 5, 7.5, 10],
+  20: [0, 5, 10, 15, 20],
+  50: [0, 10, 25, 40, 50],
+  100: [0, 25, 50, 75, 100],
+  200: [0, 50, 100, 150, 200],
+  250: [0, 50, 100, 175, 250],
+  500: [0, 100, 250, 375, 500],
+  1000: [0, 100, 250, 500, 750, 1000],
+  2500: [0, 500, 1000, 1750, 2500],
+  5000: [0, 1000, 2500, 3750, 5000],
+}
+
+/** Valores rotulados de uma escala; cai em 1000 para escalas desconhecidas. */
+export function dialScaleSet(max: number): readonly number[] {
+  return DIAL_SCALE_SETS[max] ?? DIAL_SCALE_SETS[1000]
+}
+
+/** Menor escala do protótipo que comporta a leitura, por unidade. */
+export function dialAutoMax(value: number, unit: 'Mbps' | 'ms'): number {
+  const v = Number.isFinite(value) ? Math.max(0, value) : 0
+  if (unit === 'ms') {
+    if (v <= 20) return 20
+    if (v <= 50) return 50
+    if (v <= 100) return 100
+    return 200
+  }
+  const steps = [10, 50, 100, 250, 500, 1000, 2500, 5000]
+  return steps.find((step) => v <= step) ?? 5000
+}
+
+/** Escala adaptativa que nunca encolhe dentro da mesma fase de medição. */
+export function dialScaleForPhase(value: number, unit: 'Mbps' | 'ms', currentMax: number, startsPhase: boolean): number {
+  const required = dialAutoMax(value, unit)
+  return startsPhase ? required : Math.max(currentMax, required)
+}
+
+/** Rótulo curto de um traço maior: 1000 → "1k", 2.5 → "2.5". */
+export function dialTickLabel(value: number): string {
+  if (value >= 1000) return `${(value / 1000).toString().replace(/\.0$/, '')}k`
+  return String(value)
+}
+
+export interface DialTick {
+  x1: number
+  y1: number
+  x2: number
+  y2: number
+}
+
+export interface DialMajorTick extends DialTick {
+  labelX: number
+  labelY: number
+  label: string
+}
+
+/** Traços maiores (com rótulo) da escala, na mesma curva do arco. */
+export function dialMajorTicks(max: number, strokeWidth: number): DialMajorTick[] {
+  return dialScaleSet(max).map((value) => {
+    const angle = dialAngle(dialCurve(max > 0 ? value / max : 0))
+    const inner = dialPolar(angle, DIAL_R - strokeWidth / 2 - 6)
+    const outer = dialPolar(angle, DIAL_R - strokeWidth / 2 - 16)
+    const label = dialPolar(angle, DIAL_R - strokeWidth / 2 - 31)
+    return { x1: inner.x, y1: inner.y, x2: outer.x, y2: outer.y, labelX: label.x, labelY: label.y, label: dialTickLabel(value) }
+  })
+}
+
+const DIAL_MINOR_TICK_COUNT = 27
+
+/** Traços menores, pulando os que cairiam sobre um traço maior. */
+export function dialMinorTicks(max: number, strokeWidth: number): DialTick[] {
+  const majors = dialScaleSet(max).map((value) => dialCurve(max > 0 ? value / max : 0))
+  const ticks: DialTick[] = []
+  for (let i = 0; i <= DIAL_MINOR_TICK_COUNT; i += 1) {
+    const t = i / DIAL_MINOR_TICK_COUNT
+    if (majors.some((majorT) => Math.abs(majorT - t) < 0.02)) continue
+    const angle = dialAngle(t)
+    const inner = dialPolar(angle, DIAL_R - strokeWidth / 2 - 6)
+    const outer = dialPolar(angle, DIAL_R - strokeWidth / 2 - 11)
+    ticks.push({ x1: inner.x, y1: inner.y, x2: outer.x, y2: outer.y })
+  }
+  return ticks
+}

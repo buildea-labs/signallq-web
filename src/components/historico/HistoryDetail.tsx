@@ -199,6 +199,7 @@ export function HistoryDetail({ id }: { id: string }) {
           unit="Mbps"
           metricLabel="Download"
           compact
+          mode="quiet"
         />
       </div>
 

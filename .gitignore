@@ -52,3 +52,6 @@ next-env.d.ts
 
 # git worktrees (local multi-branch workspaces)
 /worktree/
+
+# protótipos de tela (arquivo local do Luiz, referência visual — não versionado)
+/docs/prototypes/
