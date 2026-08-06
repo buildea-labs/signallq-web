@@ -28,7 +28,13 @@ function estabilidadeNivel(score: number): string {
   return "Baixa";
 }
 
-export function buildTechnicalDetailGroups(result: ResultView): DetailGroup[] {
+/** Origem da medição que não vem do motor, e sim da rede (`useNetworkInfo`). */
+export interface MeasurementOrigin {
+  isp?: string | null
+  region?: string | null
+}
+
+export function buildTechnicalDetailGroups(result: ResultView, origin: MeasurementOrigin = {}): DetailGroup[] {
   const velocidade: DetailRow[] = [
     { id: "download", label: "Download", value: `${result.download.mbps.toFixed(1)} Mbps` },
   ];
@@ -104,6 +110,11 @@ export function buildTechnicalDetailGroups(result: ResultView): DetailGroup[] {
       help: "Tempo para traduzir o endereço do servidor de teste antes da medição começar.",
     });
   }
+
+  // Protótipo (tela 2.4): a lista de detalhes termina em Servidor, Região e
+  // Provedor. Só entram quando conhecidos — "Desconhecido" é ruído.
+  if (origin.region) sobreOTeste.push({ id: "regiao", label: "Região", value: origin.region });
+  if (origin.isp) sobreOTeste.push({ id: "provedor", label: "Provedor", value: origin.isp });
 
   return [
     { title: "Velocidade", rows: velocidade },

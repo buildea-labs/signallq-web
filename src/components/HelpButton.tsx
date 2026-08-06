@@ -71,7 +71,7 @@ export function HelpButton({
             width: `min(${width}px, calc(100vw - 16px))`,
             transform: `translateX(calc(-50% + ${shift}px))`,
           }}
-          className="absolute z-10 top-6 left-1/2 p-2 rounded-lg border border-[color:var(--border)] bg-[color:var(--surface-elevated)] shadow-[0_4px_24px_rgba(0,0,0,0.12)] text-[11px] leading-[1.4] text-[color:var(--text-primary)] text-center"
+          className="absolute z-10 top-6 left-1/2 p-2 rounded-lg border border-[color:var(--border)] bg-[color:var(--bg-secondary)] shadow-[0_4px_24px_rgba(0,0,0,0.12)] text-[11px] leading-[1.4] text-[color:var(--text-primary)] text-center"
         >
           {text}
         </span>

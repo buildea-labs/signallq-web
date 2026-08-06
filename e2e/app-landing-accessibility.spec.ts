@@ -133,7 +133,7 @@ test.describe('/app — imagens com dimensão intrínseca (sem CLS relevante)', 
   })
 })
 
-test.describe('/app — telemetria separada para CTA do grupo vs. CTA de teste no navegador', () => {
+test.describe('/app — telemetria separada para CTA do grupo vs. CTA de teste no navegador', { tag: '@bandwidth' }, () => {
   test('o CTA "Entrar na lista de teste" envia feature_id download_app_clicado e o CTA Web envia app_landing_web_test_clicado', async ({ page }) => {
     const trackedFeatureIds: string[] = []
     await page.route('**/api/track', async (route) => {

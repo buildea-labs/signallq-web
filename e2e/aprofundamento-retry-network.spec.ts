@@ -31,18 +31,21 @@ async function reproduceOfflineDuringAprofundamentoRetry(page: Page, runLabel: s
   await page.goto('/')
 
   // 1. Resultado rápido inicial (autostart real, sem mocks).
-  await expect(page.getByText('Você está tendo algum problema agora?')).toBeVisible({ timeout: 60_000 })
+  const gatilhoSheet = page.getByRole('button', { name: /Problemas com a sua internet/ })
+  await expect(gatilhoSheet).toBeVisible({ timeout: 60_000 })
 
-  // 2. Reporta um problema pós-resultado -> aprofundamento real (troca de
-  //    verdade para modo Completo e reinicia a medição, GH#1367 follow-up).
-  //    O radio real é `sr-only` (visualmente escondido, estilo aplicado no
-  //    `<label>` que o envolve) -- mesmo padrão de
-  //    `journey-accessibility.spec.ts`: foco + tecla, nunca `.check()`/
-  //    `.click()` direto no input (fica fora do viewport/coberto pelo label).
-  const estaLenta = page.getByRole('radio', { name: 'Está lenta' })
-  await estaLenta.focus()
-  await page.keyboard.press('Space')
-  await expect(page.getByText('Aprofundando com um teste completo…')).toBeVisible({ timeout: 10_000 })
+  // 2. Declara o problema no sheet e confirma, disparando o aprofundamento
+  //    real (troca de verdade para modo Completo e reinicia a medição,
+  //    GH#1367 follow-up). Declarar sozinho não mede: quem inicia o teste
+  //    completo é a confirmação explícita "Diagnosticar minha internet".
+  await gatilhoSheet.click()
+  await page.getByRole('radio', { name: 'Está lenta' }).click()
+  await page.getByRole('radio', { name: 'Em horários específicos' }).click()
+  await page.getByRole('button', { name: 'Diagnosticar minha internet' }).click()
+  // Sinal estável do aprofundamento em execução: `TestRunning` exibe o
+  // contexto informado em todas as fases. "Aprofundando com um teste
+  // completo…" só existe na fase de latência, curta demais para ser marco.
+  await expect(page.getByText('Contexto informado: Está lenta')).toBeVisible({ timeout: 10_000 })
 
   // 3. Espera a fase de download do aprofundamento -- a rede cai DURANTE essa
   //    fase, não no instante do clique (cenário exato do Caio).
@@ -65,10 +68,10 @@ async function reproduceOfflineDuringAprofundamentoRetry(page: Page, runLabel: s
   // 6. Clica "Testar novamente" com a rede religada.
   await testarNovamente.click()
 
-  // FIX #2: passou pelo mesmo caminho de reset do aprofundamento -- a
-  // transição "Aprofundando com um teste completo…" aparece de novo (não é
-  // um `retry()` puro que pula direto para fases sem aviso).
-  await expect(page.getByText('Aprofundando com um teste completo…')).toBeVisible({ timeout: 10_000 })
+  // FIX #2: passou pelo mesmo caminho de reset do aprofundamento (`Testar
+  // novamente` -> `iniciarAprofundamento`, não um `retry()` puro) -- o
+  // contexto informado continua na tela de execução da nova rodada.
+  await expect(page.getByText('Contexto informado: Está lenta')).toBeVisible({ timeout: 10_000 })
   await expect(page.getByRole('button', { name: 'Cancelar teste' })).toBeVisible()
 
   // FIX #1: o resultado antigo (banner "Contaminado.", badge de status) NUNCA
@@ -92,8 +95,8 @@ async function reproduceOfflineDuringAprofundamentoRetry(page: Page, runLabel: s
   await page.screenshot({ path: `${EVIDENCE_DIR}/${runLabel}-04-upload-real-sem-sobreposicao.png`, fullPage: true })
 }
 
-test.describe('Bug crítico Caio: rede cai durante download do aprofundamento, reteste após reconectar (2/2 determinístico)', () => {
-  test('reprodução 1/2: transição "Aprofundando…" aparece e resultado antigo nunca sobrepõe TestRunning', async ({ page }) => {
+test.describe('Bug crítico Caio: rede cai durante download do aprofundamento, reteste após reconectar (2/2 determinístico)', { tag: '@bandwidth' }, () => {
+  test('reprodução 1/2: o aprofundamento reinicia com o contexto informado e o resultado antigo nunca sobrepõe TestRunning', async ({ page }) => {
     await reproduceOfflineDuringAprofundamentoRetry(page, 'run1')
   })
 
@@ -102,15 +105,18 @@ test.describe('Bug crítico Caio: rede cai durante download do aprofundamento, r
   })
 })
 
-test.describe('Regressão: cancelamento do aprofundamento continua restaurando o resultado rápido', () => {
+test.describe('Regressão: cancelamento do aprofundamento continua restaurando o resultado rápido', { tag: '@bandwidth' }, () => {
   test('cancelar o teste completo durante o aprofundamento volta ao resultado rápido, sem travar', async ({ page }) => {
     test.setTimeout(90_000)
     await page.goto('/')
 
-    await expect(page.getByText('Você está tendo algum problema agora?')).toBeVisible({ timeout: 60_000 })
-    const estaTravando = page.getByRole('radio', { name: 'Está travando' })
-    await estaTravando.focus()
-    await page.keyboard.press('Space')
+    const gatilhoSheet = page.getByRole('button', { name: /Problemas com a sua internet/ })
+    await expect(gatilhoSheet).toBeVisible({ timeout: 60_000 })
+    await gatilhoSheet.click()
+    await page.getByRole('radio', { name: 'Está travando' }).click()
+    // Declarar registra o problema; o teste completo só começa na
+    // confirmação explícita do sheet.
+    await page.getByRole('button', { name: 'Diagnosticar minha internet' }).click()
     // O texto "Aprofundando…" só existe na fase de latência, que em redes
     // rápidas pode terminar em poucas centenas de ms (25 amostras) --
     // fugaz demais para depender dele aqui. `TestRunning` (via "Cancelar
@@ -125,7 +131,8 @@ test.describe('Regressão: cancelamento do aprofundamento continua restaurando o
     await expect(page.getByText('Teste completo cancelado. O resultado rápido acima continua disponível.')).toBeVisible({
       timeout: 15_000,
     })
-    // Volta a mostrar a pergunta pós-resultado, disponível para nova escolha.
-    await expect(page.getByText('Você está tendo algum problema agora?')).toBeVisible()
+    // Volta ao resultado rápido, com o caminho de diagnóstico disponível
+    // para uma nova tentativa.
+    await expect(page.getByRole('button', { name: /Problemas com a sua internet/ })).toBeVisible()
   })
 })

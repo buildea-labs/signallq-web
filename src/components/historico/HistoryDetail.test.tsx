@@ -94,7 +94,7 @@ describe("HistoryDetail — detalhe de teste salvo (#74)", () => {
     expect(screen.getByText("Repita se perceber lentidão.")).toBeInTheDocument();
 
     // Detalhes técnicos recolhidos por padrão.
-    const details = screen.getByText("Ver detalhes do teste").closest("details");
+    const details = screen.getByText("Ver detalhes da medição").closest("details");
     expect(details).not.toHaveAttribute("open");
 
     // Sem aviso de versão anterior para um registro completo/atual.

@@ -1,5 +1,6 @@
 import { MEASUREMENT_SESSION_CONTEXT_VERSION, type MeasurementSessionContext } from './measurementSessionContext'
 import type { ContextualAnswer } from './contextualQuestionFlow'
+import type { RedeDeclarada } from './networkEntry'
 import type { ProblemaPercebido } from './problemEntry'
 
 /**
@@ -66,10 +67,18 @@ export function postResultProblemMapping(
  * da escolha pós-resultado. Nunca é persistido no lugar do `declaredProblem`
  * pré-teste — ver `measurementSessionStore.ts` (`postResultProblem`).
  */
-export function buildPostResultMeasurementContext(value: PostResultProblema): MeasurementSessionContext | null {
+export function buildPostResultMeasurementContext(
+  value: PostResultProblema,
+  declaredNetwork?: RedeDeclarada,
+): MeasurementSessionContext | null {
   if (value === 'sem-problema') return null
   const { declaredProblem } = postResultProblemMapping(value)
-  return { version: MEASUREMENT_SESSION_CONTEXT_VERSION, entry: 'problem', declaredProblem }
+  const context: MeasurementSessionContext = {
+    version: MEASUREMENT_SESSION_CONTEXT_VERSION,
+    entry: 'problem',
+    declaredProblem,
+  }
+  return declaredNetwork ? { ...context, declaredNetwork } : context
 }
 
 /** Respostas com que o aprofundamento já deve começar para a opção escolhida. */

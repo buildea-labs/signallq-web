@@ -20,7 +20,6 @@ import AxeBuilder from '@axe-core/playwright'
  * contra `main`, o que não faz parte deste escopo.
  */
 
-const IDLE_URL = '/?problem=e2e-idle'
 const EVIDENCE_DIR = 'test-results/evidence-71'
 const VIEWPORTS = [
   { name: 'mobile (375px)', width: 375, height: 812 },
@@ -31,14 +30,18 @@ async function hasHorizontalOverflow(page: Page): Promise<boolean> {
   return page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1)
 }
 
-test.describe('Home ociosa — acessibilidade e overflow por viewport (#71)', () => {
+test.describe('Entrada na rota — acessibilidade e overflow por viewport (#71)', { tag: '@bandwidth' }, () => {
   for (const viewport of VIEWPORTS) {
     test(`${viewport.name}: sem overflow horizontal e sem violações críticas de acessibilidade`, async ({ page }) => {
+      test.setTimeout(120_000)
       await page.setViewportSize({ width: viewport.width, height: viewport.height })
-      await page.goto(IDLE_URL)
+      // A jornada do protótipo não tem tela ociosa: a rota entra medindo, e o
+      // primeiro estado estável de conteúdo é o resultado rápido.
+      await page.goto('/')
+      await expect(page.getByRole('button', { name: 'Fazer teste completo' })).toBeVisible({ timeout: 60_000 })
       await expect(page.getByRole('heading').first()).toBeVisible()
 
-      await page.screenshot({ path: `${EVIDENCE_DIR}/home-idle-${viewport.width}px.png`, fullPage: true })
+      await page.screenshot({ path: `${EVIDENCE_DIR}/resultado-rapido-${viewport.width}px.png`, fullPage: true })
 
       expect(await hasHorizontalOverflow(page)).toBe(false)
 
@@ -49,89 +52,103 @@ test.describe('Home ociosa — acessibilidade e overflow por viewport (#71)', ()
   }
 })
 
-test.describe('Popover de ajuda sob demanda — não cortado em viewport estreita (#71 §3.3/§3.4.7)', () => {
-  test('o popover do HelpButton dos modos fica visível e dentro da viewport em 375px', async ({ page }) => {
+/**
+ * O seletor de modo e seu popover de ajuda deixaram de existir com a jornada
+ * do protótipo (a rota entra medindo e o teste completo vem do resultado).
+ * O que ocupa o lugar deles como superfície sobreposta é o sheet de
+ * diagnóstico — que, por ser modal, tem exigências de teclado mais duras.
+ */
+test.describe('Sheet de diagnóstico — modal operável por teclado (protótipo, tela 2.1)', { tag: '@bandwidth' }, () => {
+  test('abre pelo teclado, prende o foco, fecha com Esc e devolve o foco ao gatilho em 375px', async ({ page }) => {
+    test.setTimeout(120_000)
     await page.setViewportSize({ width: 375, height: 812 })
-    await page.goto(IDLE_URL)
+    await page.goto('/')
 
-    const helpButton = page.getByRole('button', { name: 'O que muda entre os modos?' })
-    await expect(helpButton).toBeVisible()
-    await helpButton.click()
+    const gatilho = page.getByRole('button', { name: /Problemas com a sua internet/ })
+    await expect(gatilho).toBeVisible({ timeout: 60_000 })
+    await gatilho.focus()
+    await page.keyboard.press('Enter')
 
-    const popover = page.getByText('Triagem curta: mede velocidade, latência e resposta sob carga', { exact: false })
-    await expect(popover).toBeVisible()
+    const sheet = page.getByRole('dialog', { name: 'Diagnosticar minha internet' })
+    await expect(sheet).toBeVisible()
+    // O foco entra no sheet, não fica preso atrás dele.
+    await expect(sheet.locator(':focus')).toHaveCount(1)
 
-    await page.screenshot({ path: `${EVIDENCE_DIR}/popover-modo-375px.png`, fullPage: true })
-
-    // Achado real (#71 pendente): o popover (width=240) centralizado sob o
-    // HelpButton do seletor de modo ultrapassa a borda direita em 375px —
-    // ver relatório para a recomendação (não corrigido nesta tarefa, fora
-    // do escopo autorizado de "escrever testes/evidência").
-    const box = await popover.boundingBox()
+    const box = await sheet.boundingBox()
     expect(box).not.toBeNull()
     if (box) {
       expect(box.x).toBeGreaterThanOrEqual(0)
       expect(box.x + box.width).toBeLessThanOrEqual(375 + 1)
     }
+
+    await page.screenshot({ path: `${EVIDENCE_DIR}/sheet-diagnostico-375px.png`, fullPage: true })
+
+    const results = await new AxeBuilder({ page }).analyze()
+    const critical = results.violations.filter((v) => v.impact === 'critical' || v.impact === 'serious')
+    expect(critical, JSON.stringify(critical, null, 2)).toEqual([])
+
+    await page.keyboard.press('Escape')
+    await expect(sheet).toHaveCount(0)
+    await expect(gatilho).toBeFocused()
   })
 })
 
-test.describe('Jornada Rápido — teclado e resultado real (#71, bug crítico #1+#2)', () => {
+test.describe('Jornada Rápido — teclado e resultado real (#71, bug crítico #1+#2)', { tag: '@bandwidth' }, () => {
   test('navega por teclado pela pergunta pós-resultado, aprofunda de verdade em modo Completo (reteste real) e o resultado passa no scan de acessibilidade', async ({ page }) => {
     test.setTimeout(120_000)
     await page.goto('/')
 
-    // Autostart do modo Rápido dispara sozinho (comportamento de produto);
+    // Autostart do modo Rápido dispara sozinho (jornada do protótipo);
     // aguarda o resultado real da medição.
-    const primeiraProblema = page.getByText('Você está tendo algum problema agora?')
-    await expect(primeiraProblema).toBeVisible({ timeout: 60_000 })
+    const gatilhoSheet = page.getByRole('button', { name: /Problemas com a sua internet/ })
+    await expect(gatilhoSheet).toBeVisible({ timeout: 60_000 })
     await page.screenshot({ path: `${EVIDENCE_DIR}/rapido-resultado.png`, fullPage: true })
 
-    // Navegação por teclado até o radio "Está lenta" e seleção via teclado.
+    await gatilhoSheet.click()
+
+    // Declaração de contexto por teclado, dentro do sheet.
     const estaLenta = page.getByRole('radio', { name: 'Está lenta' })
     await estaLenta.focus()
     await expect(estaLenta).toBeFocused()
-    await page.keyboard.press('Space')
+    await page.keyboard.press('Enter')
 
-    // Decisão de produto revertida (bug crítico #1+#2): selecionar um
-    // problema pós-resultado agora troca de verdade para o modo Completo e
-    // reinicia a medição (download+upload+latência+jitter reais) — não fica
-    // mais só perguntando sobre o download do modo Rápido. A mensagem de
-    // transição some o fieldset (substituído por `TestRunning`) e só volta a
-    // aparecer quando o teste completo concluir.
-    await expect(page.getByText('Aprofundando com um teste completo…')).toBeVisible({ timeout: 10_000 })
+    // Pergunta de aprofundamento acontece dentro do sheet — o resultado
+    // completo nunca reapresenta questionário (protótipo, tela 2.4).
+    const pergunta = page.getByText('Quando a lentidão ocorre?')
+    await expect(pergunta).toBeVisible()
+    const primeiraOpcao = page.getByRole('radio', { name: 'Em horários específicos' })
+    await primeiraOpcao.focus()
+    await expect(primeiraOpcao).toBeFocused()
+    await page.keyboard.press('Enter')
+
+    // Responder não mede: só a confirmação explícita mede.
+    const confirmar = page.getByRole('button', { name: 'Diagnosticar minha internet' })
+    await confirmar.focus()
+    await expect(confirmar).toBeFocused()
+    await page.keyboard.press('Enter')
+
+    // Sinal estável do aprofundamento: `TestRunning` mostra o contexto
+    // informado em todas as fases de execução. O texto "Aprofundando com um
+    // teste completo…" só existe na fase de latência, curta demais (25
+    // amostras) para ser um marco confiável — mesma conclusão já registrada
+    // em `aprofundamento-retry-network.spec.ts`.
+    await expect(page.getByText('Contexto informado: Está lenta')).toBeVisible({ timeout: 10_000 })
     await page.screenshot({ path: `${EVIDENCE_DIR}/rapido-aprofundamento-transicao.png`, fullPage: true })
 
     // Fases reais do teste completo (não só o download do modo Rápido).
     await expect(page.getByText('Avaliando capacidade de download...')).toBeVisible({ timeout: 30_000 })
     await expect(page.getByText('Quase acabando, medindo upload...')).toBeVisible({ timeout: 30_000 })
 
-    // Aprofundamento contextual aparece (agora depois do teste completo real)
-    // e é operável via teclado (Tab + Enter).
-    const pergunta = page.getByText('Quando a lentidão ocorre?')
-    await expect(pergunta).toBeVisible({ timeout: 60_000 })
-    const primeiraOpcao = page.getByRole('button', { name: 'Em horários específicos' })
-    await primeiraOpcao.focus()
-    await expect(primeiraOpcao).toBeFocused()
-    await page.keyboard.press('Enter')
-
     const diagnostico = page.getByTestId('post-result-diagnostico')
-    await expect(diagnostico).toBeVisible()
-    await expect(page.getByText('Próxima ação')).toBeVisible()
+    await expect(diagnostico).toBeVisible({ timeout: 120_000 })
     await page.screenshot({ path: `${EVIDENCE_DIR}/rapido-pos-resultado-concluido.png`, fullPage: true })
 
-    // A escolha continua marcada. O modo Completo já ficou provado ativo
-    // pelas fases reais aguardadas acima ("Avaliando capacidade de
-    // download..."/"Quase acabando, medindo upload..." só existem no modo
-    // Completo) — regra de produto revertida: #69 dizia "nunca trocar de
-    // modo silenciosamente"; a decisão atual é justamente trocar de verdade,
-    // com aviso visível, não mais um segredo, mas também sem exigir clique extra.
-    await expect(estaLenta).toBeChecked()
-
-    // Uma única "Próxima ação" na tela — `CompleteDiagnosis` (agora ligado,
-    // porque o modo é Completo de verdade) suprime a sua própria conclusão
-    // genérica para não duplicar a conclusão específica do aprofundamento.
-    await expect(page.getByText('Próxima ação')).toHaveCount(1)
+    // Uma única conclusão — a calculada com o contexto declarado — e nenhum
+    // questionário reapresentado (protótipo, tela 2.4). A tela não tem seção
+    // "Próxima ação": diagnóstico e ação vivem no mesmo bloco.
+    await expect(diagnostico.locator('h1')).toHaveCount(1)
+    await expect(page.getByText('Próxima ação')).toHaveCount(0)
+    await expect(page.getByRole('radio')).toHaveCount(0)
 
     const results = await new AxeBuilder({ page }).analyze()
     const critical = results.violations.filter((v) => v.impact === 'critical' || v.impact === 'serious')
@@ -139,23 +156,23 @@ test.describe('Jornada Rápido — teclado e resultado real (#71, bug crítico #
   })
 })
 
-test.describe('Jornada Completo — teclado no controle expansível de #70 e resultado real (#71)', () => {
-  test('alterna para o modo Completo, navega por teclado até "Ver detalhes do teste" e expande com o teclado', async ({ page }) => {
-    test.setTimeout(120_000)
-    await page.goto(IDLE_URL)
+test.describe('Jornada Completo — teclado no controle expansível de #70 e resultado real (#71)', { tag: '@bandwidth' }, () => {
+  test('vai ao teste completo pelo CTA do resultado, navega por teclado até "Ver detalhes da medição" e expande com o teclado', async ({ page }) => {
+    test.setTimeout(180_000)
+    await page.goto('/')
 
-    await page.getByRole('button', { name: 'Completo' }).click()
-    await page.getByRole('button', { name: 'Testar agora' }).click()
+    // Único caminho para o teste completo na jornada do protótipo.
+    await page.getByRole('button', { name: 'Fazer teste completo' }).click({ timeout: 60_000 })
 
-    const detalhes = page.getByText('Ver detalhes do teste')
-    await expect(detalhes).toBeVisible({ timeout: 90_000 })
+    const detalhes = page.getByText('Ver detalhes da medição')
+    await expect(detalhes).toBeVisible({ timeout: 120_000 })
     await page.screenshot({ path: `${EVIDENCE_DIR}/completo-resultado.png`, fullPage: true })
 
     // O <summary> é nativamente focável e ativável por teclado.
     await detalhes.focus()
     await expect(detalhes).toBeFocused()
 
-    const detailsElement = page.locator('details')
+    const detailsElement = page.locator('details').filter({ hasText: 'Ver detalhes da medição' })
     await expect(detailsElement).not.toHaveJSProperty('open', true)
 
     await page.keyboard.press('Enter')

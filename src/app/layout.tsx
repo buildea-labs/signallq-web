@@ -38,7 +38,12 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#131217",
+  // Uma cor por esquema: antes um único #131217 pintava a barra do navegador
+  // também no modo claro, onde o fundo é branco.
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#FFFFFF" },
+    { media: "(prefers-color-scheme: dark)", color: "#000000" },
+  ],
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -72,9 +77,13 @@ export default function RootLayout({
             layout raiz, pra persistir entre navegações (guia §1) — mover
             página não deve remontar o header/rodapé (achado 01/08/2026,
             "topbar sambando" ao trocar de rota). */}
-        <div className="min-h-screen w-full">
+        <div className="flex min-h-screen w-full flex-col">
           <SiteNav />
-          <main className="w-full">
+          {/* `flex-1` aqui é o que dá altura ao miolo: sem isso, o
+              `align="center"` do `PageShell` não tinha espaço para centralizar
+              e as etapas curtas do fluxo de velocidade (formação, medição,
+              falha) ficavam ancoradas no topo com um vazio embaixo. */}
+          <main className="flex w-full flex-1 flex-col">
             {children}
             {modal}
           </main>

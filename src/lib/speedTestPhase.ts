@@ -29,6 +29,15 @@ const CODE_TO_PROBLEM_PHASE: Record<string, ProblemPhase> = {
 // de ciclo de vida (aba escondida) deve cancelar a medição em andamento.
 export const RUNNING_PHASES: FasePainel[] = ['preparando', 'latencia', 'download', 'upload', 'processando']
 
+export const PROBLEM_PHASES: ProblemPhase[] = [
+  'sem-conexao',
+  'conexao-interrompida',
+  'endpoint-indisponivel',
+  'erro-inesperado',
+  'cancelado',
+  'bloqueado-outra-aba',
+]
+
 // Fases cujo valor ao vivo vira um resultado parcial fixado ao trocar de etapa.
 export const STEP_PHASES: FasePainel[] = ['latencia', 'download', 'upload']
 

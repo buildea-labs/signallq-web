@@ -122,12 +122,82 @@ a:hover {
   animation: sq-gauge-pulse 4.5s ease-in-out infinite;
 }
 
+/* Mostrador do protótipo (`Speedometer.dc.html`): halo do arco, anel do
+   marcador luminoso e ponto pulsante da formação. */
+@keyframes sq-dial-arcpulse {
+  0%,
+  100% {
+    opacity: 0.22;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+@keyframes sq-dial-dotpulse {
+  0% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.1);
+  }
+}
+
+@keyframes sq-dial-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.sq-dial-arcpulse {
+  filter: blur(7px);
+  animation: sq-dial-arcpulse 1.8s ease-in-out infinite;
+}
+
+.sq-dial-dotpulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: sq-dial-dotpulse 1.4s ease-out infinite;
+}
+
+.sq-dial-pulse {
+  animation: sq-dial-pulse 1.3s ease-in-out infinite;
+}
+
+/* Status da medição: um ponto que pulsa junto do texto da fase corrente. */
+@keyframes sq-status-dot {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.sq-status-dot {
+  animation: sq-status-dot 1s ease-in-out infinite;
+}
+
 .sq-fade-up {
   animation: sq-fade-up 450ms ease-out both;
 }
 
 .sq-pulse-dot {
   animation: sq-pulse-dot 1.4s ease-in-out infinite;
+}
+
+.sq-diagnostico-bg {
+  background: var(--bg-primary);
+}
+.dark .sq-diagnostico-bg {
+  background: #000000;
 }
 
 /* PwaToastStack — some quando o rodapé (SiteFooter) entra na viewport, senão
@@ -155,7 +225,11 @@ html.sq-footer-visible .pwa-toast-stack {
     transition-duration: 0.01ms !important;
   }
 
-  .sq-gauge-glow {
+  .sq-gauge-glow,
+  .sq-dial-arcpulse,
+  .sq-dial-dotpulse,
+  .sq-dial-pulse,
+  .sq-status-dot {
     animation: none;
   }
 }

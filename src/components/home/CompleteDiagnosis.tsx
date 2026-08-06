@@ -1,18 +1,26 @@
 "use client";
 
-import Link from "next/link";
 import { PlayStoreBadge } from "@/components/PlayStoreBadge";
 import { ResultAdSlot } from "@/components/ResultAdSlot";
 import { GuidedDiagnosis } from "@/components/speedtest/GuidedDiagnosis";
+import { useNetworkInfo } from "@/hooks/useNetworkInfo";
 import type { SpeedTestJourney } from "@/hooks/useSpeedTestJourney";
+import { FullResultMetrics } from "./FullResultMetrics";
 import { ResultTechnicalDetails } from "./ResultTechnicalDetails";
 import { RetestComparison } from "./RetestComparison";
+import { UseCaseSummary } from "./UseCaseSummary";
 import { STATUS_LABEL, STATUS_MESSAGE } from "./homeCopy";
 
 /** Leitura completa do resultado: conclusão+próxima ação, comparação, detalhes e ações finais. */
 export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
-  const { result, hasVisibleResult, respostaDiagnostica, retesteBase, comparacaoReteste, modo, emAprofundamentoPosResultado } = journey;
+  const { result, hasVisibleResult, retesteBase, comparacaoReteste, modo, emAprofundamentoPosResultado } = journey;
+  const { isp, region } = useNetworkInfo();
   if (!hasVisibleResult || !result || modo === "rapido") return null;
+
+  // Uma única conclusão na tela. Quando a pessoa declarou contexto no sheet, a
+  // resposta calculada com esse contexto é a boa; sem contexto declarado, vale
+  // a genérica. Antes eram dois blocos concorrentes em componentes diferentes.
+  const respostaDiagnostica = journey.respostaDiagnosticaPosResultado ?? journey.respostaDiagnostica;
 
   const statusCompleto = result.status === "complete";
   const statusMensagem = STATUS_MESSAGE[result.status];
@@ -25,7 +33,7 @@ export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
   // aprofundamentoPosResultadoAtivo removido conforme nova especificação UX
 
   return (
-    <div className="w-full max-w-[640px] flex flex-col">
+    <div className="w-full max-w-[720px] flex flex-col">
 
       {statusMensagem && (
         <div className="flex items-start justify-center gap-2 py-4 border-b border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]">
@@ -38,17 +46,47 @@ export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
         </div>
       )}
 
-      {respostaDiagnostica && (!journey.postResultProblem || journey.postResultProblem === "sem-problema") && (
-        <section aria-labelledby="resultado-conclusao" className="py-7 border-b border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]">
-          <h1 id="resultado-conclusao" className="m-0 font-bold text-[22px] sm:text-[24px] leading-[1.25] text-[color:var(--text-primary)] tracking-tight">
+      {respostaDiagnostica && (
+        <section
+          aria-labelledby="resultado-conclusao"
+          data-testid="post-result-diagnostico"
+          className="py-7 border-b border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]"
+        >
+          {/* O diagnóstico lidera a tela do resultado completo (protótipo,
+              tela 2.4): overline curta e a conclusão em seguida — sem cartão,
+              sem ícone decorativo. */}
+          <p className="m-0 mb-[6px] font-bold text-[10.5px] uppercase leading-[1.4] tracking-[.4px] text-[color:var(--accent)]">
+            Diagnóstico
+          </p>
+          <h1 id="resultado-conclusao" className="m-0 font-bold text-[15px] sm:text-[18px] leading-[1.4] text-[color:var(--text-primary)] tracking-[-0.1px]">
             {respostaDiagnostica.conclusion}
           </h1>
-          <p className="mt-2 mb-0 font-normal text-[14px] leading-[1.45] text-[color:var(--text-secondary)]">{respostaDiagnostica.impact}</p>
+          {/* O protótipo funde diagnóstico e ação numa única frase. O contrato
+              de diagnóstico mantém `impact` e `nextAction` como campos
+              separados (ambos persistidos e compartilhados), então eles vêm
+              num parágrafo só — sem a overline "Próxima ação", que criava uma
+              seção que a tela 2.4 não tem. */}
+          <p className="mt-2 mb-0 font-normal text-[12.5px] leading-[1.45] text-[color:var(--text-secondary)] sm:text-[13.5px]">
+            {respostaDiagnostica.impact} {respostaDiagnostica.nextAction}
+          </p>
 
-          <div className="mt-4">
-            <h2 className="m-0 font-medium text-[11px] uppercase tracking-[.3px] text-[color:var(--text-tertiary)]">Próxima ação</h2>
-            <p className="mt-1 mb-0 text-[13px] leading-[1.4] text-[color:var(--text-secondary)]">{respostaDiagnostica.nextAction}</p>
-          </div>
+          {/* Só quando o download do teste completo difere da estimativa
+              rápida anterior — comparação booleana, sem mostrar os dois
+              valores (spec Juliana §3).
+
+              É uma ressalva sobre a medição, não parte do diagnóstico, e
+              precisa pesar menos que ele. `--text-tertiary` não serviria: vale
+              exatamente o mesmo que `--text-secondary` neste design system
+              ("2º degrau removido", `tokens.css`), então a nota saía com o
+              mesmo peso do parágrafo acima. O degrau vem de tamanho menor,
+              filete lateral e uma mistura de 80% do texto secundário —
+              5,31:1 no claro e 7,91:1 no escuro, ambos acima do mínimo AA. */}
+          {journey.downloadMudouNoAprofundamento && (
+            <p className="mt-3 mb-0 border-l-2 border-[color:color-mix(in_srgb,var(--border)_30%,transparent)] pl-3 text-[11.5px] leading-[1.45] text-[color:color-mix(in_srgb,var(--text-secondary)_80%,transparent)]">
+              Este é o resultado do teste completo — pode variar um pouco em relação à estimativa rápida anterior.
+            </p>
+          )}
+
           {respostaDiagnostica.androidCta && (
             <div className="mt-4 flex flex-wrap items-center gap-[10px] rounded-xl border border-[color:var(--border)] p-3">
               <p className="m-0 flex-1 text-[13px] leading-[1.4] text-[color:var(--text-secondary)]">{respostaDiagnostica.androidCta.reason}</p>
@@ -58,58 +96,54 @@ export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
         </section>
       )}
 
+      {/* Métricas em hierarquia (protótipo, tela 2.4 e painel `desktop-2`):
+          download/upload lideram, ping e latência sob carga vêm em seguida.
+          O detalhamento completo continua no bloco expansível abaixo. */}
+      <section aria-label="Métricas da medição" className="py-7">
+        <FullResultMetrics result={result} />
+      </section>
+
       {retesteBase && comparacaoReteste && (
         <RetestComparison comparacao={comparacaoReteste} comparacaoNaoSalva={journey.comparacaoNaoSalva} />
       )}
 
-      <ResultTechnicalDetails result={result} />
-
-      {/* Única ação primária da etapa: reteste. "Ver histórico" é navegação de
-          saída, rebaixada ao mesmo peso de Compartilhar/Copiar resumo (#71 §3.2/§3.4.6). */}
-      <button
-        onClick={() => {
-          if (statusCompleto) {
-            journey.iniciarReteste();
-          } else if (emAprofundamentoPosResultado) {
-            journey.iniciarAprofundamento();
-          } else {
-            journey.iniciarReteste();
-          }
-        }}
-        className="w-full h-[46px] flex items-center justify-center gap-2 rounded-[var(--radius-button)] border-none bg-[color:var(--accent)] hover:brightness-110 transition-all cursor-pointer mt-6"
-      >
-        <span aria-hidden="true" className="material-symbols-outlined text-[20px] text-[color:var(--on-accent)]">refresh</span>
-        <span className="font-medium text-[14px] leading-[1.43] text-[color:var(--on-accent)]">
-          {statusCompleto ? "Fazer e testar novamente" : "Testar novamente"}
-        </span>
-      </button>
-
-      <div className="flex flex-wrap justify-center gap-[10px] mt-6">
-        <Link
-          href="/historico"
-          className="flex items-center gap-[6px] h-[36px] px-2 no-underline hover:bg-[color:var(--bg-secondary)] rounded-full transition-colors"
-        >
-          <span aria-hidden="true" className="material-symbols-outlined text-[16px] text-[color:var(--accent)]">history</span>
-          <span className="font-medium text-[12px] leading-[1.33] text-[color:var(--accent)]">Ver histórico</span>
-        </Link>
+      {/* Ações da tela 2.4: reteste ocupa a largura, compartilhar é um botão
+          quadrado ao lado. "Ver histórico" e "Copiar resumo" saíram daqui —
+          navegação de saída e utilitário não competem com a ação principal;
+          o Histórico continua no menu do site. */}
+      <div className="mt-6 flex gap-2">
         <button
-          onClick={journey.compartilhar}
-          className="flex items-center gap-[6px] h-[36px] px-2 border-none bg-transparent cursor-pointer hover:bg-[color:var(--bg-secondary)] rounded-full transition-colors"
+          onClick={() => {
+            if (!statusCompleto && emAprofundamentoPosResultado) {
+              journey.iniciarAprofundamento();
+              return;
+            }
+            journey.iniciarReteste();
+          }}
+          className="flex h-[48px] flex-1 cursor-pointer items-center justify-center gap-2 rounded-[14px] border-[1.5px] border-[color:var(--accent)] bg-transparent transition-colors hover:bg-[color:color-mix(in_srgb,var(--accent)_10%,transparent)]"
         >
-          <span aria-hidden="true" className="material-symbols-outlined text-[16px] text-[color:var(--accent)]">share</span>
-          <span className="font-medium text-[12px] leading-[1.33] text-[color:var(--accent)]">Compartilhar</span>
+          <span aria-hidden="true" className="material-symbols-outlined text-[20px] text-[color:var(--accent)]">refresh</span>
+          <span className="font-bold text-[13.5px] leading-[1.43] text-[color:var(--accent)]">Testar novamente</span>
         </button>
         <button
-          onClick={journey.copiarResumo}
-          className="flex items-center gap-[6px] h-[36px] px-2 border-none bg-transparent cursor-pointer hover:bg-[color:var(--bg-secondary)] rounded-full transition-colors"
+          onClick={journey.compartilhar}
+          aria-label="Compartilhar"
+          className="flex h-[48px] w-[52px] shrink-0 cursor-pointer items-center justify-center rounded-[14px] border border-[color:color-mix(in_srgb,var(--border)_45%,transparent)] bg-transparent transition-colors hover:bg-[color:var(--bg-secondary)]"
         >
-          <span aria-hidden="true" className="material-symbols-outlined text-[16px] text-[color:var(--accent)]">content_copy</span>
-          <span className="font-medium text-[12px] leading-[1.33] text-[color:var(--accent)]">
-            {journey.copiado ? "Copiado!" : "Copiar resumo"}
-          </span>
+          <span aria-hidden="true" className="material-symbols-outlined text-[20px] text-[color:var(--text-primary)]">share</span>
         </button>
       </div>
 
+      {/* A leitura por tipo de uso e a origem da medição não existem na tela
+          2.4; em vez de sumirem, vivem dentro do bloco de detalhes — mesmo
+          lugar onde o protótipo põe servidor, região e provedor. */}
+      <ResultTechnicalDetails result={result} origin={{ isp, region }}>
+        <UseCaseSummary result={result} />
+      </ResultTechnicalDetails>
+
+      {/* Entrada por rota editorial (`/?context=...`): o problema veio da URL,
+          mas as perguntas que refinam a causa continuam sendo feitas aqui —
+          é o único caminho que não passa pelo sheet de diagnóstico. */}
       {journey.shouldCollectContextualQuestions && (
         <div className="mt-6 pt-6 border-t border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]">
           <GuidedDiagnosis measurementContext={journey.measurementContext} onAnswersChange={journey.setRespostasContextuais} />

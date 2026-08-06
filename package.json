@@ -9,7 +9,8 @@
     "lint": "eslint --max-warnings=0",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:visual": "playwright test --config=playwright.visual.config.ts"
   },
   "dependencies": {
     "@serwist/next": "^9.5.12",

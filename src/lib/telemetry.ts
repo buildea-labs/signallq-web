@@ -105,6 +105,12 @@ export const FEATURE_SPEEDTEST_COMPARTILHOU = 'speedtest_compartilhou'
 export const FEATURE_SPEEDTEST_ENTRADA_DIRETA = 'speedtest_entrada_direta'
 export const FEATURE_SPEEDTEST_ENTRADA_PROBLEMA = 'speedtest_entrada_problema'
 export const FEATURE_SPEEDTEST_PROBLEMA_SELECIONADO = 'speedtest_problema_selecionado'
+/**
+ * DESCONTINUADO em 2026-08: a jornada do protótipo não tem tela ociosa, então
+ * não existe mais "abandonar a escolha de problema antes de medir" — nada
+ * emite este evento. Mantido para quem consulta a série histórica saber que o
+ * corte é de produto, não perda de dado. Não reutilizar o identificador.
+ */
 export const FEATURE_SPEEDTEST_PROBLEMA_ABANDONADO = 'speedtest_problema_abandonado'
 
 // Pergunta pós-resultado (#69) — distinta do funil pré-teste acima: não

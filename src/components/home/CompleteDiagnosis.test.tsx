@@ -67,7 +67,7 @@ function buildJourney(overrides: Partial<SpeedTestJourney> = {}): SpeedTestJourn
 describe("CompleteDiagnosis — hierarquia única de conclusão (#71 §3.1)", () => {
   afterEach(() => cleanup());
 
-  it("mostra a conclusão como único heading e a próxima ação uma única vez, sem barra de status quando a medição está completa", () => {
+  it("mostra a conclusão como único heading, com impacto e próxima ação num só parágrafo (tela 2.4)", () => {
     render(<CompleteDiagnosis journey={buildJourney()} />);
 
     const headings = screen.getAllByRole("heading");
@@ -75,7 +75,13 @@ describe("CompleteDiagnosis — hierarquia única de conclusão (#71 §3.1)", ()
     expect(h1s).toHaveLength(1);
     expect(h1s[0]).toHaveTextContent("Sua conexão está estável para os principais usos.");
 
-    expect(screen.getAllByText("Próxima ação")).toHaveLength(1);
+    // A tela 2.4 não tem seção "Próxima ação": o protótipo funde diagnóstico e
+    // ação numa frase. O conteúdo dos dois campos do contrato continua na
+    // tela, num único parágrafo de apoio sob a conclusão.
+    expect(screen.queryByText("Próxima ação")).not.toBeInTheDocument();
+    const bloco = screen.getByTestId("post-result-diagnostico");
+    expect(bloco.textContent).toContain("Navegação, streaming e chamadas devem funcionar sem oscilação perceptível.");
+    expect(bloco.textContent).toContain("Nenhuma ação necessária agora.");
 
     // Status "complete" não tem STATUS_MESSAGE associada: nenhuma barra de
     // aviso duplicando o que o h1 já concluiu.
@@ -148,7 +154,7 @@ describe("CompleteDiagnosis — posição do slot de anúncio (issue #21)", () =
 
     expect(screen.getByText("Publicidade")).toBeInTheDocument();
     const adSlot = screen.getByTestId("result-ad-slot");
-    const repetirButton = screen.getByRole("button", { name: "Fazer e testar novamente" });
+    const repetirButton = screen.getByRole("button", { name: "Testar novamente" });
     const compartilharButton = screen.getByRole("button", { name: "Compartilhar" });
     const contextoDoTeste = screen.getByText("Detalhes do problema");
 
@@ -177,7 +183,7 @@ describe("CompleteDiagnosis — posição do slot de anúncio (issue #21)", () =
 
     await renderCompleteDiagnosisFresh(buildJourney());
 
-    expect(screen.getByRole("button", { name: "Fazer e testar novamente" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Testar novamente" })).toBeInTheDocument();
     expect(screen.queryByTestId("result-ad-slot")).not.toBeInTheDocument();
   });
 
