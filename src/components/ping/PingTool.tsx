@@ -21,13 +21,15 @@ function round(value: number) {
  * diz isso literalmente, em vez de chamar o número de "ping do servidor".
  */
 export function PingTool() {
-  const { state, run } = usePingTool();
+  const { state, run, restore } = usePingTool();
 
-  // A ferramenta existe para medir: começa sozinha, como o teste de
-  // velocidade, e o reteste é a ação explícita.
+  // A ferramenta existe para medir, então começa sozinha — mas só quando não
+  // há leitura desta sessão. Revisitar `/ping` a partir da grade de
+  // ferramentas não deve custar 20 requisições de novo; o "Medir novamente"
+  // fica como ação explícita.
   useEffect(() => {
-    void run();
-  }, [run]);
+    if (!restore()) void run();
+  }, [restore, run]);
 
   const summary = state.status === "done" ? state.summary : null;
   const live = state.status === "running" ? (state.samples.at(-1) ?? 0) : 0;

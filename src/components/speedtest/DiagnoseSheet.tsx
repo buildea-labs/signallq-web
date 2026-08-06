@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useId, useRef } from "react";
+import { useId, useRef } from "react";
+import { SheetChip, SheetChipGroup } from "@/components/speedtest/SheetChip";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 import type { ContextualQuestionFlowState } from "@/lib/contextualQuestionFlow";
 import { REDES_DECLARADAS, type RedeDeclarada } from "@/lib/networkEntry";
 import { POST_RESULT_PROBLEMS, type PostResultProblema } from "@/lib/postResultProblem";
@@ -15,36 +17,6 @@ interface DiagnoseSheetProps {
   onAnswer: (questionId: string, answerId: string | null) => void;
   onClose: () => void;
   onConfirm: () => void;
-}
-
-function Chip({
-  label,
-  selected,
-  onClick,
-  role,
-  checked,
-}: {
-  label: string;
-  selected: boolean;
-  onClick: () => void;
-  role: "radio";
-  checked: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      role={role}
-      aria-checked={checked}
-      onClick={onClick}
-      className={`min-h-[36px] rounded-full px-[13px] text-[12px] leading-[1.2] transition-colors cursor-pointer ${
-        selected
-          ? "border-[1.5px] border-[color:var(--accent)] bg-[color:color-mix(in_srgb,var(--accent)_14%,transparent)] font-bold text-[color:var(--accent)]"
-          : "border border-[color:color-mix(in_srgb,var(--border)_45%,transparent)] bg-transparent font-semibold text-[color:var(--text-primary)] hover:bg-[color:var(--bg-secondary)]"
-      }`}
-    >
-      {label}
-    </button>
-  );
 }
 
 /**
@@ -72,55 +44,17 @@ export function DiagnoseSheet({
 }: DiagnoseSheetProps) {
   const titleId = useId();
   const panel = useRef<HTMLDivElement | null>(null);
-  const restoreFocusTo = useRef<HTMLElement | null>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    restoreFocusTo.current = document.activeElement as HTMLElement | null;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    panel.current?.querySelector<HTMLElement>("button, [href]")?.focus();
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        onClose();
-        return;
-      }
-      if (event.key !== "Tab" || !panel.current) return;
-      const focusables = panel.current.querySelectorAll<HTMLElement>(
-        'button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-      );
-      if (focusables.length === 0) return;
-      const first = focusables[0];
-      const last = focusables[focusables.length - 1];
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.removeEventListener("keydown", onKeyDown);
-      document.body.style.overflow = previousOverflow;
-      restoreFocusTo.current?.focus();
-    };
-  }, [open, onClose]);
+  useFocusTrap(open, panel, onClose);
 
   if (!open) return null;
 
-  const question = flowState?.status === "awaiting_answer" || flowState?.status === "invalid_answer" ? flowState.question : null;
+  const question =
+    flowState?.status === "awaiting_answer" || flowState?.status === "invalid_answer" ? flowState.question : null;
 
   return (
     // Acima do banner de consentimento (`z-[1010]`): um modal coberto por uma
     // barra fixa deixaria o CTA inalcançável no mobile.
-    <div
-      className="fixed inset-0 z-[1100] flex items-end justify-center bg-[color:var(--scrim)]"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 z-[1100] flex items-end justify-center bg-[color:var(--scrim)]" onClick={onClose}>
       <div
         ref={panel}
         role="dialog"
@@ -129,73 +63,57 @@ export function DiagnoseSheet({
         onClick={(event) => event.stopPropagation()}
         className="flex max-h-[85vh] w-full max-w-[520px] flex-col gap-4 overflow-y-auto rounded-t-[20px] bg-[color:var(--bg-card)] px-5 pb-7 pt-5 shadow-[0_-8px_32px_rgba(0,0,0,.22)] sm:mb-6 sm:rounded-[20px]"
       >
-        <span aria-hidden="true" className="mx-auto h-1 w-9 shrink-0 rounded-full bg-[color:color-mix(in_srgb,var(--border)_45%,transparent)]" />
+        <span
+          aria-hidden="true"
+          className="mx-auto h-1 w-9 shrink-0 rounded-full bg-[color:color-mix(in_srgb,var(--border)_45%,transparent)]"
+        />
 
         <h2 id={titleId} className="m-0 font-bold text-[16px] leading-[1.3] text-[color:var(--text-primary)]">
           Diagnosticar minha internet
         </h2>
 
-        <div role="radiogroup" aria-label="Rede">
-          <p className="m-0 mb-2 font-bold text-[11px] uppercase leading-[1.4] tracking-[.4px] text-[color:var(--text-secondary)]">
-            Rede
-          </p>
-          <div className="flex flex-wrap gap-[7px]">
-            {REDES_DECLARADAS.map((rede) => (
-              <Chip
-                key={rede.value}
-                role="radio"
-                label={rede.label}
-                selected={network === rede.value}
-                checked={network === rede.value}
-                onClick={() => onSelectNetwork(rede.value)}
-              />
-            ))}
-          </div>
-        </div>
+        <SheetChipGroup label="Rede">
+          {REDES_DECLARADAS.map((rede) => (
+            <SheetChip
+              key={rede.value}
+              label={rede.label}
+              checked={network === rede.value}
+              onClick={() => onSelectNetwork(rede.value)}
+            />
+          ))}
+        </SheetChipGroup>
 
-        <div role="radiogroup" aria-label="Problema">
-          <p className="m-0 mb-2 font-bold text-[11px] uppercase leading-[1.4] tracking-[.4px] text-[color:var(--text-secondary)]">
-            Problema
-          </p>
-          <div className="flex flex-wrap gap-[7px]">
-            {POST_RESULT_PROBLEMS.map((opcao) => (
-              <Chip
-                key={opcao.value}
-                role="radio"
-                label={opcao.label}
-                selected={problem === opcao.value}
-                checked={problem === opcao.value}
-                onClick={() => onSelectProblem(opcao.value)}
-              />
-            ))}
-          </div>
-        </div>
+        <SheetChipGroup label="Problema">
+          {POST_RESULT_PROBLEMS.map((opcao) => (
+            <SheetChip
+              key={opcao.value}
+              label={opcao.label}
+              checked={problem === opcao.value}
+              onClick={() => onSelectProblem(opcao.value)}
+            />
+          ))}
+        </SheetChipGroup>
 
         {question && (
           <div aria-live="polite">
-            <p className="m-0 mb-2 font-bold text-[11px] uppercase leading-[1.4] tracking-[.4px] text-[color:var(--text-secondary)]">
-              Detalhes do problema
-            </p>
-            <h3 className="m-0 mb-2 font-semibold text-[14px] leading-[1.35] text-[color:var(--text-primary)]">
-              {question.text}
-            </h3>
-            {flowState?.status === "invalid_answer" && (
-              <p className="m-0 mb-2 text-[12px] leading-[1.4] text-[color:var(--error)]">
-                Escolha uma das opções disponíveis ou pule esta pergunta.
-              </p>
-            )}
-            <div className="flex flex-wrap gap-[7px]">
+            <SheetChipGroup label="Detalhes do problema">
+              <h3 className="m-0 mb-2 w-full font-semibold text-[14px] leading-[1.35] text-[color:var(--text-primary)]">
+                {question.text}
+              </h3>
+              {flowState?.status === "invalid_answer" && (
+                <p className="m-0 mb-2 w-full text-[12px] leading-[1.4] text-[color:var(--error)]">
+                  Escolha uma das opções disponíveis ou pule esta pergunta.
+                </p>
+              )}
               {question.options.map((option) => (
-                <Chip
+                <SheetChip
                   key={option.id}
-                  role="radio"
                   label={option.label}
-                  selected={false}
                   checked={false}
                   onClick={() => onAnswer(question.id, option.id)}
                 />
               ))}
-            </div>
+            </SheetChipGroup>
             {question.optional && (
               <button
                 type="button"

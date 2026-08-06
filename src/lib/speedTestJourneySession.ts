@@ -2,7 +2,6 @@ import type { SpeedTestResult } from './speedEngine'
 
 const LEGACY_LAST_RESULT_KEY = 'signallq_last_result'
 const RESTORABLE_FULL_RESULT_KEY = 'signallq_full_last_result_v1'
-const AUTOSTART_KEY = 'speedtest_autostarted'
 
 interface LegacyLastResult {
   latency: number
@@ -24,23 +23,25 @@ export function readRestorableSpeedTestResult(): SpeedTestResult | null {
     const raw = store.getItem(RESTORABLE_FULL_RESULT_KEY)
     if (!raw) return null
     const parsed = JSON.parse(raw) as Partial<SpeedTestResult>
-    return parsed.status === 'complete' ? parsed as SpeedTestResult : null
+    return parsed.status ? (parsed as SpeedTestResult) : null
   } catch {
     return null
   }
 }
 
-export function hasSpeedTestAutoStarted() {
-  return storage()?.getItem(AUTOSTART_KEY) === 'true'
-}
-
-export function markSpeedTestAutoStarted() {
-  storage()?.setItem(AUTOSTART_KEY, 'true')
-}
-
+/**
+ * Guarda o resultado da rodada para restaurar ao voltar à rota.
+ *
+ * Vale para **qualquer** status terminal, não só `complete`. Com o antigo
+ * recorte, uma rodada parcial/inconclusiva/contaminada não era guardada e
+ * cada volta a `/` disparava medição nova — justamente para quem está com a
+ * conexão ruim, que é quem menos pode gastar banda. Restaurar o resultado
+ * ruim (com o aviso de status que já existe) e deixar o reteste explícito é
+ * mais honesto e mais barato.
+ */
 export function persistRestorableSpeedTestResult(result: SpeedTestResult) {
   const store = storage()
-  if (!store || result.status !== 'complete') return
+  if (!store) return
 
   const legacy: LegacyLastResult = {
     latency: result.latency.ms,
@@ -50,6 +51,8 @@ export function persistRestorableSpeedTestResult(result: SpeedTestResult) {
     timestamp: Date.now(),
   }
 
-  store.setItem(LEGACY_LAST_RESULT_KEY, JSON.stringify(legacy))
+  // O resumo legado alimenta leitores antigos que assumem medição válida:
+  // só recebe rodada completa.
+  if (result.status === 'complete') store.setItem(LEGACY_LAST_RESULT_KEY, JSON.stringify(legacy))
   store.setItem(RESTORABLE_FULL_RESULT_KEY, JSON.stringify(result))
 }

@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSpeedTest, type ProblemPhase } from "@/hooks/useSpeedTest";
 import { usePostResultProblem } from "@/hooks/usePostResultProblem";
-import { contextualProblemFromSearch } from "@/lib/contextualEntry";
+import { useRetestComparison } from "@/hooks/useRetestComparison";
+import { useSpeedTestDeepening } from "@/hooks/useSpeedTestDeepening";
+import { useSpeedTestEntry } from "@/hooks/useSpeedTestEntry";
 import type { ContextualAnswer } from "@/lib/contextualQuestionFlow";
 import { updateRecordDiagnostic } from "@/lib/measurementRepository";
 import { createMeasurementSessionContext } from "@/lib/measurementSessionContext";
@@ -11,10 +13,6 @@ import { readMeasurementSession } from "@/lib/measurementSessionStore";
 import type { RedeDeclarada } from "@/lib/networkEntry";
 import type { PostResultProblema } from "@/lib/postResultProblem";
 import type { ProblemaPercebido } from "@/lib/problemEntry";
-import type { RetestComparison } from "@/lib/retestComparison";
-import type { SpeedTestResult } from "@/lib/speedEngine";
-import { persistRetestComparison, retestComparisonId } from "@/lib/speedTestJourneyComparison";
-import { persistRestorableSpeedTestResult, readRestorableSpeedTestResult } from "@/lib/speedTestJourneySession";
 import { copySpeedTestResult, shareSpeedTestResult } from "@/lib/speedTestJourneySharing";
 import { speedTestLayoutFor } from "@/lib/speedTestLayout";
 import { RUNNING_PHASES } from "@/lib/speedTestPhase";
@@ -57,21 +55,10 @@ export function useSpeedTestJourney() {
   const [respostasContextuais, setRespostasContextuais] = useState<ContextualAnswer[]>(
     () => readMeasurementSession()?.answers ?? []
   );
-  const [retesteBase, setRetesteBase] = useState<SpeedTestResult | null>(null);
-  const [comparacaoReteste, setComparacaoReteste] = useState<RetestComparison | null>(null);
-  const [comparacaoNaoSalva, setComparacaoNaoSalva] = useState(false);
-  // Aprofundamento pós-resultado (bug crítico do diagnóstico, GH#1367
-  // follow-up): ao escolher um problema depois do resultado Rápido, o app
-  // troca de verdade para o modo Completo e reexecuta a medição — nada disso
-  // existia antes; a escolha só alimentava perguntas contextuais sobre um
-  // resultado que continuava sendo só de download.
-  const [emAprofundamentoPosResultado, setEmAprofundamentoPosResultado] = useState(false);
-  const [notaAprofundamentoCancelado, setNotaAprofundamentoCancelado] = useState(false);
-  const [downloadMbpsAntesDoAprofundamento, setDownloadMbpsAntesDoAprofundamento] = useState<number | null>(null);
   const [resultadoRestaurado, setResultadoRestaurado] = useState(false);
-  const comparacaoPersistida = useRef<string | null>(null);
   const { phase, liveValue, phaseResults, result, measurementContext, cancelTest, retry, forceStart, restaurarResultadoAnterior, injectResult } =
     useSpeedTest(modo);
+  const { retesteBase, comparacaoReteste, comparacaoNaoSalva, iniciarComparacao } = useRetestComparison(result);
   const {
     postResultProblem,
     postResultAnswers,
@@ -108,48 +95,21 @@ export function useSpeedTestJourney() {
         : result?.status ?? null;
   const showDial = isIdle || isRunning || terminalOutcome !== null || isProblem;
   const shouldCollectContextualQuestions = isResult && measurementContext?.entry === "problem";
-  // Falha (não cancelamento) durante o aprofundamento: mantém o mesmo cartão
-  // de erro genérico já usado no fluxo principal (`problemStates.ts`), só
-  // acrescido de contexto — nunca um componente novo.
-  const erroDuranteAprofundamento = isProblem && phase !== "cancelado" && emAprofundamentoPosResultado;
-  // "Este é o resultado do teste completo..." só quando o download realmente
-  // mudou em relação à estimativa rápida anterior — comparação puramente
-  // booleana, sem exibir os dois valores (spec Juliana §3).
-  const downloadMudouNoAprofundamento =
-    emAprofundamentoPosResultado &&
-    downloadMbpsAntesDoAprofundamento !== null &&
-    result !== null &&
-    result.download.mbps !== downloadMbpsAntesDoAprofundamento;
 
-  // Cancelamento do aprofundamento pós-resultado: volta ao resultado rápido
-  // original (nunca trava numa tela de loading/erro) e permite escolher de
-  // novo, sem forçar nova escolha nem perder o resultado rápido já medido.
-  useEffect(() => {
-    if (phase !== "cancelado" || !emAprofundamentoPosResultado) return;
-    restaurarResultadoAnterior();
-    setModo("rapido");
-    setEmAprofundamentoPosResultado(false);
-    resetarProblemaPosResultado();
-    setNotaAprofundamentoCancelado(true);
-  }, [phase, emAprofundamentoPosResultado, restaurarResultadoAnterior, resetarProblemaPosResultado]);
+  const aprofundamento = useSpeedTestDeepening({
+    phase,
+    isProblem,
+    result,
+    onCancelado: () => {
+      restaurarResultadoAnterior();
+      setModo("rapido");
+      resetarProblemaPosResultado();
+    },
+  });
 
   useEffect(() => {
     setRespostasContextuais(readMeasurementSession()?.answers ?? []);
   }, []);
-
-  useEffect(() => {
-    if (!retesteBase || !result || retesteBase.id === result.id) return;
-    const comparisonId = `${retesteBase.id}:${result.id}`;
-    void persistRetestComparison(retesteBase, result, comparacaoPersistida.current)
-      .then(({ comparison, persisted }) => {
-        if (comparison) setComparacaoReteste(comparison);
-        if (persisted) comparacaoPersistida.current = retestComparisonId(retesteBase, result);
-      })
-      .catch(() => {
-        setComparacaoReteste(null);
-        if (comparacaoPersistida.current !== comparisonId) setComparacaoNaoSalva(true);
-      });
-  }, [result, retesteBase]);
 
   const respostaDiagnostica = result ? createWebDiagnosticResponse(result, measurementContext, respostasContextuais) : null;
   useEffect(() => {
@@ -165,8 +125,7 @@ export function useSpeedTestJourney() {
   const iniciarTesteDireto = (contextualProblem?: ProblemaPercebido) => {
     resetarProblemaPosResultado();
     setResultadoRestaurado(false);
-    setEmAprofundamentoPosResultado(false);
-    setNotaAprofundamentoCancelado(false);
+    aprofundamento.limpar();
     setModo("rapido");
     if (contextualProblem) {
       // Entrada vinda de uma rota editorial (`/?context=...`): o problema já
@@ -187,13 +146,10 @@ export function useSpeedTestJourney() {
 
   const iniciarReteste = () => {
     if (!result) return;
-    setRetesteBase(result);
-    setComparacaoReteste(null);
-    setComparacaoNaoSalva(false);
+    iniciarComparacao(result);
     resetarProblemaPosResultado();
     setResultadoRestaurado(false);
-    setEmAprofundamentoPosResultado(false);
-    setNotaAprofundamentoCancelado(false);
+    aprofundamento.limpar();
     retry();
   };
 
@@ -205,10 +161,8 @@ export function useSpeedTestJourney() {
   // `result` (o resultado rápido anterior) como fallback visível durante a
   // execução e em caso de cancelamento/erro (spec Juliana §4).
   const iniciarAprofundamento = () => {
-    setNotaAprofundamentoCancelado(false);
-    setDownloadMbpsAntesDoAprofundamento(result ? result.download.mbps : null);
+    aprofundamento.iniciar(result);
     setResultadoRestaurado(false);
-    setEmAprofundamentoPosResultado(true);
     setModo("completo");
     retry("completo");
   };
@@ -245,50 +199,16 @@ export function useSpeedTestJourney() {
     }
   };
 
-  const autoStartDisparado = useRef(false);
-  const [isAutoStarting, setIsAutoStarting] = useState(true);
-
-  /**
-   * Entrada na rota (protótipo, tela 1.1): não existe tela ociosa.
-   *
-   * - Com resultado restaurável na sessão: restaura e **não** mede de novo.
-   * - Sem resultado restaurável: o velocímetro se forma e o teste rápido
-   *   começa sozinho — inclusive quando a pessoa chega de uma rota editorial
-   *   com `?problem=`, caso em que o problema declarado lá vira o contexto da
-   *   medição.
-   *
-   * Não há guarda de "já autostartou nesta sessão": cancelar leva ao estado de
-   * falha (com "Tentar novamente" explícito) e concluir deixa um resultado
-   * restaurável, então nenhum caminho volta a `idle` e cria laço de medição.
-   */
-  useEffect(() => {
-    if (!isIdle || autoStartDisparado.current) {
-      if (isIdle && isAutoStarting) setIsAutoStarting(false);
-      return;
-    }
-    autoStartDisparado.current = true;
-
-    const storedFullResult = readRestorableSpeedTestResult();
-    if (storedFullResult) {
-      setIsAutoStarting(false);
+  const { isAutoStarting } = useSpeedTestEntry({
+    isIdle,
+    result,
+    onRestore: (restaurado) => {
       setResultadoRestaurado(true);
-      setModo(storedFullResult.mode === "rapido" ? "rapido" : "completo");
-      setTimeout(() => injectResult(storedFullResult), 0);
-      return;
-    }
-
-    const contextualProblem = contextualProblemFromSearch(window.location.search);
-    if (contextualProblem) window.history.replaceState(null, "", window.location.pathname);
-    setTimeout(() => {
-      iniciarTesteDireto(contextualProblem ?? undefined);
-      setIsAutoStarting(false);
-    }, 0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isIdle]);
-
-  useEffect(() => {
-    if (result && result.status === "complete") persistRestorableSpeedTestResult(result);
-  }, [result]);
+      setModo(restaurado.mode === "rapido" ? "rapido" : "completo");
+      setTimeout(() => injectResult(restaurado), 0);
+    },
+    onStart: iniciarTesteDireto,
+  });
 
   const visualState = deriveSpeedTestVisualState({
     phase,
@@ -299,7 +219,7 @@ export function useSpeedTestJourney() {
     measurementContext,
     isAutoStarting,
     restoredResult: resultadoRestaurado,
-    deepeningAfterQuickResult: emAprofundamentoPosResultado,
+    deepeningAfterQuickResult: aprofundamento.ativo,
   });
 
   // Layout é consequência do estado visual, nunca uma segunda decisão tomada
@@ -320,8 +240,11 @@ export function useSpeedTestJourney() {
     postResultProblem, postResultAnswers, postResultMeasurementContext,
     postResultFlowState, respostaDiagnosticaPosResultado,
     selecionarProblemaPosResultado, atualizarRespostasPosResultado,
-    emAprofundamentoPosResultado, notaAprofundamentoCancelado,
-    erroDuranteAprofundamento, downloadMudouNoAprofundamento, iniciarAprofundamento,
+    emAprofundamentoPosResultado: aprofundamento.ativo,
+    notaAprofundamentoCancelado: aprofundamento.notaCancelado,
+    erroDuranteAprofundamento: aprofundamento.erroDurante,
+    downloadMudouNoAprofundamento: aprofundamento.downloadMudou,
+    iniciarAprofundamento,
     abrirSheetDiagnostico, fecharSheetDiagnostico, declararRede, confirmarDiagnostico,
     iniciarTesteDireto, iniciarReteste,
     cancelTest, retry, compartilhar, copiarResumo,

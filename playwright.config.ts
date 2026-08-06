@@ -46,9 +46,15 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run dev',
+    // Build de produção, não `next dev`: em desenvolvimento o Next compila
+    // rotas sob demanda durante a execução, e o HMR resultante destruía o
+    // contexto no meio de `AxeBuilder.analyze()` — falha intermitente e
+    // itinerante, sempre de infraestrutura e nunca de asserção. Também é o
+    // artefato que de fato vai ao ar, então o que o teste exercita é o que a
+    // pessoa recebe.
+    command: 'npm run build && npm run start',
     url: baseURL,
     reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
+    timeout: 240_000,
   },
 })
