@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import Script from "next/script";
 import "../index.css";
 import { AdSenseScript } from "../components/AdSenseScript";
 import { CookieConsentBanner } from "../components/CookieConsentBanner";

@@ -1,7 +1,6 @@
 import { Metadata } from "next";
 import { PageShell } from "@/components/PageShell";
 import { IpModal } from "@/components/meu-ip/IpModal";
-import { PAGE_META } from "@/lib/pageMetaCatalog";
 
 export const metadata: Metadata = {
   title: "Meu IP - Descubra seu Endereço IPv4 e IPv6 | SignallQ",
