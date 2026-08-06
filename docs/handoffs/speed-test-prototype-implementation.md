@@ -294,10 +294,33 @@ Novos/atualizados:
 | `npm test` | **317 testes / 56 arquivos**, todos verdes (baseline da rodada: 291) |
 | `npm run build` | verde — 29 rotas geradas (com `/ping`) |
 | `npm run test:visual` | **20/20** (9 estados + sheet de diagnóstico, × 2 viewports) |
-| `npm run test:e2e` | **24/24** |
+| `npm run test:e2e` | **31 casos** (7 novos, cobrindo as ferramentas). Verde por caso; ver a instabilidade conhecida abaixo |
+
+### Instabilidade conhecida no `test:e2e` (pré-existente, não introduzida aqui)
+
+Os testes que chamam `AxeBuilder.analyze()` falham de forma intermitente com
+`Execution context was destroyed, most likely because of a navigation` — erro
+de infraestrutura, nunca de asserção. A vítima muda de execução para execução.
+
+Evidência de que não vem desta branch: rodando a suíte **sem** os testes novos
+de Ferramentas, a falha migrou para `comparativo-accessibility.spec.ts`, que
+esta branch não toca. Todos os casos passam quando executados isoladamente.
+
+Causa provável: o `webServer` do `playwright.config.ts` é `npm run dev`, e o
+Next compila rotas sob demanda durante a execução; o HMR resultante destrói o
+contexto no meio da análise do axe. Não bloqueia a CI — `ci.yml` roda lint,
+typecheck, vitest e build, **não** roda e2e — e o config já usa `retries: 2`
+quando `CI` está definido.
+
+Correção de raiz sugerida (fora do escopo desta branch, muda o laço local de
+todo mundo): rodar o e2e contra build de produção (`next build` + `next
+start`) em vez do dev server. Não alterei o config para não mascarar nem para
+decidir sozinho por infraestrutura compartilhada.
+
+### Falhas reais encontradas e corrigidas
 
 Nenhum timeout foi aumentado, nenhum teste foi desativado e nenhuma falha foi
-mascarada. Três falhas reais apareceram e foram corrigidas na origem:
+mascarada. Estas apareceram e foram corrigidas na origem:
 
 - axe `definition-list`: invólucro extra dentro do `<dl>` de
   `FullResultMetrics` — corrigido na estrutura, não na asserção;
@@ -326,9 +349,69 @@ mascarada. Três falhas reais apareceram e foram corrigidas na origem:
    em vez do genérico "Não conseguimos concluir a medição." do protótipo — a
    mensagem específica diz mais e já era o contrato funcional.
 
-Divergências da primeira entrega que **deixaram de existir** nesta rodada: a
-tela ociosa com seletor de modo, os chips de contexto inline no lugar do
-sheet, e a grade de três ferramentas.
+6. Na tela 2.4, um bloco extra: "Este é o resultado do teste completo — pode
+   variar…", exibido quando o download do teste completo difere da estimativa
+   rápida. O protótipo não modela a transição rápido→completo, então não tem
+   equivalente. Fica como nota de apoio, com peso menor que o diagnóstico
+   (11.5px, filete lateral, 80% do texto secundário — 5,31:1 no claro e
+   7,91:1 no escuro).
+
+Divergências que **deixaram de existir** ao longo do trabalho: a tela ociosa
+com seletor de modo, os chips de contexto inline no lugar do sheet, a grade de
+três ferramentas, os seis blocos a mais no resultado completo e a ordem
+trocada entre ações e detalhes.
+
+## 12.1 Correções vindas da validação em preview
+
+Três defeitos só apareceram no uso real, num aparelho, e todos na mesma
+região: as ferramentas. Nenhum teste abria um cartão da grade — a cobertura
+inteira parava na tela de Velocidade.
+
+| Defeito | Causa | Correção |
+| --- | --- | --- |
+| Painel do modal transparente, com a página aparecendo por trás do texto | `--surface` e `--surface-elevated` nunca foram definidos; custom property inexistente invalida a declaração e `background-color` cai para `transparent` (medido: `rgba(0,0,0,0)`). 33 usos em 4 componentes | mapeados para `--bg-card` e `--bg-secondary`; o vocabulário fantasma saiu de circulação |
+| Texto sem acentos ("provedores pblicos", "boto direito") | arquivo já estava assim em `HEAD` — o `DnsModal` inteiro tinha um caractere acentuado | 16 trechos restaurados em `DnsModal` e `JogosModal` |
+| Telas sem como voltar | as ferramentas têm dois modos; só o modal tinha saída. Na página inteira o "X" chamava `router.back()`, que sem entrada anterior sai do site ou não faz nada. `/ping` não tinha nem isso | `ToolBackLink` (`<Link href="/">`) na página inteira; o "X" ficou restrito ao modal, onde `back()` é correto por construção |
+
+Não dá para decidir `back()` em runtime: este Next não guarda índice em
+`history.state`, `history.length` acumula a aba inteira e `document.referrer`
+vem vazio em navegação client-side — os três medidos.
+
+`e2e/ferramentas-navegacao.spec.ts` fecha a lacuna: sete casos cobrindo os
+dois modos de abertura das quatro ferramentas, a opacidade do painel e os
+acentos.
+
+## 12.2 Tema escuro em preto puro
+
+`--bg-primary` do tema escuro passou de `#131217` para `#000000` a pedido do
+Luiz, para avaliação. Contraste **melhora** em todos os tokens de primeiro
+plano (`--text-primary` de 14,38:1 para 16,20:1; `--border` de 5,90:1 para
+6,65:1); nenhum piora. O que aumenta é a amplitude luminosa (21:1 entre preto
+e branco puros), que é o que causa halação para quem tem astigmatismo — e
+isso a razão de contraste da WCAG não mede. Se incomodar, o ajuste é baixar
+`--text-primary`, não voltar o fundo.
+
+`themeColor` deixou de ser um valor único (pintava a barra do navegador de
+`#131217` também no modo claro) e virou uma cor por esquema. O manifesto do
+PWA acompanha.
+
+**Achado junto:** o bloco de tema escuro de `tokens.css` era **inerte**. O
+bundle sincronizado do design system declara os mesmos tokens sob `.dark`,
+com a mesma especificidade, e é carregado depois (folha 2 contra folha 0) —
+vencia por ordem de documento. Os valores eram idênticos, então nada parecia
+quebrado, mas nenhum override de tema feito ali surtia efeito. O seletor subiu
+para `html.dark` (0,1,1).
+
+## 12.3 Pendências que não são minhas para fechar
+
+| Item | Quem decide | Estado |
+| --- | --- | --- |
+| Revisão independente da entrega | **Caio** (`AGENTS.md`: não implementa a entrega que revisa) | pendente — eu implementei, não posso revisar |
+| Indexar `/ping` (está no `sitemap.xml`, ao lado de `/dns` e `/jogos`) | **Renan** (SEO técnico: rotas, metadados, indexação) | implementado; confirmar ou remover a linha |
+| Preto puro vira definitivo? | **Luiz** | validado em aparelho; reverter é uma linha em `tokens.css` |
+| `manifest.json` com `theme_color`/`background_color` pretos | **Luiz** | em produção, altera a splash de quem já tem o PWA instalado |
+| Remoção do seletor Rápido/Completo, da entrada por problema pré-teste e da telemetria `FEATURE_SPEEDTEST_PROBLEMA_ABANDONADO` | **Luiz / Claudete** | implementado conforme a jornada do protótipo |
+| `--text-tertiary` é alias de `--text-secondary` (mesmo valor), usado em ~30 lugares | **Juliana / design system** | fora do escopo desta branch; registrado |
 
 ## 13. Escopo
 
