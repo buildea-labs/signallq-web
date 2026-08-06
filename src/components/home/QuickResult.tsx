@@ -50,7 +50,7 @@ export function QuickResult({ journey }: { journey: SpeedTestJourney }) {
           bloco do mostrador de propósito: no resultado completo o velocímetro
           sai de cena, e sem o selo nada distinguiria um resultado restaurado
           de um recém-medido. */}
-      {isResult && result && (
+      {isResult && result && (showsDial || restored) && (
         <ResultStamp
           label={
             restored
@@ -87,7 +87,7 @@ export function QuickResult({ journey }: { journey: SpeedTestJourney }) {
           ruído para quem não pediu essa informação (#71 §3.1/§3.4.8).
           Independe do mostrador: no resultado completo o velocímetro sai de
           cena, mas a origem da medição continua sendo informação do resultado. */}
-      {isResult && !isProblem && !loading && isp && region && (
+      {showsDial && isResult && !isProblem && !loading && isp && region && (
         <p className="m-0 flex items-center justify-center gap-2 text-[10px] text-[color:var(--text-secondary)] sm:text-[11px]">
           <span className="line-clamp-1 font-semibold">{isp}</span>
           <span aria-hidden="true" className="font-bold text-[color:var(--accent)]">

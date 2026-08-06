@@ -143,9 +143,11 @@ test.describe('Jornada Rápido — teclado e resultado real (#71, bug crítico #
     await expect(diagnostico).toBeVisible({ timeout: 120_000 })
     await page.screenshot({ path: `${EVIDENCE_DIR}/rapido-pos-resultado-concluido.png`, fullPage: true })
 
-    // Uma única conclusão com "Próxima ação" — a calculada com o contexto
-    // declarado — e nenhum questionário reapresentado (protótipo, tela 2.4).
-    await expect(page.getByText('Próxima ação')).toHaveCount(1)
+    // Uma única conclusão — a calculada com o contexto declarado — e nenhum
+    // questionário reapresentado (protótipo, tela 2.4). A tela não tem seção
+    // "Próxima ação": diagnóstico e ação vivem no mesmo bloco.
+    await expect(diagnostico.locator('h1')).toHaveCount(1)
+    await expect(page.getByText('Próxima ação')).toHaveCount(0)
     await expect(page.getByRole('radio')).toHaveCount(0)
 
     const results = await new AxeBuilder({ page }).analyze()

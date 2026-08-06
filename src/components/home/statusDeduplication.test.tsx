@@ -70,27 +70,31 @@ function renderResultScreen(result: SpeedTestResult) {
 describe("Tela de resultado (Completo) — selo de status sem duplicação (#71 §3.1)", () => {
   afterEach(() => cleanup());
 
-  // Conta só as ocorrências do rótulo de status fora do bloco "Ver detalhes
-  // do teste" (#70): a linha "Modo: Completo" ali é um dado técnico
-  // incidental, não uma segunda instância do selo de status desta claim.
-  function countStatusLabelOutsideDetails(container: HTMLElement, label: string): number {
-    const detailsNode = container.querySelector("details");
-    const detailsText = detailsNode?.textContent ?? "";
-    const detailsOccurrences = detailsText.split(label).length - 1;
-    const totalOccurrences = (container.textContent ?? "").split(label).length - 1;
-    return totalOccurrences - detailsOccurrences;
+  function countStatusLabel(container: HTMLElement, label: string): number {
+    return (container.textContent ?? "").split(label).length - 1;
   }
 
-  it("status complete: o rótulo aparece uma única vez (selo em UseCaseSummary, sem barra em CompleteDiagnosis)", () => {
+  // Desde a implementação da tela 2.4, o selo de status vive dentro de
+  // "Ver detalhes da medição" (junto de `UseCaseSummary`), porque o protótipo
+  // não tem selo nem cartão na tela principal. A claim de não-duplicação
+  // continua valendo: uma ocorrência no total, venha ela de onde vier.
+  it("status complete: um único selo de status, e dentro do bloco de detalhes", () => {
     const { container } = renderResultScreen(buildResult({ status: "complete" }));
-    expect(countStatusLabelOutsideDetails(container, "Completo")).toBe(1);
+
+    // O selo é o par ícone + rótulo; "Completo" também aparece como dado
+    // técnico ("Modo: Completo"), que não é uma segunda instância do selo.
+    expect(screen.getAllByText("check_circle")).toHaveLength(1);
+
+    // O selo vive dentro do bloco de detalhes, não na tela principal (2.4).
+    const detalhes = container.querySelector("details");
+    expect(detalhes?.contains(screen.getByText("check_circle"))).toBe(true);
   });
 
-  it("status partial: o rótulo aparece uma única vez (sem selo em UseCaseSummary, barra em CompleteDiagnosis)", () => {
+  it("status partial: o rótulo aparece uma única vez, na barra de aviso fora dos detalhes", () => {
     const { container } = renderResultScreen(buildResult({ status: "partial" }));
-    expect(countStatusLabelOutsideDetails(container, "Parcial")).toBe(1);
-    // A ocorrência vem só da barra de CompleteDiagnosis: o selo dedicado de
-    // UseCaseSummary (ícone + "•" + horário) não existe para este status.
+    expect(countStatusLabel(container, "Parcial")).toBe(1);
+    expect(container.querySelector("details")?.textContent).not.toContain("Parcial");
+    // O selo dedicado (ícone + "•" + horário) não existe para este status.
     expect(screen.queryByText("check_circle")).not.toBeInTheDocument();
   });
 });

@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, type SyntheticEvent } from "react";
+import { useState, type ReactNode, type SyntheticEvent } from "react";
 import { HelpButton } from "@/components/HelpButton";
 import { FEATURE_DIAGNOSIS_EXPANDED, trackFeatureUsed } from "@/lib/telemetry";
 import type { ResultView } from "@/lib/resultView";
-import { buildTechnicalDetailGroups, type DetailRow } from "./resultTechnicalDetailsRows";
+import { buildTechnicalDetailGroups, type DetailRow, type MeasurementOrigin } from "./resultTechnicalDetailsRows";
 
 function DetailRowLine({ row, openId, onToggle }: { row: DetailRow; openId: string | null; onToggle: (id: string) => void }) {
   return (
@@ -27,9 +27,18 @@ function DetailRowLine({ row, openId, onToggle }: { row: DetailRow; openId: stri
  * agrupa Velocidade / Resposta da conexão / Sobre o teste — o `MetricSidePanel`
  * sempre-visível foi removido e fundido aqui (ver homeCopy/QuickResult).
  */
-export function ResultTechnicalDetails({ result }: { result: ResultView }) {
+export function ResultTechnicalDetails({
+  result,
+  origin,
+  children,
+}: {
+  result: ResultView;
+  origin?: MeasurementOrigin;
+  /** Conteúdo que o protótipo não põe na tela principal (ex.: leitura por tipo de uso). */
+  children?: ReactNode;
+}) {
   const [openHelpId, setOpenHelpId] = useState<string | null>(null);
-  const groups = buildTechnicalDetailGroups(result);
+  const groups = buildTechnicalDetailGroups(result, origin);
 
   const handleToggleDetails = (event: SyntheticEvent<HTMLDetailsElement>) => {
     if (event.currentTarget.open) {
@@ -40,7 +49,7 @@ export function ResultTechnicalDetails({ result }: { result: ResultView }) {
   return (
     <section className="py-7 border-b border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]">
       <details onToggle={handleToggleDetails}>
-        <summary className="cursor-pointer font-medium text-[14px] text-[color:var(--accent)]">Ver detalhes da medição</summary>
+        <summary className="cursor-pointer text-[11.5px] leading-[1.4] text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)]">Ver detalhes da medição</summary>
 
         <div className="mt-[18px] grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
           {groups.map((group) => (
@@ -56,6 +65,8 @@ export function ResultTechnicalDetails({ result }: { result: ResultView }) {
             </div>
           ))}
         </div>
+
+        {children}
 
         <p className="mt-5 mb-0 font-normal text-[12px] leading-[1.4] text-[color:var(--text-tertiary)]">
           O navegador não confirma provedor, localização, nem lê sinal Wi-Fi ou 4G/5G.{" "}

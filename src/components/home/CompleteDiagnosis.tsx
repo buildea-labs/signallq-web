@@ -3,6 +3,7 @@
 import { PlayStoreBadge } from "@/components/PlayStoreBadge";
 import { ResultAdSlot } from "@/components/ResultAdSlot";
 import { GuidedDiagnosis } from "@/components/speedtest/GuidedDiagnosis";
+import { useNetworkInfo } from "@/hooks/useNetworkInfo";
 import type { SpeedTestJourney } from "@/hooks/useSpeedTestJourney";
 import { FullResultMetrics } from "./FullResultMetrics";
 import { ResultTechnicalDetails } from "./ResultTechnicalDetails";
@@ -13,6 +14,7 @@ import { STATUS_LABEL, STATUS_MESSAGE } from "./homeCopy";
 /** Leitura completa do resultado: conclusão+próxima ação, comparação, detalhes e ações finais. */
 export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
   const { result, hasVisibleResult, retesteBase, comparacaoReteste, modo, emAprofundamentoPosResultado } = journey;
+  const { isp, region } = useNetworkInfo();
   if (!hasVisibleResult || !result || modo === "rapido") return null;
 
   // Uma única conclusão na tela. Quando a pessoa declarou contexto no sheet, a
@@ -56,10 +58,17 @@ export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
           <p className="m-0 mb-[6px] font-bold text-[10.5px] uppercase leading-[1.4] tracking-[.4px] text-[color:var(--accent)]">
             Diagnóstico
           </p>
-          <h1 id="resultado-conclusao" className="m-0 font-bold text-[20px] sm:text-[24px] leading-[1.3] text-[color:var(--text-primary)] tracking-tight">
+          <h1 id="resultado-conclusao" className="m-0 font-bold text-[15px] sm:text-[18px] leading-[1.4] text-[color:var(--text-primary)] tracking-[-0.1px]">
             {respostaDiagnostica.conclusion}
           </h1>
-          <p className="mt-2 mb-0 font-normal text-[14px] leading-[1.45] text-[color:var(--text-secondary)]">{respostaDiagnostica.impact}</p>
+          {/* O protótipo funde diagnóstico e ação numa única frase. O contrato
+              de diagnóstico mantém `impact` e `nextAction` como campos
+              separados (ambos persistidos e compartilhados), então eles vêm
+              num parágrafo só — sem a overline "Próxima ação", que criava uma
+              seção que a tela 2.4 não tem. */}
+          <p className="mt-2 mb-0 font-normal text-[12.5px] leading-[1.45] text-[color:var(--text-secondary)] sm:text-[13.5px]">
+            {respostaDiagnostica.impact} {respostaDiagnostica.nextAction}
+          </p>
 
           {/* Só quando o download do teste completo difere da estimativa
               rápida anterior — comparação booleana, sem mostrar os dois
@@ -70,10 +79,6 @@ export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
             </p>
           )}
 
-          <div className="mt-4">
-            <h2 className="m-0 font-medium text-[11px] uppercase tracking-[.3px] text-[color:var(--text-tertiary)]">Próxima ação</h2>
-            <p className="mt-1 mb-0 text-[13px] leading-[1.4] text-[color:var(--text-secondary)]">{respostaDiagnostica.nextAction}</p>
-          </div>
           {respostaDiagnostica.androidCta && (
             <div className="mt-4 flex flex-wrap items-center gap-[10px] rounded-xl border border-[color:var(--border)] p-3">
               <p className="m-0 flex-1 text-[13px] leading-[1.4] text-[color:var(--text-secondary)]">{respostaDiagnostica.androidCta.reason}</p>
@@ -86,19 +91,14 @@ export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
       {/* Métricas em hierarquia (protótipo, tela 2.4 e painel `desktop-2`):
           download/upload lideram, ping e latência sob carga vêm em seguida.
           O detalhamento completo continua no bloco expansível abaixo. */}
-      <section aria-label="Métricas da medição" className="flex flex-col gap-6 py-7 border-b border-[color-mix(in_srgb,_var(--border)_16%,_transparent)]">
+      <section aria-label="Métricas da medição" className="py-7">
         <FullResultMetrics result={result} />
-        <UseCaseSummary result={result} />
       </section>
 
       {retesteBase && comparacaoReteste && (
         <RetestComparison comparacao={comparacaoReteste} comparacaoNaoSalva={journey.comparacaoNaoSalva} />
       )}
 
-      <ResultTechnicalDetails result={result} />
-
-      {/* Única ação primária da etapa: reteste. "Ver histórico" é navegação de
-          saída, rebaixada ao mesmo peso de Compartilhar/Copiar resumo (#71 §3.2/§3.4.6). */}
       {/* Ações da tela 2.4: reteste ocupa a largura, compartilhar é um botão
           quadrado ao lado. "Ver histórico" e "Copiar resumo" saíram daqui —
           navegação de saída e utilitário não competem com a ação principal;
@@ -125,6 +125,13 @@ export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
           <span aria-hidden="true" className="material-symbols-outlined text-[20px] text-[color:var(--text-primary)]">share</span>
         </button>
       </div>
+
+      {/* A leitura por tipo de uso e a origem da medição não existem na tela
+          2.4; em vez de sumirem, vivem dentro do bloco de detalhes — mesmo
+          lugar onde o protótipo põe servidor, região e provedor. */}
+      <ResultTechnicalDetails result={result} origin={{ isp, region }}>
+        <UseCaseSummary result={result} />
+      </ResultTechnicalDetails>
 
       {/* Entrada por rota editorial (`/?context=...`): o problema veio da URL,
           mas as perguntas que refinam a causa continuam sendo feitas aqui —

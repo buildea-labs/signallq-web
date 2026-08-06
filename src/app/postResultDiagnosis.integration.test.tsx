@@ -17,8 +17,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
  *    disparava o teste assim que o fluxo de perguntas concluía. Agora só o CTA
  *    "Diagnosticar minha internet" inicia.
  *
- * E a tela 2.4 é verificada no que o protótipo exige dela: uma única conclusão
- * com "Próxima ação", e nenhum questionário reapresentado.
+ * E a tela 2.4 é verificada no que o protótipo exige dela: uma única conclusão,
+ * com a ação no mesmo bloco, e nenhum questionário reapresentado.
  *
  * `useSpeedTest` é mockado (fase estática "concluido", `retry` espiado) porque
  * este teste cobre a árvore de componentes/orquestração — o motor real e as
@@ -126,7 +126,10 @@ describe("diagnóstico declarado pelo sheet, sobre o resultado rápido", () => {
     // questionário reapresentado.
     const diagnostico = await screen.findByTestId("post-result-diagnostico");
     expect(diagnostico.textContent).toBeTruthy();
-    expect(screen.getAllByText("Próxima ação")).toHaveLength(1);
+    // Uma única conclusão, sem seção "Próxima ação" separada — o protótipo
+    // (tela 2.4) traz diagnóstico e ação no mesmo bloco.
+    expect(diagnostico.querySelectorAll("h1")).toHaveLength(1);
+    expect(screen.queryByText("Próxima ação")).not.toBeInTheDocument();
     expect(screen.queryByRole("radio", { name: "Está lenta" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Testar novamente" })).toBeInTheDocument();
   });

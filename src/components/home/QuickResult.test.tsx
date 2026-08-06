@@ -12,6 +12,11 @@ import type { SpeedTestResult } from "@/lib/speedEngine";
  * "Desconhecido" é ruído para quem não pediu essa informação. Falha de rede,
  * carregamento em andamento ou dado parcial devem omitir a linha inteira,
  * nunca preenchê-la com um placeholder.
+ *
+ * A linha acompanha o mostrador (resultado rápido/restaurado). No resultado
+ * completo o velocímetro sai de cena e a origem da medição passa a viver em
+ * "Ver detalhes da medição", como na tela 2.4 do protótipo — por isso a
+ * jornada destes testes é a do modo Rápido.
  */
 
 const networkInfoMock = vi.fn<() => NetworkInfo>();
@@ -27,7 +32,7 @@ function buildResult(overrides: Partial<SpeedTestResult> = {}): SpeedTestResult 
   return {
     id: "medicao-isp-1",
     timestamp: Date.now(),
-    mode: "completo",
+    mode: "rapido",
     status: "complete",
     download: { mbps: 80, peakMbps: 90 },
     upload: { mbps: 15, peakMbps: 18 },
@@ -57,7 +62,7 @@ function buildJourney(overrides: Partial<SpeedTestJourney> = {}): SpeedTestJourn
     isResult: true,
     isAutoStarting: false,
     terminalOutcome: "complete",
-    modo: "completo",
+    modo: "rapido",
     iniciarTesteDireto: vi.fn(),
     ...overrides,
   });

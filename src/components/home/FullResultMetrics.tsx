@@ -69,15 +69,15 @@ export function FullResultMetrics({ result }: { result: SpeedTestResult }) {
     // Cada `<dt>/<dd>` fica num `<div>` filho direto do `<dl>` — o único
     // aninhamento que a lista de descrição admite. Um invólucro extra para a
     // linha secundária quebraria a estrutura (axe `definition-list`).
-    <dl className="m-0 grid w-full grid-cols-2 gap-y-5 lg:grid-cols-4 lg:gap-4">
+    <dl className="m-0 grid w-full grid-cols-2 gap-y-4 lg:grid-cols-4 lg:gap-4">
       {primary.map((metric) => (
         <div key={metric.id} className="min-w-0 px-3 text-center lg:rounded-[14px] lg:bg-[color:var(--bg-secondary)] lg:p-4 lg:text-left">
-          <dt className="font-bold text-[11px] uppercase leading-[1.4] tracking-[.5px] text-[color:var(--text-secondary)] sm:text-[12px]">
+          <dt className="font-bold text-[13px] uppercase leading-[1.4] tracking-[.5px] text-[color:var(--text-secondary)]">
             {metric.label}
           </dt>
-          <dd className="m-0 mt-[6px] font-extrabold leading-none tabular-nums text-[color:var(--text-primary)] text-[38px] sm:text-[44px] lg:text-[26px]">
+          <dd className="m-0 mt-[6px] font-extrabold leading-none tabular-nums text-[color:var(--text-primary)] text-[44px] lg:text-[26px]">
             {metric.value}
-            <span className="ml-1 font-semibold text-[14px] text-[color:var(--text-secondary)] sm:text-[16px] lg:text-[13px]">
+            <span className="ml-1 font-semibold text-[16px] text-[color:var(--text-secondary)] lg:text-[13px]">
               {metric.unit}
             </span>
           </dd>
@@ -93,11 +93,11 @@ export function FullResultMetrics({ result }: { result: SpeedTestResult }) {
               : ""
           }`}
         >
-          <dt className="font-semibold text-[10px] leading-[1.4] text-[color:var(--text-secondary)] lg:text-[11px] lg:font-bold lg:uppercase lg:tracking-[.5px]">
+          <dt className="font-semibold text-[9.5px] leading-[1.4] text-[color:var(--text-secondary)] lg:text-[11px] lg:font-bold lg:uppercase lg:tracking-[.5px]">
             {metric.label}
           </dt>
           <dd
-            className="m-0 mt-[2px] font-bold leading-none tabular-nums text-[16px] lg:mt-[6px] lg:text-[26px] lg:font-extrabold"
+            className="m-0 mt-[2px] font-bold leading-none tabular-nums text-[15px] lg:mt-[6px] lg:text-[26px] lg:font-extrabold"
             style={{ color: metric.color ?? "var(--text-primary)" }}
           >
             {metric.value}
