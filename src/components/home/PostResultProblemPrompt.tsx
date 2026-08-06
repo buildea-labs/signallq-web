@@ -4,9 +4,6 @@ import { useId } from "react";
 import type { SpeedTestJourney } from "@/hooks/useSpeedTestJourney";
 import { POST_RESULT_PROBLEMS } from "@/lib/postResultProblem";
 
-const TRANSITION_TEXT =
-  "Mais um detalhe ajuda a confirmar o motivo mais provável, agora com o resultado completo.";
-
 /**
  * Pergunta pós-resultado (#69): "Você está tendo algum problema agora?".
  * Só aparece depois de um resultado do modo Rápido. Selecionar uma opção já

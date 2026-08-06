@@ -49,7 +49,7 @@ export function DnsModal({ isIntercepted = false, activeTutorial }: { isIntercep
           await res.json();
           const end = performance.now();
           return { provider: prov.id, name: prov.name, latencyMs: Math.round(end - start) };
-        } catch (e) {
+        } catch {
           return { provider: prov.id, name: prov.name, latencyMs: null, error: true };
         }
       });
@@ -83,7 +83,7 @@ export function DnsModal({ isIntercepted = false, activeTutorial }: { isIntercep
               <li className="flex items-start gap-3"><span className="flex-shrink-0 w-6 h-6 rounded-full bg-[color:var(--surface-elevated)] flex items-center justify-center font-bold text-[12px]">1</span> Pressione Win + R, digite <b>ncpa.cpl</b> e d Enter.</li>
               <li className="flex items-start gap-3"><span className="flex-shrink-0 w-6 h-6 rounded-full bg-[color:var(--surface-elevated)] flex items-center justify-center font-bold text-[12px]">2</span> Clique com o boto direito na sua rede e v em <b>Propriedades</b>.</li>
               <li className="flex items-start gap-3"><span className="flex-shrink-0 w-6 h-6 rounded-full bg-[color:var(--surface-elevated)] flex items-center justify-center font-bold text-[12px]">3</span> D duplo clique em <b>Protocolo IP Verso 4 (TCP/IPv4)</b>.</li>
-              <li className="flex items-start gap-3"><span className="flex-shrink-0 w-6 h-6 rounded-full bg-[color:var(--surface-elevated)] flex items-center justify-center font-bold text-[12px]">4</span> Marque "Usar os seguintes endereos de servidor DNS" e insira os IPs.</li>
+              <li className="flex items-start gap-3"><span className="flex-shrink-0 w-6 h-6 rounded-full bg-[color:var(--surface-elevated)] flex items-center justify-center font-bold text-[12px]">4</span> Marque &quot;Usar os seguintes endereos de servidor DNS&quot; e insira os IPs.</li>
             </ul>
           </div>
         );
