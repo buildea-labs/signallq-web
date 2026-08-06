@@ -72,9 +72,17 @@ export function CompleteDiagnosis({ journey }: { journey: SpeedTestJourney }) {
 
           {/* Só quando o download do teste completo difere da estimativa
               rápida anterior — comparação booleana, sem mostrar os dois
-              valores (spec Juliana §3). */}
+              valores (spec Juliana §3).
+
+              É uma ressalva sobre a medição, não parte do diagnóstico, e
+              precisa pesar menos que ele. `--text-tertiary` não serviria: vale
+              exatamente o mesmo que `--text-secondary` neste design system
+              ("2º degrau removido", `tokens.css`), então a nota saía com o
+              mesmo peso do parágrafo acima. O degrau vem de tamanho menor,
+              filete lateral e uma mistura de 80% do texto secundário —
+              5,31:1 no claro e 7,91:1 no escuro, ambos acima do mínimo AA. */}
           {journey.downloadMudouNoAprofundamento && (
-            <p className="mt-2 mb-0 text-[12px] leading-[1.4] text-[color:var(--text-tertiary)]">
+            <p className="mt-3 mb-0 border-l-2 border-[color:color-mix(in_srgb,var(--border)_30%,transparent)] pl-3 text-[11.5px] leading-[1.45] text-[color:color-mix(in_srgb,var(--text-secondary)_80%,transparent)]">
               Este é o resultado do teste completo — pode variar um pouco em relação à estimativa rápida anterior.
             </p>
           )}
