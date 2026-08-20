@@ -1,6 +1,6 @@
 # /planos — metas visuais de layout
 
-Estas referências foram fornecidas e aprovadas como **metas de composição/layout** para a implementação da Issue #10.
+Estas referências foram fornecidas e aprovadas como **metas de composição/layout** para a implementação da Issue #10 do `signallq-plans`.
 
 Elas não criam um Design System paralelo e não substituem o **Design System oficial SignallQ 2.0**, que continua sendo a autoridade para tokens, componentes, tipografia, cores, espaçamento, responsividade e estados.
 
