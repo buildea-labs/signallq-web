@@ -7,6 +7,7 @@ export const MENU_GROUPS = [
     title: "Produto",
     items: [
       { key: "home", label: "Velocidade", href: "/" },
+      { key: "planos", label: "Planos de Internet", href: "/planos" },
       { key: "historico", label: "Histórico", href: "/historico" },
       { key: "como-medimos", label: "Como funciona", href: "/como-medimos" },
     ],
