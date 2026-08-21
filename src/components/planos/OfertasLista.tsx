@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Fragment } from 'react'
 import type { AvailabilityFit, LocationResult, RankedOffer } from '../../lib/plansContract'
 import { Icone } from './Icone'
 import { OfertaDetalhe } from './OfertaDetalhe'
@@ -46,11 +46,10 @@ interface OfertasListaProps {
 export function OfertasLista({ offers, location, onTrocarLocalizacao, availabilityFit, children }: OfertasListaProps) {
   const [sort, setSort] = useState<SortOption>('recomendado')
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [showAll, setShowAll] = useState(false)
 
-  const displayOffers = applyDisplayChoice(offers, sort)
-  // Só mostra o detalhe se a oferta continuar visível na seleção atual —
-  // trocar para um filtro que a esconde não pode deixar o painel órfão.
-  const selectedOffer = displayOffers.find((offer) => offer.id === selectedId) ?? null
+  const allDisplayOffers = applyDisplayChoice(offers, sort)
+  const displayOffers = showAll ? allDisplayOffers : allDisplayOffers.slice(0, 3)
 
   return (
     <section className="flex w-full flex-col gap-6">
@@ -115,20 +114,36 @@ export function OfertasLista({ offers, location, onTrocarLocalizacao, availabili
         <p className="body-medium m-0 text-[color:var(--text-secondary)]">Nenhuma oferta com este filtro. Tente outra visão acima.</p>
       ) : (
         <>
-          {/* A grade de ofertas permanece intacta ao expandir (referência
-              01): o painel de detalhe abre ABAIXO da linha inteira, não no
-              meio dela — não quebra a comparação lado a lado. */}
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {displayOffers.map((offer) => (
-              <OfertaItem
-                key={offer.id}
-                offer={offer}
-                expanded={selectedId === offer.id}
-                onToggle={() => setSelectedId((current) => (current === offer.id ? null : offer.id))}
-              />
-            ))}
+            {displayOffers.map((offer) => {
+              const isSelected = selectedId === offer.id
+              return (
+                <Fragment key={offer.id}>
+                  <OfertaItem
+                    offer={offer}
+                    expanded={isSelected}
+                    onToggle={() => setSelectedId((current) => (current === offer.id ? null : offer.id))}
+                  />
+                  {isSelected && (
+                    <div className="col-span-full">
+                      <OfertaDetalhe offer={offer} onClose={() => setSelectedId(null)} />
+                    </div>
+                  )}
+                </Fragment>
+              )
+            })}
           </div>
-          {selectedOffer && <OfertaDetalhe offer={selectedOffer} onClose={() => setSelectedId(null)} />}
+
+          {!showAll && allDisplayOffers.length > 3 && (
+            <button 
+              type="button" 
+              onClick={() => setShowAll(true)} 
+              className="label-large mt-2 flex h-12 w-full max-w-[300px] mx-auto items-center justify-center rounded-[var(--radius-pill)] border transition-colors"
+              style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}
+            >
+              Ver todas as ofertas
+            </button>
+          )}
         </>
       )}
     </section>
