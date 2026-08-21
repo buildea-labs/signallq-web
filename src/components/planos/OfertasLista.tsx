@@ -15,16 +15,40 @@ const SORT_OPTIONS: Array<{ value: SortOption; label: string }> = [
   { value: 'sem_fidelidade', label: 'Sem fidelidade' },
 ]
 
-/** Ordenação/filtro de EXIBIÇÃO iniciado pela pessoa usuária — nunca
- * substitui o ranking orgânico devolvido pelo backend, só reordena/filtra o
- * que já está na tela quando ela pede. `recomendado` volta à ordem
- * original. `sem_fidelidade` é FILTRO, não reordenação. */
+/** Ordenação/filtro de EXIBIÇÃO iniciado pela pessoa usuária — 
+ * A opção 'recomendado' agora prioriza FTTH (Fibra) sobre outras tecnologias,
+ * e usa a soma de (Download + Upload) como critério de desempate/ordenação (Issue #157).
+ * `sem_fidelidade` é FILTRO, não reordenação. */
 function applyDisplayChoice(offers: RankedOffer[], sort: SortOption): RankedOffer[] {
-  if (sort === 'recomendado') return offers
   if (sort === 'sem_fidelidade') return offers.filter((offer) => offer.fidelityMonths == null || offer.fidelityMonths === 0)
+  
   const sorted = [...offers]
+  
+  if (sort === 'recomendado') {
+    sorted.sort((a, b) => {
+      const aIsFiber = a.technologies.some(t => {
+        const u = t.toUpperCase()
+        return u.includes('FTTH') || u.includes('FIBER') || u.includes('FIBRA')
+      })
+      const bIsFiber = b.technologies.some(t => {
+        const u = t.toUpperCase()
+        return u.includes('FTTH') || u.includes('FIBER') || u.includes('FIBRA')
+      })
+      
+      if (aIsFiber && !bIsFiber) return -1
+      if (!aIsFiber && bIsFiber) return 1
+      
+      const aTotal = (a.downloadMbps || 0) + (a.uploadMbps || 0)
+      const bTotal = (b.downloadMbps || 0) + (b.uploadMbps || 0)
+      
+      return bTotal - aTotal
+    })
+    return sorted
+  }
+  
   if (sort === 'menor_preco') sorted.sort((a, b) => a.price - b.price)
   else if (sort === 'maior_velocidade') sorted.sort((a, b) => (b.downloadMbps ?? -Infinity) - (a.downloadMbps ?? -Infinity))
+  
   return sorted
 }
 
