@@ -9,7 +9,7 @@
 // asset aprovado ainda — não adicionar sem decisão equivalente registrada.
 const OPERATOR_LOGOS: Record<string, string> = {
   CLARO: '/assets/providers/claro/logo.svg',
-  NIO: '/assets/providers/nio/logo.svg',
+  NIO: '/assets/providers/nio/logo.png',
 }
 
 interface OperadoraMarcaProps {
