@@ -66,6 +66,11 @@ export function OfertasLista({ offers, location, onTrocarLocalizacao, children }
               Alterar localização
             </button>
           </span>
+          {/* Critério de transparência da issue #144: disponibilidade
+              regional não garante viabilidade no endereço exato. */}
+          <span className="body-small text-[color:var(--text-tertiary)]">
+            Disponibilidade por região — confirme o endereço exato diretamente com a operadora antes de contratar.
+          </span>
         </div>
       </div>
 
