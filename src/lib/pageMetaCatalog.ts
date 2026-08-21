@@ -77,6 +77,14 @@ export const PAGE_META: Record<string, PageMeta> = {
     description: 'Matriz comparativa entre o SignallQ e testes de velocidade tradicionais: download, upload, latência sob carga e diagnóstico, item a item.',
     path: '/comparativo',
   },
+  '/planos': {
+    // Issue #10 (integração signallq-plans) — jornada CEP → perfil de uso →
+    // faixa recomendada → ofertas ranqueadas. Dados de ofertas vêm
+    // exclusivamente do backend signallq-plans (#9/#13, ainda abertas).
+    title: 'Encontre o plano de internet certo para você — SignallQ',
+    description: 'Informe seu CEP e como você usa a internet: mostramos a faixa de velocidade recomendada e os planos disponíveis para a sua casa.',
+    path: '/planos',
+  },
   '/internet-para-jogos': {
     title: 'Que internet você precisa para jogar online sem travar',
     description: 'Não é só velocidade: latência baixa e estável importa mais que Mbps para a maioria dos jogos competitivos.',

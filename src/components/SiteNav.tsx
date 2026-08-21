@@ -9,6 +9,7 @@ import { SiteNavMobile } from "./SiteNavMobile";
 
 const ITENS = [
   { key: "home", label: "Velocidade", href: "/" },
+  { key: "planos", label: "Planos de Internet", href: "/planos" },
   { key: "historico", label: "Histórico", href: "/historico" },
   { key: "como-medimos", label: "Como funciona", href: "/como-medimos" },
   { key: "sobre", label: "Sobre o SignallQ", href: "/sobre" },
@@ -62,6 +63,7 @@ export function SiteNav() {
   else if (pathname?.includes("/internet-boa-mas-travando")) active = "bufferbloat";
   else if (pathname?.includes("/lag-em-jogos-online")) active = "cgnat";
   else if (pathname?.includes("/comparativo")) active = "comparativo";
+  else if (pathname?.includes("/planos")) active = "planos";
   else if (pathname?.includes("/app")) active = "app";
   const isApp = active === "app";
 
@@ -101,7 +103,7 @@ export function SiteNav() {
           />
         </Link>
 
-        <div className="hidden md:flex items-center gap-[28px]">
+        <div className="hidden md:flex items-center gap-[10px] lg:gap-[28px]">
           {ITENS.map((it) => {
             const isActive = it.key === active;
             return (

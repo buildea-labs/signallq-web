@@ -4,6 +4,7 @@ import Link from 'next/link'
 export function SiteFooter() {
   const links = [
     { label: "Teste de velocidade", href: "/" },
+    { label: "Planos de Internet", href: "/planos" },
     { label: "Histórico", href: "/historico" },
     { label: "Como medimos", href: "/como-medimos" },
     { label: "Comparar servidores DNS", href: "/dns" },
@@ -87,6 +88,7 @@ export function SiteFooter() {
                 Produto
               </div>
               <Link href="/" className="font-normal text-[14px] text-[color:var(--text-primary)] no-underline hover:underline">Teste de velocidade</Link>
+              <Link href="/planos" className="font-normal text-[14px] text-[color:var(--text-primary)] no-underline hover:underline">Planos de Internet</Link>
               <Link href="/historico" className="font-normal text-[14px] text-[color:var(--text-primary)] no-underline hover:underline">Histórico</Link>
               <Link href="/como-medimos" className="font-normal text-[14px] text-[color:var(--text-primary)] no-underline hover:underline">Como medimos</Link>
               <Link href="/dns" className="font-normal text-[14px] text-[color:var(--text-primary)] no-underline hover:underline">Comparar servidores DNS</Link>
