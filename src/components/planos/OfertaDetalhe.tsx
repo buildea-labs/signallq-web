@@ -1,4 +1,4 @@
-import type { RankedOffer } from '../../lib/plansContract'
+import type { OfferClassification, RankedOffer } from '../../lib/plansContract'
 import { reasonCodesToCopy } from '../../lib/reasonCodeCopy'
 import { Icone } from './Icone'
 import { OperadoraMarca } from './OperadoraMarca'
@@ -15,38 +15,40 @@ function formatDate(value: string | null): string | null {
   return parsed.toLocaleDateString('pt-BR')
 }
 
-function formatPrice(priceBRL: number | null): string | null {
-  if (priceBRL == null) return null
+function formatPrice(priceBRL: number): string {
   return priceBRL.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+}
+
+const CLASSIFICATION_BADGE: Record<OfferClassification, string> = {
+  best_match: 'Combina com o seu perfil',
+  good_option: 'Boa opção para o seu perfil',
+  insufficient: 'Abaixo do que seu perfil pede',
+  overkill: 'Mais rápido do que você precisa',
 }
 
 // Painel comercial de detalhe, expandido inline abaixo da oferta
 // selecionada (referência 01) — nunca modal. Topo com operadora,
-// velocidade, selo, preço e CTA; corpo em duas áreas (Detalhes da oferta |
-// Por que recomendamos).
-//
-// A referência também traz "Ver no site da operadora" e "Abrangência"
-// (mapa/municípios). Não há campo correspondente no contrato documentado
-// da Issue #10 — #9/#13 seguem abertas — então a área de CTA externo só
-// aparece quando o backend enviar um destino, e abrangência fica fora até
-// existir contrato. Não inventamos link nem cobertura.
+// velocidade, classificação, preço e CTA de fechar; corpo em duas áreas
+// (Detalhes da oferta | Por que recomendamos), com o CTA externo
+// "Ver no site da operadora" quando o backend envia `officialUrl`.
 export function OfertaDetalhe({ offer, onClose }: OfertaDetalheProps) {
-  const reasons = reasonCodesToCopy(offer.reasonCodes)
-  const price = formatPrice(offer.priceBRL)
+  const reasons = reasonCodesToCopy(offer.recommendation.reasonCodes)
+  const price = formatPrice(offer.price)
   const detailItems = [
-    offer.technology?.length ? { label: 'Tecnologia', value: offer.technology.join(', ') } : null,
+    offer.technologies.length > 0 ? { label: 'Tecnologia', value: offer.technologies.join(', ') } : null,
     { label: 'Fidelização', value: offer.fidelityMonths != null ? `${offer.fidelityMonths} meses` : 'Sem fidelidade' },
     offer.downloadMbps != null ? { label: 'Download', value: `${offer.downloadMbps} Mbps` } : null,
     offer.uploadMbps != null ? { label: 'Upload', value: `${offer.uploadMbps} Mbps` } : null,
-    formatDate(offer.validFrom) ? { label: 'Vigente desde', value: formatDate(offer.validFrom)! } : null,
-    formatDate(offer.validUntil) ? { label: 'Vigente até', value: formatDate(offer.validUntil)! } : null,
-    offer.sourceCode ? { label: 'Código da oferta', value: offer.sourceCode } : null,
+    formatDate(offer.validity.start) ? { label: 'Vigente desde', value: formatDate(offer.validity.start)! } : null,
+    formatDate(offer.validity.end) ? { label: 'Vigente até', value: formatDate(offer.validity.end)! } : null,
+    { label: 'Fonte', value: offer.source },
+    { label: 'Código da oferta', value: offer.providerOfferId },
   ].filter((item): item is { label: string; value: string } => item !== null)
 
   return (
     <div
       role="region"
-      aria-label={`Detalhes da oferta ${offer.provider} ${offer.planName}`}
+      aria-label={`Detalhes da oferta ${offer.provider.name} ${offer.name}`}
       className="flex w-full flex-col overflow-hidden rounded-[20px]"
       style={{ background: 'var(--bg-card)', border: '2px solid var(--accent)', boxShadow: 'var(--depth-level3-shadow)' }}
     >
@@ -56,26 +58,22 @@ export function OfertaDetalhe({ offer, onClose }: OfertaDetalheProps) {
       >
         <div className="flex flex-wrap items-center gap-4">
           <OperadoraMarca provider={offer.provider} />
-          <span className="title-large">{offer.planName}</span>
-          {offer.compatible && (
-            <span
-              className="label-medium rounded-full px-3 py-1"
-              style={{ background: 'var(--success-container)', color: 'var(--on-success-container)' }}
-            >
-              Combina com o seu perfil
-            </span>
-          )}
+          <span className="title-large">{offer.name}</span>
+          <span
+            className="label-medium rounded-full px-3 py-1"
+            style={{ background: 'var(--success-container)', color: 'var(--on-success-container)' }}
+          >
+            {CLASSIFICATION_BADGE[offer.recommendation.classification]}
+          </span>
         </div>
 
         <div className="flex items-center gap-4">
-          {price && (
-            <span className="flex items-baseline gap-1">
-              <span className="text-[24px] leading-[1.1] font-bold" style={{ fontFamily: 'var(--font-sans)', color: 'var(--text-primary)' }}>
-                {price}
-              </span>
-              <span className="body-medium text-[color:var(--text-secondary)]">/mês</span>
+          <span className="flex items-baseline gap-1">
+            <span className="text-[24px] leading-[1.1] font-bold" style={{ fontFamily: 'var(--font-sans)', color: 'var(--text-primary)' }}>
+              {price}
             </span>
-          )}
+            <span className="body-medium text-[color:var(--text-secondary)]">/mês</span>
+          </span>
           <button
             type="button"
             onClick={onClose}
@@ -102,6 +100,18 @@ export function OfertaDetalhe({ offer, onClose }: OfertaDetalheProps) {
               </div>
             ))}
           </dl>
+          {offer.officialUrl && (
+            <a
+              href={offer.officialUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="label-large mt-2 flex h-11 items-center justify-center gap-2 rounded-[var(--radius-pill)] border px-5"
+              style={{ borderColor: 'var(--accent)', color: 'var(--accent)' }}
+            >
+              Ver no site da operadora
+              <Icone name="open_in_new" size={16} />
+            </a>
+          )}
         </div>
 
         <div className="flex flex-col gap-3">

@@ -12,17 +12,18 @@ const OPERATOR_LOGOS: Record<string, string> = {
 }
 
 interface OperadoraMarcaProps {
-  provider: string
+  /** Mesmo shape do OfferDto real: `{code, name}` — code indexa o logo, name é o texto exibido. */
+  provider: { code: string; name: string }
   size?: 'sm' | 'md'
 }
 
 export function OperadoraMarca({ provider, size = 'md' }: OperadoraMarcaProps) {
-  const logo = OPERATOR_LOGOS[provider.toUpperCase()]
+  const logo = OPERATOR_LOGOS[provider.code.toUpperCase()]
   const badge = size === 'md' ? 'h-9 w-9 text-[16px]' : 'h-7 w-7 text-[13px]'
 
   if (logo) {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img src={logo} alt={provider} className={size === 'md' ? 'h-9 w-auto' : 'h-7 w-auto'} />
+    return <img src={logo} alt={provider.name} className={size === 'md' ? 'h-9 w-auto' : 'h-7 w-auto'} />
   }
 
   return (
@@ -32,9 +33,9 @@ export function OperadoraMarca({ provider, size = 'md' }: OperadoraMarcaProps) {
         className={`flex shrink-0 items-center justify-center rounded-[10px] font-bold ${badge}`}
         style={{ background: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent)', fontFamily: 'var(--font-sans)' }}
       >
-        {provider.trim().charAt(0).toUpperCase()}
+        {provider.name.trim().charAt(0).toUpperCase()}
       </span>
-      <span className={size === 'md' ? 'title-medium' : 'label-large'}>{provider}</span>
+      <span className={size === 'md' ? 'title-medium' : 'label-large'}>{provider.name}</span>
     </span>
   )
 }

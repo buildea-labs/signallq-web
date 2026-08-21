@@ -1,92 +1,136 @@
-// Contratos públicos do `signallq-plans` consumidos por `/planos`. Espelham
-// a documentação da Issue #10 (buildea-labs/signallq-plans) — não incluem
-// nenhum campo interno de scoring/regra: o backend é a única autoridade
-// sobre `RecommendedRange`, `score`, `classification` e ordenação. Este
-// arquivo só declara o formato que o front recebe e formata.
-//
-// GET /api/v1/location, GET /api/v1/offers e POST /api/v1/recommendations
-// ainda estão atrás das issues #9 e #13 (signallq-plans), ambas abertas no
-// momento desta implementação — os tipos aqui refletem a documentação da
-// Issue #10, não uma resposta real observada.
+// Contratos do `signallq-plans` consumidos por `/planos`. Verificados contra
+// o Worker real (https://signallq-plans.buildealabs.workers.dev) — não são
+// mais especulação da documentação da Issue #10: os nomes de campo, o
+// envelope { data, meta } e os códigos de erro aqui batem com respostas
+// reais observadas depois do deploy de #4–#9/#13. O backend é a única
+// autoridade sobre `recommendedRange`, `marketTier`, `score`,
+// `classification`, `reasonCodes` e a ordem das ofertas — este arquivo só
+// declara o formato, nunca recalcula nada disso.
 
 export interface LocationResult {
   cep: string
-  municipio: string
-  uf: string
+  city: string
+  state: string
   ibge: string
 }
 
-/** V1 documentado na Issue #10 — nunca hardcodar faixas numéricas no front;
- * o backend envia `label`/`minMbps`/`maxMbps` já resolvidos. */
+/** Documentado como `UsageIntensityTier` no domínio do signallq-plans. */
 export type MarketTier = 'LIGHT' | 'MODERATE' | 'CONNECTED_FAMILY' | 'INTENSIVE' | 'VERY_INTENSIVE'
 
-export interface RecommendedRange {
-  tier: MarketTier
-  minMbps: number | null
-  maxMbps: number | null
-  /** Rótulo já formatado pelo backend (ex. "500–700 Mega"). */
-  label: string
+/** Cálculo contínuo de banda — nunca um rótulo pronto: o front formata a
+ * faixa a partir destes três números (ver FaixaRecomendada.tsx). */
+export interface BandwidthRange {
+  minMbps: number
+  idealMbps: number
+  maxUsefulMbps: number
 }
 
-export interface Offer {
-  id: string
-  provider: string
-  planName: string
-  priceBRL: number | null
-  downloadMbps: number | null
-  uploadMbps: number | null
-  technology: string[] | null
-  fidelityMonths: number | null
-  validFrom: string | null
-  validUntil: string | null
-  sourceCode: string | null
+export interface UploadRange {
+  minMbps: number
+  idealMbps: number
 }
 
-/** Oferta com metadados de ranking — `score`/`reasonCodes` são opacos ao
- * front: exibidos e traduzidos (ver `reasonCodeCopy.ts`), nunca recalculados
- * nem usados para reordenar localmente. */
-export interface RankedOffer extends Offer {
-  compatible: boolean
-  score: number
+/** Resume offers[] sem o front re-derivar nada que o engine já decidiu. */
+export type AvailabilityFit = 'in_range_available' | 'only_alternatives_available' | 'no_offers'
+
+export type CurrentPlanStatus = 'below_range' | 'within_range' | 'above_range' | 'unknown'
+
+/** Só presente quando a requisição incluiu `currentPlan`. */
+export interface CurrentPlanComparison {
+  status: CurrentPlanStatus
   reasonCodes: string[]
 }
 
-export interface RecommendationProfile {
+export interface OfferProvider {
+  code: string
+  name: string
+}
+
+export interface OfferValidity {
+  start: string | null
+  end: string | null
+}
+
+export interface Offer {
+  /** `${provider.code}:${providerOfferId}` — já é uma key estável, não recalcular. */
+  id: string
+  provider: OfferProvider
+  providerOfferId: string
+  name: string
+  serviceType: string
+  price: number
+  promoPrice: number | null
+  postPromoPrice: number | null
+  downloadMbps: number | null
+  uploadMbps: number | null
+  technologies: string[]
+  fidelityMonths: number | null
+  officialUrl: string | null
+  validity: OfferValidity
+  source: string
+}
+
+/** Vocabulário estável definido em signallq-plans/src/recommendation/reasonCodes.ts
+ * (OfferClassification) — "best_value" deliberadamente não existe. */
+export type OfferClassification = 'best_match' | 'good_option' | 'insufficient' | 'overkill'
+
+/** Oferta com a avaliação do engine — `recommendation.*` é opaco ao front:
+ * exibido e traduzido (ver reasonCodeCopy.ts), nunca recalculado. */
+export interface RankedOffer extends Offer {
+  recommendation: {
+    score: number
+    classification: OfferClassification
+    reasonCodes: string[]
+  }
+}
+
+export interface UsageProfile {
   people: number
   devices: number
   streaming4k: boolean
   gaming: boolean
   homeOffice: boolean
-  largeUploads: boolean
+  frequentLargeUploads: boolean
   alwaysOnDevices: boolean
 }
 
 /** Só enviado quando a pessoa usuária aciona explicitamente "Usar minha
  * medição" — nunca lido/aplicado automaticamente do histórico local. */
 export interface CurrentConnectionInput {
-  downloadMbps?: number
-  uploadMbps?: number
-  latencyMs?: number
+  downloadMbps: number
+  uploadMbps: number
+  latencyMs: number
 }
 
+/** Ainda sem formulário no front (issue #144 lista como opcional) — o tipo
+ * existe para o dia em que essa entrada for coletada; não inventar coleta
+ * disso sem UI real. */
 export interface CurrentPlanInput {
-  provider?: string
-  priceBRL?: number
-  downloadMbps?: number
+  contractedDownloadMbps: number | null
+  contractedUploadMbps: number | null
+  monthlyPriceBrl: number | null
 }
 
 export interface RecommendationRequest {
   ibge: string
-  profile: RecommendationProfile
+  profile: UsageProfile
   currentConnection?: CurrentConnectionInput
   currentPlan?: CurrentPlanInput
 }
 
+/** Achatado a partir de `data.recommendation` + `data.offers` da resposta
+ * real (ver plansProxy.ts) — mais conveniente para os componentes do que
+ * espelhar o aninhamento do wire 1:1. */
 export interface RecommendationResult {
   engineVersion: string
-  recommendedRange: RecommendedRange
+  marketTier: MarketTier
+  recommendedRange: BandwidthRange
+  recommendedUploadRange: UploadRange
   /** Ordem de chegada é autoridade de ranking orgânico — nunca reordenar. */
   offers: RankedOffer[]
+  availabilityFit: AvailabilityFit
+  profileReasonCodes: string[]
+  currentPlanComparison: CurrentPlanComparison | null
 }
 
 export interface OffersResult {
