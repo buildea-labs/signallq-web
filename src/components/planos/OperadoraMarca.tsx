@@ -1,12 +1,15 @@
-// Marca da operadora. O projeto não tem nenhum asset de logo de operadora
-// (verificado em `public/`), e a Issue #10 proíbe inventar marca — então o
-// tratamento real hoje é tipográfico, limpo, com a inicial em selo.
+// Marca da operadora. A Issue #10 proíbe inventar marca — fallback
+// tipográfico limpo para qualquer `providerCode` sem asset local.
 //
-// Quando existir asset oficial confiável no projeto, basta preencher
-// `OPERATOR_LOGOS` com o caminho: a interface já está preparada para
-// trocar o selo pelo logo sem mudar quem consome este componente. Nenhuma
-// operadora é assumida aqui — a chave vem do que a API retornou.
-const OPERATOR_LOGOS: Record<string, string> = {}
+// CLARO: asset oficial por decisão registrada na issue #144 (comentário
+// "Decisão de asset — Claro", buildea-labs/signallq-web#144) — fonte
+// canônica https://mondrian.claro.com.br/brands/horizontal/default/claro.svg,
+// copiado sem alteração (sem recolorir/redimensionar) para
+// `public/assets/providers/claro/logo.svg`. Nenhuma outra operadora tem
+// asset aprovado ainda — não adicionar sem decisão equivalente registrada.
+const OPERATOR_LOGOS: Record<string, string> = {
+  CLARO: '/assets/providers/claro/logo.svg',
+}
 
 interface OperadoraMarcaProps {
   provider: string
