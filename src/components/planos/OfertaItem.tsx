@@ -1,16 +1,14 @@
-import type { RankedOffer } from '../../lib/plansContract'
+import type { OfferClassification, RankedOffer } from '../../lib/plansContract'
 import { Icone } from './Icone'
 import { OperadoraMarca } from './OperadoraMarca'
 
 interface OfertaItemProps {
   offer: RankedOffer
-  isBestMatch: boolean
   expanded: boolean
   onToggle: () => void
 }
 
-function formatPrice(priceBRL: number | null): { reais: string; centavos: string } | null {
-  if (priceBRL == null) return null
+function formatPrice(priceBRL: number): { reais: string; centavos: string } {
   const [reais, centavos] = priceBRL.toFixed(2).split('.')
   return { reais: Number(reais).toLocaleString('pt-BR'), centavos }
 }
@@ -24,14 +22,25 @@ function AttributeRow({ icon, children }: { icon: string; children: React.ReactN
   )
 }
 
+/** Vocabulário real do engine (signallq-plans/src/domain/RecommendationProfile.ts
+ * OfferClassification) — nunca um boolean "compatible" simplificado demais
+ * para as 4 classificações que o backend de fato produz. */
+const CLASSIFICATION_COPY: Record<OfferClassification, { label: string; icon: string; background: string; color: string }> = {
+  best_match: { label: 'Combina com o seu perfil', icon: 'check_circle', background: 'var(--success-container)', color: 'var(--on-success-container)' },
+  good_option: { label: 'Boa opção para o seu perfil', icon: 'check_circle', background: 'var(--success-container)', color: 'var(--on-success-container)' },
+  insufficient: { label: 'Abaixo do que seu perfil pede', icon: 'warning', background: 'var(--warning-container)', color: 'var(--on-warning-container)' },
+  overkill: { label: 'Mais rápido do que você precisa', icon: 'info', background: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent)' },
+}
+
 // Card de oferta com aparência de produto à venda (referência 01):
 // operadora no topo, velocidade como manchete, preço com destaque
-// comercial, atributos com ícone, compatibilidade e CTA. A oferta #1 do
-// ranking orgânico recebe peso visual maior (borda em accent, selo
-// "Recomendado" e CTA preenchido) — o realce acompanha o ranking do
-// backend, nunca é decidido aqui.
-export function OfertaItem({ offer, isBestMatch, expanded, onToggle }: OfertaItemProps) {
-  const price = formatPrice(offer.priceBRL)
+// comercial, atributos com ícone, classificação e CTA. `best_match` é
+// exatamente o que o backend classificou — nunca decidido pela posição no
+// array, o que também mantém o selo correto sob ordenação manual.
+export function OfertaItem({ offer, expanded, onToggle }: OfertaItemProps) {
+  const isBestMatch = offer.recommendation.classification === 'best_match'
+  const price = formatPrice(offer.price)
+  const classification = CLASSIFICATION_COPY[offer.recommendation.classification]
 
   return (
     <div
@@ -60,15 +69,21 @@ export function OfertaItem({ offer, isBestMatch, expanded, onToggle }: OfertaIte
           className="text-[26px] leading-[1.15] font-bold tracking-[-0.2px]"
           style={{ fontFamily: 'var(--font-sans)', color: 'var(--text-primary)' }}
         >
-          {offer.planName}
+          {offer.name}
         </span>
-        {price && (
-          <span className="flex items-baseline gap-1" style={{ color: 'var(--text-primary)' }}>
-            <span className="body-medium">R$</span>
-            <span className="text-[28px] leading-[1.1] font-bold" style={{ fontFamily: 'var(--font-sans)' }}>
-              {price.reais},{price.centavos}
-            </span>
-            <span className="body-medium text-[color:var(--text-secondary)]">/mês</span>
+        <span className="flex items-baseline gap-1" style={{ color: 'var(--text-primary)' }}>
+          <span className="body-medium">R$</span>
+          <span className="text-[28px] leading-[1.1] font-bold" style={{ fontFamily: 'var(--font-sans)' }}>
+            {price.reais},{price.centavos}
+          </span>
+          <span className="body-medium text-[color:var(--text-secondary)]">/mês</span>
+        </span>
+        {offer.promoPrice != null && (
+          <span className="body-small text-[color:var(--text-tertiary)]">
+            Preço promocional já aplicado
+            {offer.postPromoPrice != null
+              ? ` — volta a ${offer.postPromoPrice.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}/mês após a promoção`
+              : ''}
           </span>
         )}
       </div>
@@ -84,21 +99,16 @@ export function OfertaItem({ offer, isBestMatch, expanded, onToggle }: OfertaIte
             Upload <b className="text-[color:var(--text-primary)]">{offer.uploadMbps} Mbps</b>
           </AttributeRow>
         )}
-        {offer.technology?.length ? <AttributeRow icon="cable">{offer.technology.join(', ')}</AttributeRow> : null}
+        {offer.technologies.length > 0 ? <AttributeRow icon="cable">{offer.technologies.join(', ')}</AttributeRow> : null}
         <AttributeRow icon={offer.fidelityMonths != null ? 'event_available' : 'lock_open'}>
           {offer.fidelityMonths != null ? `${offer.fidelityMonths} meses de fidelidade` : 'Sem fidelidade'}
         </AttributeRow>
       </div>
 
-      {offer.compatible && (
-        <span
-          className="label-large flex items-center gap-2 rounded-[10px] px-3 py-2"
-          style={{ background: 'var(--success-container)', color: 'var(--on-success-container)' }}
-        >
-          <Icone name="check_circle" size={18} />
-          Combina com o seu perfil
-        </span>
-      )}
+      <span className="label-large flex items-center gap-2 rounded-[10px] px-3 py-2" style={{ background: classification.background, color: classification.color }}>
+        <Icone name={classification.icon} size={18} />
+        {classification.label}
+      </span>
 
       <button
         type="button"

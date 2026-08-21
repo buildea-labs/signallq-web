@@ -43,10 +43,6 @@ export async function GET(request: Request) {
     return json(offers, 200, correlationId)
   } catch (error) {
     const failure = error instanceof PlansProxyError ? error : new PlansProxyError('PLANS_UPSTREAM_UNAVAILABLE', 503)
-    return json(
-      { error: failure.code, retryable: failure.status >= 500, ...(failure.details?.length ? { details: failure.details } : {}) },
-      failure.status,
-      correlationId,
-    )
+    return json({ error: failure.code, retryable: failure.status >= 500 }, failure.status, correlationId)
   }
 }

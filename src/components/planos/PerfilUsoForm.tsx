@@ -1,8 +1,8 @@
-import type { CurrentConnectionInput, RecommendationProfile } from '../../lib/plansContract'
+import type { CurrentConnectionInput, UsageProfile } from '../../lib/plansContract'
 import { Icone } from './Icone'
 
 interface UsageToggle {
-  key: keyof Pick<RecommendationProfile, 'streaming4k' | 'gaming' | 'homeOffice' | 'largeUploads' | 'alwaysOnDevices'>
+  key: keyof Pick<UsageProfile, 'streaming4k' | 'gaming' | 'homeOffice' | 'frequentLargeUploads' | 'alwaysOnDevices'>
   icon: string
   label: string
 }
@@ -11,7 +11,7 @@ const TOGGLES: UsageToggle[] = [
   { key: 'streaming4k', icon: 'live_tv', label: 'Streaming em 4K' },
   { key: 'gaming', icon: 'sports_esports', label: 'Jogos online' },
   { key: 'homeOffice', icon: 'laptop_mac', label: 'Trabalho em casa' },
-  { key: 'largeUploads', icon: 'cloud_upload', label: 'Uploads grandes' },
+  { key: 'frequentLargeUploads', icon: 'cloud_upload', label: 'Uploads grandes' },
   { key: 'alwaysOnDevices', icon: 'videocam', label: 'Câmeras sempre ligadas' },
 ]
 
@@ -60,8 +60,8 @@ function CounterField({ label, value, onChange, min = 1, max = 20 }: CounterFiel
 }
 
 interface PerfilUsoFormProps {
-  profile: RecommendationProfile
-  onProfileChange: (profile: RecommendationProfile) => void
+  profile: UsageProfile
+  onProfileChange: (profile: UsageProfile) => void
   onSubmit: () => void
   loading: boolean
   /** Só preenchida via ação explícita no hero ("Usar minha medição") —

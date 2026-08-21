@@ -25,7 +25,18 @@ afterEach(() => {
   listRecordsMock.mockReset()
 })
 
-const location = { cep: '01310-000', municipio: 'São Paulo', uf: 'SP', ibge: '3550308' }
+const location = { cep: '01310000', city: 'São Paulo', state: 'SP', ibge: '3550308' }
+
+const emptyRecommendation: RecommendationResult = {
+  engineVersion: 'v1',
+  marketTier: 'LIGHT',
+  recommendedRange: { minMbps: 100, idealMbps: 200, maxUsefulMbps: 350 },
+  recommendedUploadRange: { minMbps: 5, idealMbps: 10 },
+  availabilityFit: 'no_offers',
+  profileReasonCodes: [],
+  currentPlanComparison: null,
+  offers: [],
+}
 
 async function preencherCep() {
   fireEvent.change(screen.getByLabelText('CEP'), { target: { value: '01310000' } })
@@ -85,12 +96,18 @@ describe('PlanosShell — jornada /planos (Issue #10)', () => {
     fetchLocationMock.mockResolvedValue({ ok: true, data: location })
     const recommendation: RecommendationResult = {
       engineVersion: 'v1',
-      recommendedRange: { tier: 'CONNECTED_FAMILY', minMbps: 500, maxMbps: 700, label: '500–700 Mega' },
+      marketTier: 'CONNECTED_FAMILY',
+      recommendedRange: { minMbps: 350, idealMbps: 425, maxUsefulMbps: 500 },
+      recommendedUploadRange: { minMbps: 10, idealMbps: 17 },
+      availabilityFit: 'in_range_available',
+      profileReasonCodes: [],
+      currentPlanComparison: null,
       offers: [
         {
-          id: 'o1', provider: 'PROVIDER_A', planName: 'Plano Fibra 600', priceBRL: 99.9, downloadMbps: 600, uploadMbps: 300,
-          technology: ['fibra'], fidelityMonths: 12, validFrom: null, validUntil: null, sourceCode: 'A1',
-          compatible: true, score: 0.9, reasonCodes: ['download_within_ideal_range'],
+          id: 'PROVIDER_A:o1', provider: { code: 'PROVIDER_A', name: 'Provider A' }, providerOfferId: 'o1', name: 'Plano Fibra 600',
+          serviceType: 'SCM', price: 99.9, promoPrice: null, postPromoPrice: null, downloadMbps: 600, uploadMbps: 300,
+          technologies: ['FTTH'], fidelityMonths: 12, officialUrl: null, validity: { start: null, end: null }, source: 'TEST',
+          recommendation: { score: 92, classification: 'best_match', reasonCodes: ['download_within_ideal_range'] },
         },
       ],
     }
@@ -100,8 +117,8 @@ describe('PlanosShell — jornada /planos (Issue #10)', () => {
     await screen.findByText('Como é o uso da sua casa?')
     fireEvent.click(screen.getByRole('button', { name: 'Ver minha recomendação' }))
 
-    expect(await screen.findByText('500–700 Mega')).toBeInTheDocument()
-    expect(screen.getByText('PROVIDER_A')).toBeInTheDocument()
+    expect(await screen.findByText('350–500 Mbps')).toBeInTheDocument()
+    expect(screen.getByText('Provider A')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Ver detalhes' }))
     expect(await screen.findByText('Dentro da faixa que faz sentido para sua casa')).toBeInTheDocument()
   })
@@ -118,20 +135,14 @@ describe('PlanosShell — jornada /planos (Issue #10)', () => {
     expect(screen.queryByText('Planos disponíveis para você')).not.toBeInTheDocument()
     expect(fetchOffersMock).not.toHaveBeenCalled()
 
-    fetchRecommendationsMock.mockResolvedValueOnce({
-      ok: true,
-      data: { engineVersion: 'v1', recommendedRange: { tier: 'LIGHT', minMbps: null, maxMbps: 350, label: 'Até 350 Mega' }, offers: [] },
-    })
+    fetchRecommendationsMock.mockResolvedValueOnce({ ok: true, data: emptyRecommendation })
     fireEvent.click(screen.getByRole('button', { name: 'Tentar novamente' }))
     await waitFor(() => expect(fetchRecommendationsMock).toHaveBeenCalledTimes(2))
   })
 
-  it('sem ofertas no catálogo para a região, mostra estado vazio específico', async () => {
+  it('sem ofertas no catálogo para a região (availabilityFit: no_offers), mostra estado vazio específico', async () => {
     fetchLocationMock.mockResolvedValue({ ok: true, data: location })
-    fetchRecommendationsMock.mockResolvedValue({
-      ok: true,
-      data: { engineVersion: 'v1', recommendedRange: { tier: 'LIGHT', minMbps: null, maxMbps: 350, label: 'Até 350 Mega' }, offers: [] },
-    })
+    fetchRecommendationsMock.mockResolvedValue({ ok: true, data: emptyRecommendation })
     render(<PlanosShell />)
     await preencherCep()
     await screen.findByText('Como é o uso da sua casa?')

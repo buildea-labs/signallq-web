@@ -25,10 +25,13 @@ describe('GET /api/planos/offers', () => {
     expect((await response.json()).error).toBe('PLANS_SERVICE_NOT_CONFIGURED')
   })
 
-  it('repassa a listagem objetiva do backend sem alterar a ordem', async () => {
+  it('repassa a listagem objetiva do backend sem alterar a ordem (desembrulhando data.*)', async () => {
     process.env.SIGNALLQ_PLANS_API_URL = 'https://plans.example.com'
     const offers = { ibge: '3550308', offers: [] }
-    vi.stubGlobal('fetch', vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify(offers), { status: 200 })))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({ data: offers, meta: { count: 0, apiVersion: 'v1' } }), { status: 200 })),
+    )
     const response = await GET(new Request('http://localhost/api/planos/offers?ibge=3550308'))
     expect(response.status).toBe(200)
     expect(await response.json()).toEqual(offers)

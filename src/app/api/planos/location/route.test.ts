@@ -32,10 +32,13 @@ describe('GET /api/planos/location', () => {
     expect((await response.json()).error).toBe('PLANS_SERVICE_NOT_CONFIGURED')
   })
 
-  it('repassa a localização resolvida pelo backend configurado', async () => {
+  it('repassa a localização resolvida pelo backend configurado (desembrulhando data.*)', async () => {
     process.env.SIGNALLQ_PLANS_API_URL = 'https://plans.example.com'
-    const location = { cep: '01310-000', municipio: 'São Paulo', uf: 'SP', ibge: '3550308' }
-    vi.stubGlobal('fetch', vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify(location), { status: 200 })))
+    const location = { cep: '01310000', city: 'São Paulo', state: 'SP', ibge: '3550308' }
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({ data: location, meta: { apiVersion: 'v1' } }), { status: 200 })),
+    )
     const response = await GET(request('01310000'))
     expect(response.status).toBe(200)
     expect(await response.json()).toEqual(location)

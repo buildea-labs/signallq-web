@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import type { LocationResult, RankedOffer } from '../../lib/plansContract'
+import type { AvailabilityFit, LocationResult, RankedOffer } from '../../lib/plansContract'
 import { Icone } from './Icone'
 import { OfertaDetalhe } from './OfertaDetalhe'
 import { OfertaItem } from './OfertaItem'
@@ -23,7 +23,7 @@ function applyDisplayChoice(offers: RankedOffer[], sort: SortOption): RankedOffe
   if (sort === 'recomendado') return offers
   if (sort === 'sem_fidelidade') return offers.filter((offer) => offer.fidelityMonths == null || offer.fidelityMonths === 0)
   const sorted = [...offers]
-  if (sort === 'menor_preco') sorted.sort((a, b) => (a.priceBRL ?? Infinity) - (b.priceBRL ?? Infinity))
+  if (sort === 'menor_preco') sorted.sort((a, b) => a.price - b.price)
   else if (sort === 'maior_velocidade') sorted.sort((a, b) => (b.downloadMbps ?? -Infinity) - (a.downloadMbps ?? -Infinity))
   return sorted
 }
@@ -32,6 +32,9 @@ interface OfertasListaProps {
   offers: RankedOffer[]
   location: LocationResult
   onTrocarLocalizacao: () => void
+  /** Autoridade do backend sobre "faltou compatível" — nunca recalculado
+   * localmente a partir de `offers` (correção da Issue #10). */
+  availabilityFit: AvailabilityFit
   /** Renderizado entre o cabeçalho e as abas — a faixa recomendada, que na
    * referência 01 vive dentro desta seção, acima dos filtros. */
   children?: React.ReactNode
@@ -40,12 +43,10 @@ interface OfertasListaProps {
 // Seção comercial de ofertas (referência 01): título + município/UF +
 // alterar localização, faixa recomendada, abas de exibição, grade de até 3
 // cards e detalhe expandido inline em largura total.
-export function OfertasLista({ offers, location, onTrocarLocalizacao, children }: OfertasListaProps) {
+export function OfertasLista({ offers, location, onTrocarLocalizacao, availabilityFit, children }: OfertasListaProps) {
   const [sort, setSort] = useState<SortOption>('recomendado')
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
-  const bestMatchId = offers[0]?.id ?? null
-  const hasCompatible = offers.some((offer) => offer.compatible)
   const displayOffers = applyDisplayChoice(offers, sort)
   // Só mostra o detalhe se a oferta continuar visível na seleção atual —
   // trocar para um filtro que a esconde não pode deixar o painel órfão.
@@ -60,16 +61,11 @@ export function OfertasLista({ offers, location, onTrocarLocalizacao, children }
           </h2>
           <span className="flex flex-wrap items-center gap-2">
             <span className="body-large text-[color:var(--text-secondary)]">
-              {location.municipio}, {location.uf}
+              {location.city}, {location.state}
             </span>
             <button type="button" onClick={onTrocarLocalizacao} className="label-large underline" style={{ color: 'var(--accent)' }}>
               Alterar localização
             </button>
-          </span>
-          {/* Critério de transparência da issue #144: disponibilidade
-              regional não garante viabilidade no endereço exato. */}
-          <span className="body-small text-[color:var(--text-tertiary)]">
-            Disponibilidade por região — confirme o endereço exato diretamente com a operadora antes de contratar.
           </span>
         </div>
       </div>
@@ -105,7 +101,7 @@ export function OfertasLista({ offers, location, onTrocarLocalizacao, children }
         </p>
       )}
 
-      {!hasCompatible && offers.length > 0 && (
+      {availabilityFit === 'only_alternatives_available' && (
         <p
           className="body-medium m-0 flex items-start gap-2 rounded-[12px] p-3"
           style={{ background: 'var(--warning-container)', color: 'var(--on-warning-container)' }}
@@ -127,7 +123,6 @@ export function OfertasLista({ offers, location, onTrocarLocalizacao, children }
               <OfertaItem
                 key={offer.id}
                 offer={offer}
-                isBestMatch={offer.id === bestMatchId}
                 expanded={selectedId === offer.id}
                 onToggle={() => setSelectedId((current) => (current === offer.id ? null : offer.id))}
               />

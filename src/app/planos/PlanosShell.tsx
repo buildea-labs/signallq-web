@@ -12,7 +12,7 @@ import { OfertasLista } from '../../components/planos/OfertasLista'
 import { PerfilUsoForm } from '../../components/planos/PerfilUsoForm'
 import { fetchLocation, fetchRecommendations } from '../../lib/plansClient'
 import { listRecords } from '../../lib/measurementRepository'
-import type { CurrentConnectionInput, LocationResult, RecommendationProfile, RecommendationResult } from '../../lib/plansContract'
+import type { CurrentConnectionInput, LocationResult, RecommendationResult, UsageProfile } from '../../lib/plansContract'
 
 type Step =
   | 'cep'
@@ -26,13 +26,13 @@ type Step =
   | 'recommendations_ready'
   | 'recommendations_unavailable'
 
-const DEFAULT_PROFILE: RecommendationProfile = {
+const DEFAULT_PROFILE: UsageProfile = {
   people: 2,
   devices: 4,
   streaming4k: false,
   gaming: false,
   homeOffice: false,
-  largeUploads: false,
+  frequentLargeUploads: false,
   alwaysOnDevices: false,
 }
 
@@ -65,7 +65,7 @@ export function PlanosShell() {
   const [step, setStep] = useState<Step>('cep')
   const [cep, setCep] = useState('')
   const [location, setLocation] = useState<LocationResult | null>(null)
-  const [profile, setProfile] = useState<RecommendationProfile>(DEFAULT_PROFILE)
+  const [profile, setProfile] = useState<UsageProfile>(DEFAULT_PROFILE)
   const [measurement, setMeasurement] = useState<CurrentConnectionInput | null>(null)
   const [measurementTimestamp, setMeasurementTimestamp] = useState<number | null>(null)
   const [measurementUnavailable, setMeasurementUnavailable] = useState(false)
@@ -124,7 +124,9 @@ export function PlanosShell() {
       return
     }
     setResult(response.data)
-    setStep(response.data.offers.length === 0 ? 'recommendations_empty' : 'recommendations_ready')
+    // `availabilityFit` é a autoridade do backend — nunca re-derivar de
+    // `offers.length` aqui.
+    setStep(response.data.availabilityFit === 'no_offers' ? 'recommendations_empty' : 'recommendations_ready')
   }
 
   async function useLastMeasurement() {
@@ -208,7 +210,7 @@ export function PlanosShell() {
               <div className="mb-8 flex flex-wrap items-center justify-center gap-2">
                 <Icone name="location_on" size={20} color="var(--accent)" />
                 <span className="body-large">
-                  {location.municipio}, {location.uf}
+                  {location.city}, {location.state}
                 </span>
                 <button type="button" onClick={resetToCep} className="label-large underline" style={{ color: 'var(--accent)' }}>
                   Trocar CEP
@@ -260,8 +262,18 @@ export function PlanosShell() {
 
           {step === 'recommendations_ready' && result && (
             <Banda tint="secondary" className="py-12 lg:py-16">
-              <OfertasLista offers={result.offers} location={location} onTrocarLocalizacao={resetToCep}>
-                <FaixaRecomendada range={result.recommendedRange} profile={profile} onAjustarPerfil={ajustarPerfil} />
+              <OfertasLista
+                offers={result.offers}
+                location={location}
+                onTrocarLocalizacao={resetToCep}
+                availabilityFit={result.availabilityFit}
+              >
+                <FaixaRecomendada
+                  range={result.recommendedRange}
+                  marketTier={result.marketTier}
+                  profile={profile}
+                  onAjustarPerfil={ajustarPerfil}
+                />
               </OfertasLista>
             </Banda>
           )}
