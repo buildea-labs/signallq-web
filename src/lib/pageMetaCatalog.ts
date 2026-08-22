@@ -19,8 +19,8 @@ export const PAGE_META: Record<string, PageMeta> = {
     path: '/teste-de-velocidade',
   },
   '/ferramentas': {
-    title: 'Ferramentas de conexão — SignallQ',
-    description: 'Teste de velocidade, ping, DNS e latência para jogos. Ferramentas técnicas para investigar problemas na sua internet.',
+    title: 'Entenda sua internet com as ferramentas do SignallQ',
+    description: 'Investigue internet lenta, lag, DNS, ping, IP público e histórico de medições com ferramentas que ajudam a transformar números em respostas.',
     path: '/ferramentas',
   },
   '/historico': {
