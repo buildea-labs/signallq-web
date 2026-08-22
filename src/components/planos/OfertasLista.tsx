@@ -20,30 +20,13 @@ const SORT_OPTIONS: Array<{ value: SortOption; label: string }> = [
  * e usa a soma de (Download + Upload) como critério de desempate/ordenação (Issue #157).
  * `sem_fidelidade` é FILTRO, não reordenação. */
 function applyDisplayChoice(offers: RankedOffer[], sort: SortOption): RankedOffer[] {
-  if (sort === 'sem_fidelidade') return offers.filter((offer) => offer.fidelityMonths == null || offer.fidelityMonths === 0)
+  if (sort === 'sem_fidelidade') return offers.filter((offer) => offer.fidelityMonths === 0)
   
   const sorted = [...offers]
   
   if (sort === 'recomendado') {
-    sorted.sort((a, b) => {
-      const aIsFiber = a.technologies.some(t => {
-        const u = t.toUpperCase()
-        return u.includes('FTTH') || u.includes('FIBER') || u.includes('FIBRA')
-      })
-      const bIsFiber = b.technologies.some(t => {
-        const u = t.toUpperCase()
-        return u.includes('FTTH') || u.includes('FIBER') || u.includes('FIBRA')
-      })
-      
-      if (aIsFiber && !bIsFiber) return -1
-      if (!aIsFiber && bIsFiber) return 1
-      
-      const aTotal = (a.downloadMbps || 0) + (a.uploadMbps || 0)
-      const bTotal = (b.downloadMbps || 0) + (b.uploadMbps || 0)
-      
-      return bTotal - aTotal
-    })
-    return sorted
+    // Preserve organic backend order. No artificial FTTH/speed reordering.
+    return sorted;
   }
   
   if (sort === 'menor_preco') sorted.sort((a, b) => a.price - b.price)
@@ -73,7 +56,34 @@ export function OfertasLista({ offers, location, onTrocarLocalizacao, availabili
   const [showAll, setShowAll] = useState(false)
 
   const allDisplayOffers = applyDisplayChoice(offers, sort)
-  const displayOffers = showAll ? allDisplayOffers : allDisplayOffers.slice(0, 3)
+  const top1Id = offers[0]?.id;
+
+  let displayOffers = allDisplayOffers;
+  if (!showAll) {
+    if (sort === 'recomendado') {
+      const selected: typeof allDisplayOffers = [];
+      const seenProviders = new Set<string>();
+      // Step 1: Pick the first (best) offer from each distinct provider.
+      for (const o of allDisplayOffers) {
+        if (selected.length >= 3) break;
+        if (!seenProviders.has(o.provider.code)) {
+          selected.push(o);
+          seenProviders.add(o.provider.code);
+        }
+      }
+      // Step 2: Fill remaining slots with the next best globally not yet selected.
+      for (const o of allDisplayOffers) {
+        if (selected.length >= 3) break;
+        if (!selected.includes(o)) {
+          selected.push(o);
+        }
+      }
+      // Do NOT sort — the traversal order is the display order.
+      displayOffers = selected;
+    } else {
+      displayOffers = allDisplayOffers.slice(0, 3);
+    }
+  }
 
   return (
     <section className="flex w-full flex-col gap-6">
@@ -138,6 +148,11 @@ export function OfertasLista({ offers, location, onTrocarLocalizacao, availabili
         <p className="body-medium m-0 text-[color:var(--text-secondary)]">Nenhuma oferta com este filtro. Tente outra visão acima.</p>
       ) : (
         <>
+          {!showAll && sort === 'recomendado' && allDisplayOffers.length > 0 && (
+            <p className="body-medium mb-4 text-[color:var(--text-secondary)]">
+              Mostramos primeiro a melhor opção de cada operadora para facilitar a comparação.
+            </p>
+          )}
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {displayOffers.map((offer) => {
               const isSelected = selectedId === offer.id
@@ -145,6 +160,7 @@ export function OfertasLista({ offers, location, onTrocarLocalizacao, availabili
                 <Fragment key={offer.id}>
                   <OfertaItem
                     offer={offer}
+                    isTopRecommendation={offer.id === top1Id}
                     expanded={isSelected}
                     onToggle={() => setSelectedId((current) => (current === offer.id ? null : offer.id))}
                   />

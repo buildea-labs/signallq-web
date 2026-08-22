@@ -36,7 +36,11 @@ function summarizeProfile(profile: UsageProfile): string {
  * #10) — devolve três números contínuos (BandwidthRange). Formata a faixa
  * comercial a partir de min/max útil; idealMbps vira o texto de apoio. */
 function formatRange(range: BandwidthRange): string {
-  return `${range.minMbps}–${range.maxUsefulMbps} Mbps`
+  if (range.minMbps === range.maxUsefulMbps) {
+    if (range.minMbps >= 1000 && range.minMbps % 1000 === 0) return `${range.minMbps / 1000} Giga`
+    return `${range.minMbps} Mega`
+  }
+  return `${range.minMbps}–${range.maxUsefulMbps} Mega`
 }
 
 interface FaixaRecomendadaProps {

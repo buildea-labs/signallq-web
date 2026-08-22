@@ -19,12 +19,13 @@ function formatPrice(priceBRL: number): string {
   return priceBRL.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }
 
-const CLASSIFICATION_BADGE: Record<OfferClassification, string> = {
-  best_match: 'Combina com o seu perfil',
-  good_option: 'Boa opção para o seu perfil',
-  insufficient: 'Abaixo do que seu perfil pede',
-  overkill: 'Mais rápido do que você precisa',
+const CLASSIFICATION_UI: Record<OfferClassification, { text: string; bg: string; color: string; icon: string }> = {
+  best_match: { text: 'Combina com o seu perfil', bg: 'var(--success-container)', color: 'var(--on-success-container)', icon: 'check_circle' },
+  good_option: { text: 'Boa opção para o seu perfil', bg: 'var(--success-container)', color: 'var(--on-success-container)', icon: 'check_circle' },
+  insufficient: { text: 'Abaixo do que seu perfil pede', bg: 'var(--warning-container)', color: 'var(--on-warning-container)', icon: 'warning' },
+  overkill: { text: 'Mais rápido do que você precisa', bg: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent)', icon: 'info' },
 }
+
 
 // Painel comercial de detalhe, expandido inline abaixo da oferta
 // selecionada (referência 01) — nunca modal. Topo com operadora,
@@ -36,9 +37,9 @@ export function OfertaDetalhe({ offer, onClose }: OfertaDetalheProps) {
   const price = formatPrice(offer.price)
   const detailItems = [
     offer.technologies.length > 0 ? { label: 'Tecnologia', value: offer.technologies.join(', ') } : null,
-    { label: 'Fidelização', value: offer.fidelityMonths != null ? `${offer.fidelityMonths} meses` : 'Sem fidelidade' },
+    { label: 'Fidelização', value: offer.fidelityMonths === 0 ? 'Sem fidelidade' : offer.fidelityMonths != null ? `${offer.fidelityMonths} meses` : 'Não informado' },
     offer.downloadMbps != null ? { label: 'Download', value: `${offer.downloadMbps} Mbps` } : null,
-    offer.uploadMbps != null ? { label: 'Upload', value: `${offer.uploadMbps} Mbps` } : null,
+    { label: 'Upload', value: offer.uploadMbps != null ? `${offer.uploadMbps} Mbps` : 'Não informado' },
     formatDate(offer.validity.start) ? { label: 'Vigente desde', value: formatDate(offer.validity.start)! } : null,
     formatDate(offer.validity.end) ? { label: 'Vigente até', value: formatDate(offer.validity.end)! } : null,
     { label: 'Fonte', value: offer.source },
@@ -60,18 +61,27 @@ export function OfertaDetalhe({ offer, onClose }: OfertaDetalheProps) {
           <OperadoraMarca provider={offer.provider} />
           <span className="title-large">{offer.name}</span>
           <span
-            className="label-medium rounded-full px-3 py-1"
-            style={{ background: 'var(--success-container)', color: 'var(--on-success-container)' }}
+            className="label-medium rounded-full px-3 py-1 flex items-center gap-1.5"
+            style={{ background: CLASSIFICATION_UI[offer.recommendation.classification].bg, color: CLASSIFICATION_UI[offer.recommendation.classification].color }}
           >
-            {CLASSIFICATION_BADGE[offer.recommendation.classification]}
+            <Icone name={CLASSIFICATION_UI[offer.recommendation.classification].icon} size={16} />
+            {CLASSIFICATION_UI[offer.recommendation.classification].text}
           </span>
         </div>
 
         <div className="flex items-center gap-4">
           <span className="flex items-baseline gap-1">
-            <span className="text-[24px] leading-[1.1] font-bold" style={{ fontFamily: 'var(--font-sans)', color: 'var(--text-primary)' }}>
-              {price}
-            </span>
+            {offer.promoPrice != null ? (
+              <div className="flex flex-col items-end gap-1">
+                <span className="text-[24px] leading-[1.1] font-bold text-[color:var(--text-primary)]" style={{ fontFamily: 'var(--font-sans)' }}>
+                  {formatPrice(offer.promoPrice)}
+                </span>
+              </div>
+            ) : (
+              <span className="text-[24px] leading-[1.1] font-bold text-[color:var(--text-primary)]" style={{ fontFamily: 'var(--font-sans)' }}>
+                {price}
+              </span>
+            )}
             <span className="body-medium text-[color:var(--text-secondary)]">/mês</span>
           </span>
           <button
@@ -119,9 +129,9 @@ export function OfertaDetalhe({ offer, onClose }: OfertaDetalheProps) {
           {reasons.length > 0 ? (
             <ul className="m-0 flex list-none flex-col gap-2.5 p-0">
               {reasons.map((reason) => (
-                <li key={reason} className="body-large flex items-start gap-2.5">
-                  <Icone name="check_circle" size={18} color="var(--success)" className="mt-0.5" />
-                  {reason}
+                <li key={reason.id} className="body-large flex items-start gap-2.5">
+                  <Icone name={reason.icon} size={18} color={reason.color} className="mt-0.5" />
+                  <span style={{ color: reason.type === 'alert' ? 'var(--text-primary)' : 'inherit' }}>{reason.text}</span>
                 </li>
               ))}
             </ul>

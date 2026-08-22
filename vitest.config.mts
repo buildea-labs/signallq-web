@@ -13,6 +13,20 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
-    exclude: ['**/node_modules/**', 'e2e/**', 'e2e-ad-slot/**', 'e2e-visual/**', 'worktree/**'],
+    exclude: [
+      '**/node_modules/**',
+      // Playwright E2E directories (top-level and nested worktree copy)
+      'e2e/**',
+      'e2e-ad-slot/**',
+      'e2e-visual/**',
+      'signallq-web/e2e/**',
+      'signallq-web/e2e-ad-slot/**',
+      'signallq-web/e2e-visual/**',
+      // Any Playwright spec file regardless of location
+      '**/*.spec.ts',
+      // Git worktree / shared workspace copies
+      'worktree/**',
+      'signallq-web/**',
+    ],
   },
 })

@@ -20,6 +20,7 @@ const OFFER_REASON_CODE_COPY: Record<string, string> = {
   price_premium: 'Preço acima da média das opções compatíveis',
   no_fidelity_lock: 'Sem fidelidade',
   fidelity_required: 'Exige fidelidade',
+  fidelity_unknown: 'Fidelidade não informada',
   cheaper_than_current_plan: 'Mais barato que o seu plano atual',
   improves_download_over_current_plan: 'Download melhor que o seu plano atual',
   improves_upload_over_current_plan: 'Upload melhor que o seu plano atual',
@@ -49,20 +50,62 @@ const ALL_REASON_CODE_COPY: Record<string, string> = {
   ...CURRENT_PLAN_REASON_CODE_COPY,
 }
 
-const FALLBACK_COPY = 'Compatível com o perfil informado'
 
-export function reasonCodeToCopy(code: string): string {
-  return ALL_REASON_CODE_COPY[code] ?? FALLBACK_COPY
+
+export function reasonCodeToCopy(code: string): string | undefined {
+  return ALL_REASON_CODE_COPY[code]
 }
 
-export function reasonCodesToCopy(codes: string[]): string[] {
+export type ReasonVisualType = 'success' | 'neutral' | 'alert'
+
+export interface ReasonCopy {
+  id: string
+  text: string
+  type: ReasonVisualType
+  icon: string
+  color: string
+}
+
+function getReasonType(code: string): ReasonVisualType {
+  const positives = [
+    'meets_minimum_download', 'download_within_ideal_range', 'upload_meets_need',
+    'price_competitive', 'no_fidelity_lock', 'cheaper_than_current_plan',
+    'improves_download_over_current_plan', 'improves_upload_over_current_plan'
+  ]
+  const alerts = [
+    'below_minimum_download', 'upload_below_need', 'price_premium',
+    'fidelity_required', 'above_max_useful_download'
+  ]
+  
+  if (positives.includes(code)) return 'success'
+  if (alerts.includes(code)) return 'alert'
+  return 'neutral'
+}
+
+export function reasonCodesToCopy(codes: string[]): ReasonCopy[] {
   const seen = new Set<string>()
-  const result: string[] = []
+  const result: ReasonCopy[] = []
+  
   for (const code of codes) {
-    const copy = reasonCodeToCopy(code)
-    if (seen.has(copy)) continue
-    seen.add(copy)
-    result.push(copy)
+    const text = reasonCodeToCopy(code)
+    if (!text) continue
+    
+    if (seen.has(text)) continue
+    seen.add(text)
+    
+    const type = getReasonType(code)
+    let icon = 'info'
+    let color = 'var(--text-secondary)'
+    
+    if (type === 'success') {
+      icon = 'check_circle'
+      color = 'var(--success)'
+    } else if (type === 'alert') {
+      icon = 'warning'
+      color = 'var(--warning)'
+    }
+    
+    result.push({ id: code, text, type, icon, color })
   }
   return result
 }

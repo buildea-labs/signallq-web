@@ -55,3 +55,5 @@ next-env.d.ts
 
 # protótipos de tela (arquivo local do Luiz, referência visual — não versionado)
 /docs/prototypes/
+# Antigravity agent workspace clone (nested repo — never commit)
+signallq-web/

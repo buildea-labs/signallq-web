@@ -117,7 +117,7 @@ describe('PlanosShell — jornada /planos (Issue #10)', () => {
     await screen.findByText('Como é o uso da sua casa?')
     fireEvent.click(screen.getByRole('button', { name: 'Ver minha recomendação' }))
 
-    expect(await screen.findByText('350–500 Mbps')).toBeInTheDocument()
+    expect(await screen.findByText('350–500 Mega')).toBeInTheDocument()
     expect(screen.getByText('Provider A')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Ver detalhes' }))
     expect(await screen.findByText('Dentro da faixa que faz sentido para sua casa')).toBeInTheDocument()
