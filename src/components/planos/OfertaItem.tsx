@@ -1,6 +1,6 @@
 import type { OfferClassification, RankedOffer } from '../../lib/plansContract'
 import { Icone } from './Icone'
-import { OperadoraMarca } from './OperadoraMarca'
+import { ProviderLogo } from './ProviderLogo'
 
 interface OfertaItemProps {
   offer: RankedOffer
@@ -53,7 +53,7 @@ export function OfertaItem({ offer, expanded, onToggle, isTopRecommendation }: O
       )}
 
       <div className="flex items-center justify-between gap-2 pt-1">
-        <OperadoraMarca provider={offer.provider} />
+        <ProviderLogo provider={offer.provider} />
       </div>
 
       <div className="flex flex-col gap-1">

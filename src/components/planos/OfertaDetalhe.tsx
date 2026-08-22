@@ -1,7 +1,7 @@
 import type { OfferClassification, RankedOffer } from '../../lib/plansContract'
 import { reasonCodesToCopy } from '../../lib/reasonCodeCopy'
 import { Icone } from './Icone'
-import { OperadoraMarca } from './OperadoraMarca'
+import { ProviderLogo } from './ProviderLogo'
 
 interface OfertaDetalheProps {
   offer: RankedOffer
@@ -58,7 +58,7 @@ export function OfertaDetalhe({ offer, onClose }: OfertaDetalheProps) {
         style={{ background: 'color-mix(in srgb, var(--accent) 6%, transparent)' }}
       >
         <div className="flex flex-wrap items-center gap-4">
-          <OperadoraMarca provider={offer.provider} />
+          <ProviderLogo provider={offer.provider} />
           <span className="title-large">{offer.name}</span>
           <span
             className="label-medium rounded-full px-3 py-1 flex items-center gap-1.5"
