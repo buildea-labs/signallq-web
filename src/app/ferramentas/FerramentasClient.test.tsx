@@ -4,10 +4,7 @@ import type { MedicaoRegistro } from '@/lib/measurementRepository'
 import { FerramentasClient } from './FerramentasClient'
 
 const listRecordsMock = vi.hoisted(() => vi.fn())
-vi.mock('@/lib/measurementRepository', async () => {
-  const actual = await vi.importActual<typeof import('@/lib/measurementRepository')>('@/lib/measurementRepository')
-  return { ...actual, listRecords: listRecordsMock }
-})
+vi.mock('@/lib/measurementRepository', () => ({ listRecords: listRecordsMock }))
 
 const latest: MedicaoRegistro = {
   id: 'teste-1',
