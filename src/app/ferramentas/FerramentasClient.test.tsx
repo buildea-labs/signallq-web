@@ -43,7 +43,7 @@ describe('FerramentasClient', () => {
     render(<FerramentasClient />)
 
     expect(screen.getByRole('link', { name: /Medir ping/ })).toHaveAttribute('href', '/ping')
-    expect(screen.getByRole('link', { name: /Comparar DNS/ })).toHaveAttribute('href', '/dns')
+    expect(screen.getAllByRole('link', { name: /Comparar DNS/ }).every((link) => link.getAttribute('href') === '/dns')).toBe(true)
     expect(screen.getByRole('link', { name: /Ver meu IP/ })).toHaveAttribute('href', '/meu-ip')
     expect(screen.getByRole('link', { name: /Testar jogos/ })).toHaveAttribute('href', '/jogos')
   })
