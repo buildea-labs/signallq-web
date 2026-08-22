@@ -8,12 +8,11 @@ import clsx from "clsx";
 import { SiteNavMobile } from "./SiteNavMobile";
 
 const ITENS = [
-  { key: "home", label: "Velocidade", href: "/" },
-  { key: "planos", label: "Planos de Internet", href: "/planos" },
-  { key: "historico", label: "Histórico", href: "/historico" },
+  { key: "planos", label: "Planos", href: "/planos" },
+  { key: "home", label: "Minha internet", href: "/" },
+  { key: "ferramentas", label: "Ferramentas", href: "/ferramentas" },
   { key: "como-medimos", label: "Como funciona", href: "/como-medimos" },
   { key: "sobre", label: "Sobre o SignallQ", href: "/sobre" },
-  { key: "privacidade", label: "Privacidade", href: "/privacidade" },
 ];
 
 
@@ -58,12 +57,12 @@ export function SiteNav() {
   if (pathname?.includes("/historico")) active = "historico";
   else if (pathname?.includes("/como-medimos")) active = "como-medimos";
   else if (pathname?.includes("/sobre")) active = "sobre";
-  else if (pathname?.includes("/privacidade")) active = "privacidade";
-  else if (pathname?.includes("/termos")) active = "termos";
-  else if (pathname?.includes("/internet-boa-mas-travando")) active = "bufferbloat";
-  else if (pathname?.includes("/lag-em-jogos-online")) active = "cgnat";
-  else if (pathname?.includes("/comparativo")) active = "comparativo";
+  else if (pathname?.includes("/privacidade") || pathname?.includes("/termos")) active = "institucional";
+  else if (pathname?.includes("/internet-boa-mas-travando")) active = "guias";
+  else if (pathname?.includes("/lag-em-jogos-online") || pathname?.includes("/internet-para-jogos")) active = "guias";
+  else if (pathname?.includes("/comparativo")) active = "guias";
   else if (pathname?.includes("/planos")) active = "planos";
+  else if (pathname?.includes("/ferramentas") || pathname?.includes("/teste-de-velocidade") || pathname?.includes("/dns") || pathname?.includes("/jogos")) active = "ferramentas";
   else if (pathname?.includes("/app")) active = "app";
   const isApp = active === "app";
 

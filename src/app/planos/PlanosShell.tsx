@@ -41,21 +41,7 @@ const CEP_INVALID_MESSAGE = 'Digite um CEP válido com 8 dígitos.'
 /** Faixa de largura total com miolo centralizado — usada para dar ritmo
  * comercial à página (bandas tintadas alternadas), em vez do container
  * único e estreito das telas de ferramenta. */
-function Banda({
-  children,
-  tint,
-  className = '',
-}: {
-  children: React.ReactNode
-  tint?: 'secondary'
-  className?: string
-}) {
-  return (
-    <div className="w-full" style={tint === 'secondary' ? { background: 'var(--bg-secondary)' } : undefined}>
-      <div className={`mx-auto w-full max-w-[1200px] px-5 lg:px-10 ${className}`}>{children}</div>
-    </div>
-  )
-}
+import { Banda } from "../../components/Banda";
 
 // Orquestrador da jornada de `/planos` (Issue #10). Estado só vive em
 // memória — nada é persistido em localStorage/sessionStorage/IndexedDB por

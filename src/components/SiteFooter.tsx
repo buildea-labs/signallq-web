@@ -3,10 +3,13 @@ import Link from 'next/link'
 
 export function SiteFooter() {
   const links = [
-    { label: "Teste de velocidade", href: "/" },
     { label: "Planos de Internet", href: "/planos" },
+    { label: "Minha internet", href: "/" },
+    { label: "App SignallQ", href: "/app" },
+    { label: "Ferramentas", href: "/ferramentas" },
+    { label: "Teste de velocidade", href: "/teste-de-velocidade" },
     { label: "Histórico", href: "/historico" },
-    { label: "Como medimos", href: "/como-medimos" },
+    { label: "Como funciona", href: "/como-medimos" },
     { label: "Comparar servidores DNS", href: "/dns" },
     { label: "Latência para jogos", href: "/jogos" },
     { label: "Internet boa mas travando", href: "/internet-boa-mas-travando" },
@@ -87,10 +90,17 @@ export function SiteFooter() {
               <div className="font-medium text-[11px] leading-[1.45] text-[color:var(--text-tertiary)] tracking-[.3px] uppercase">
                 Produto
               </div>
-              <Link href="/" className="font-normal text-[14px] text-[color:var(--text-primary)] no-underline hover:underline">Teste de velocidade</Link>
               <Link href="/planos" className="font-normal text-[14px] text-[color:var(--text-primary)] no-underline hover:underline">Planos de Internet</Link>
+              <Link href="/" className="font-normal text-[14px] text-[color:var(--text-primary)] no-underline hover:underline">Minha internet</Link>
+              <Link href="/app" className="font-normal text-[14px] text-[color:var(--text-primary)] no-underline hover:underline">App SignallQ</Link>
+            </div>
+            <div className="flex flex-col gap-[10px]">
+              <div className="font-medium text-[11px] leading-[1.45] text-[color:var(--text-tertiary)] tracking-[.3px] uppercase">
+                Ferramentas
+              </div>
+              <Link href="/ferramentas" className="font-normal text-[14px] text-[color:var(--text-primary)] no-underline hover:underline">Ver todas</Link>
+              <Link href="/teste-de-velocidade" className="font-normal text-[14px] text-[color:var(--text-primary)] no-underline hover:underline">Teste de velocidade</Link>
               <Link href="/historico" className="font-normal text-[14px] text-[color:var(--text-primary)] no-underline hover:underline">Histórico</Link>
-              <Link href="/como-medimos" className="font-normal text-[14px] text-[color:var(--text-primary)] no-underline hover:underline">Como medimos</Link>
               <Link href="/dns" className="font-normal text-[14px] text-[color:var(--text-primary)] no-underline hover:underline">Comparar servidores DNS</Link>
               <Link href="/jogos" className="font-normal text-[14px] text-[color:var(--text-primary)] no-underline hover:underline">Latência para jogos</Link>
             </div>
@@ -98,6 +108,7 @@ export function SiteFooter() {
               <div className="font-medium text-[11px] leading-[1.45] text-[color:var(--text-tertiary)] tracking-[.3px] uppercase">
                 Guias
               </div>
+              <Link href="/como-medimos" className="font-normal text-[14px] text-[color:var(--text-primary)] no-underline hover:underline">Como funciona</Link>
               <Link href="/internet-boa-mas-travando" className="font-normal text-[14px] text-[color:var(--text-primary)] no-underline hover:underline">Internet boa mas travando</Link>
               <Link href="/lag-em-jogos-online" className="font-normal text-[14px] text-[color:var(--text-primary)] no-underline hover:underline">Lag em jogos online</Link>
               <Link href="/internet-para-jogos" className="font-normal text-[14px] text-[color:var(--text-primary)] no-underline hover:underline">Internet para jogos</Link>

@@ -94,8 +94,8 @@ describe("diagnóstico declarado pelo sheet, sobre o resultado rápido", () => {
 
   it("declara rede e problema no sheet, confirma e só então reexecuta a medição em modo Completo", async () => {
     const user = userEvent.setup();
-    const { HomeClient } = await import("./HomeClient");
-    render(<HomeClient />);
+    const { TesteVelocidadeClient } = await import("./teste-de-velocidade/TesteVelocidadeClient");
+    render(<TesteVelocidadeClient />);
 
     // Resultado rápido já visível (mock força fase "concluido"), sem
     // questionário na própria tela.
@@ -136,8 +136,8 @@ describe("diagnóstico declarado pelo sheet, sobre o resultado rápido", () => {
 
   it("permite ir ao teste completo sem declarar nada, direto pelo CTA do resultado", async () => {
     const user = userEvent.setup();
-    const { HomeClient } = await import("./HomeClient");
-    render(<HomeClient />);
+    const { TesteVelocidadeClient } = await import("./teste-de-velocidade/TesteVelocidadeClient");
+    render(<TesteVelocidadeClient />);
 
     await user.click(await screen.findByRole("button", { name: "Fazer teste completo" }));
     expect(retrySpy).toHaveBeenCalledWith("completo");

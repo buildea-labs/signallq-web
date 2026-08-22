@@ -6,18 +6,26 @@ export const MENU_GROUPS = [
   {
     title: "Produto",
     items: [
-      { key: "home", label: "Velocidade", href: "/" },
-      { key: "planos", label: "Planos de Internet", href: "/planos" },
+      { key: "planos", label: "Planos", href: "/planos" },
+      { key: "home", label: "Minha internet", href: "/" },
+      { key: "app", label: "App", href: "/app" },
+    ],
+  },
+  {
+    title: "Ferramentas",
+    items: [
+      { key: "ferramentas", label: "Ver todas", href: "/ferramentas" },
+      { key: "teste-de-velocidade", label: "Teste de Velocidade", href: "/teste-de-velocidade" },
+      { key: "dns", label: "Comparar DNS", href: "/dns" },
       { key: "historico", label: "Histórico", href: "/historico" },
-      { key: "como-medimos", label: "Como funciona", href: "/como-medimos" },
     ],
   },
   {
     title: "Guias",
     items: [
+      { key: "como-medimos", label: "Como funciona", href: "/como-medimos" },
       { key: "bufferbloat", label: "Internet boa mas travando", href: "/internet-boa-mas-travando" },
       { key: "cgnat", label: "Lag em jogos online", href: "/lag-em-jogos-online" },
-      { key: "comparativo", label: "Comparativos", href: "/comparativo" },
     ],
   },
   {

@@ -6,10 +6,20 @@ import type { PageMeta } from './seo'
 
 export const PAGE_META: Record<string, PageMeta> = {
   '/': {
+    title: 'Encontre uma internet que faça sentido para você — SignallQ',
+    description: 'Descubra quanto de velocidade você realmente precisa, compare opções da sua região e entenda se sua conexão atual está adequada.',
+    path: '/',
+  },
+  '/teste-de-velocidade': {
     title: 'Teste de velocidade real — SignallQ',
     description:
       'Meça agora a velocidade real da sua internet: download, upload e latência, com veredito claro para navegação, streaming, videochamadas e jogos.',
-    path: '/',
+    path: '/teste-de-velocidade',
+  },
+  '/ferramentas': {
+    title: 'Ferramentas de conexão — SignallQ',
+    description: 'Teste de velocidade, ping, DNS e latência para jogos. Ferramentas técnicas para investigar problemas na sua internet.',
+    path: '/ferramentas',
   },
   '/historico': {
     title: 'Histórico de medições — SignallQ',
