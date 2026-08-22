@@ -16,8 +16,7 @@ const SORT_OPTIONS: Array<{ value: SortOption; label: string }> = [
 ]
 
 /** Ordenação/filtro de EXIBIÇÃO iniciado pela pessoa usuária — 
- * A opção 'recomendado' agora prioriza FTTH (Fibra) sobre outras tecnologias,
- * e usa a soma de (Download + Upload) como critério de desempate/ordenação (Issue #157).
+ * A opção 'recomendado' preserva o ranking orgânico do backend.
  * `sem_fidelidade` é FILTRO, não reordenação. */
 function applyDisplayChoice(offers: RankedOffer[], sort: SortOption): RankedOffer[] {
   if (sort === 'sem_fidelidade') return offers.filter((offer) => offer.fidelityMonths === 0)
@@ -63,7 +62,7 @@ export function OfertasLista({ offers, location, onTrocarLocalizacao, availabili
     if (sort === 'recomendado') {
       const selected: typeof allDisplayOffers = [];
       const seenProviders = new Set<string>();
-      // Step 1: Pick the first (best) offer from each distinct provider.
+      // Pick the first (best) offer from each distinct provider.
       for (const o of allDisplayOffers) {
         if (selected.length >= 3) break;
         if (!seenProviders.has(o.provider.code)) {
@@ -71,14 +70,6 @@ export function OfertasLista({ offers, location, onTrocarLocalizacao, availabili
           seenProviders.add(o.provider.code);
         }
       }
-      // Step 2: Fill remaining slots with the next best globally not yet selected.
-      for (const o of allDisplayOffers) {
-        if (selected.length >= 3) break;
-        if (!selected.includes(o)) {
-          selected.push(o);
-        }
-      }
-      // Do NOT sort — the traversal order is the display order.
       displayOffers = selected;
     } else {
       displayOffers = allDisplayOffers.slice(0, 3);
@@ -174,7 +165,7 @@ export function OfertasLista({ offers, location, onTrocarLocalizacao, availabili
             })}
           </div>
 
-          {!showAll && allDisplayOffers.length > 3 && (
+          {!showAll && allDisplayOffers.length > displayOffers.length && (
             <button 
               type="button" 
               onClick={() => setShowAll(true)} 

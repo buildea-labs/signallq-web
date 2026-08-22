@@ -59,11 +59,11 @@ function getOfferNamesInOrder(container: HTMLElement): string[] {
 }
 
 // ---------------------------------------------------------------------------
-// Test: diversity showcase with 2-provider scenario (the bug case)
+// Test: diversity showcase with 2-provider scenario
 // Backend:  Claro #1, Claro #2, Nio #1, Claro #3
-// Vitrine:  Claro #1, Nio #1, Claro #2   (Nio is discovered second, but in position 2)
+// Vitrine:  Claro #1, Nio #1   (Nio is discovered second, but in position 2)
 // ---------------------------------------------------------------------------
-test('diversity order: 2 providers — Claro #1, Claro #2, Nio #1 → vitrine Claro#1 Nio#1 Claro#2', () => {
+test('diversity order: 2 providers — Claro #1, Claro #2, Nio #1 → vitrine Claro#1 Nio#1', () => {
   const offers = [
     createOffer('1', 'CLARO', 'Claro 1', 12, 90),
     createOffer('2', 'CLARO', 'Claro 2', 12, 80),
@@ -75,8 +75,8 @@ test('diversity order: 2 providers — Claro #1, Claro #2, Nio #1 → vitrine Cl
   )
 
   const names = getOfferNamesInOrder(container)
-  // Must show exactly 3 in this order
-  expect(names).toEqual(['Claro 1', 'Nio 1', 'Claro 2'])
+  // Must show exactly 1 of each provider
+  expect(names).toEqual(['Claro 1', 'Nio 1'])
 })
 
 // ---------------------------------------------------------------------------
