@@ -1,4 +1,3 @@
-import { Banda } from "@/components/Banda";
 import type { Metadata, Viewport } from "next";
 import "../index.css";
 import { AdSenseScript } from "../components/AdSenseScript";
