@@ -6,8 +6,10 @@ import type { PageMeta } from './seo'
 
 export const PAGE_META: Record<string, PageMeta> = {
   '/': {
-    title: 'Encontre uma internet que faça sentido para você — SignallQ',
-    description: 'Descubra quanto de velocidade você realmente precisa, compare opções da sua região e entenda se sua conexão atual está adequada.',
+    // Issue #10 (integração signallq-plans) — jornada CEP → perfil de uso →
+    // faixa recomendada → ofertas ranqueadas. Agora na Home (/).
+    title: 'Encontre o plano de internet certo para você — SignallQ',
+    description: 'Informe seu CEP e como você usa a internet: mostramos a faixa de velocidade recomendada e os planos disponíveis para a sua casa.',
     path: '/',
   },
   '/teste-de-velocidade': {
@@ -86,14 +88,6 @@ export const PAGE_META: Record<string, PageMeta> = {
     title: 'SignallQ x teste de velocidade tradicional: comparativo',
     description: 'Matriz comparativa entre o SignallQ e testes de velocidade tradicionais: download, upload, latência sob carga e diagnóstico, item a item.',
     path: '/comparativo',
-  },
-  '/planos': {
-    // Issue #10 (integração signallq-plans) — jornada CEP → perfil de uso →
-    // faixa recomendada → ofertas ranqueadas. Dados de ofertas vêm
-    // exclusivamente do backend signallq-plans (#9/#13, ainda abertas).
-    title: 'Encontre o plano de internet certo para você — SignallQ',
-    description: 'Informe seu CEP e como você usa a internet: mostramos a faixa de velocidade recomendada e os planos disponíveis para a sua casa.',
-    path: '/planos',
   },
   '/internet-para-jogos': {
     title: 'Que internet você precisa para jogar online sem travar',

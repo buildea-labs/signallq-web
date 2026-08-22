@@ -1,7 +1,7 @@
+import { Banda } from "@/components/Banda";
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { DocPage } from '../../components/DocPage'
-import { PageShell } from '../../components/PageShell'
 import { ComparisonMatrix, type ComparisonColumn, type ComparisonRow } from '../../components/ComparisonMatrix'
 import { PAGE_META } from '../../lib/pageMetaCatalog'
 import { routeMetadata } from '../../lib/routeMetadata'
@@ -206,7 +206,7 @@ function ComparativoCtas() {
 
 export default function Page() {
   return (
-    <PageShell align="center" mobilePadding="pt-7 px-5 pb-10">
+    <Banda className="py-8 md:py-12 lg:py-16">
       <DocPage
         overline="Comparativo"
         title="SignallQ x testes de velocidade tradicionais"
@@ -225,6 +225,6 @@ export default function Page() {
           <ComparativoCtas />
         </div>
       </DocPage>
-    </PageShell>
+    </Banda>
   )
 }

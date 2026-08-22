@@ -1,10 +1,10 @@
 "use client";
 
+import { Banda } from "@/components/Banda";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
-import { PageShell } from "@/components/PageShell";
 import { Velocimetro } from "@/components/Velocimetro";
 import { MODE_LABEL } from "@/components/home/homeCopy";
 import { ResultTechnicalDetails } from "@/components/home/ResultTechnicalDetails";
@@ -129,17 +129,17 @@ export function HistoryDetail({ id }: { id: string }) {
 
   if (status === "loading") {
     return (
-      <PageShell align="center">
+      <Banda className="py-8 md:py-12 lg:py-16">
         <div role="status" aria-live="polite" className="flex w-full flex-1 items-center justify-center py-16">
           <span className="font-normal text-[16px] text-[color:var(--text-secondary)]">Carregando teste…</span>
         </div>
-      </PageShell>
+      </Banda>
     );
   }
 
   if (status === "not-found") {
     return (
-      <PageShell align="center">
+      <Banda className="py-8 md:py-12 lg:py-16">
         <div role="status" className="flex w-full flex-1 flex-col items-center justify-center gap-3 py-16 text-center">
           <span aria-hidden="true" className="material-symbols-outlined text-[32px] text-[color:var(--text-tertiary)]">
             search_off
@@ -154,7 +154,7 @@ export function HistoryDetail({ id }: { id: string }) {
             Voltar ao Histórico
           </Link>
         </div>
-      </PageShell>
+      </Banda>
     );
   }
 
@@ -174,7 +174,7 @@ export function HistoryDetail({ id }: { id: string }) {
     current.diagnostic.contractVersion !== WEB_DIAGNOSTIC_RESPONSE_VERSION;
 
   return (
-    <PageShell>
+    <Banda className="py-8 md:py-12 lg:py-16">
       <div className="flex w-full items-center gap-2">
         <button
           onClick={goBack}
@@ -349,6 +349,6 @@ export function HistoryDetail({ id }: { id: string }) {
           onCancel={() => setConfirmRemoveConnectionOpen(false)}
         />
       )}
-    </PageShell>
+    </Banda>
   );
 }

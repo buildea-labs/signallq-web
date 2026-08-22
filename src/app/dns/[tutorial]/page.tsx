@@ -1,5 +1,5 @@
+import { Banda } from "@/components/Banda";
 import { Metadata } from "next";
-import { PageShell } from "@/components/PageShell";
 import { DnsModal } from "@/components/dns/DnsModal";
 
 export async function generateMetadata(props: { params: Promise<{ tutorial: string }> }): Promise<Metadata> {
@@ -30,8 +30,8 @@ export default async function DnsTutorialPage({
 }) {
   const { tutorial } = await params;
   return (
-    <PageShell align="center" contentMax="860px">
+    <Banda className="py-8 md:py-12 lg:py-16">
       <DnsModal isIntercepted={false} activeTutorial={tutorial} />
-    </PageShell>
+    </Banda>
   );
 }

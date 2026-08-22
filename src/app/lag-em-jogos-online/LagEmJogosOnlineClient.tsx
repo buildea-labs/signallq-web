@@ -1,7 +1,7 @@
 "use client";
+import { Banda } from "@/components/Banda";
 import Link from 'next/link'
 import { DocPage, type DocSection } from '../../components/DocPage'
-import { PageShell } from '../../components/PageShell'
 
 const SECTIONS: DocSection[] = [
   {
@@ -105,7 +105,7 @@ const SECTIONS: DocSection[] = [
 
 export function LagEmJogosOnlineClient() {
   return (
-    <PageShell align="center" mobilePadding="pt-7 px-5 pb-10">
+    <Banda className="py-8 md:py-12 lg:py-16">
       <DocPage
         overline="Diagnóstico"
         title="Lag em jogos online com boa internet? Pode ser CGNAT ou Rota"
@@ -118,6 +118,6 @@ export function LagEmJogosOnlineClient() {
           Se a internet trava também fora de jogos - por exemplo, engasga em chamadas de vídeo quando outra pessoa está baixando algo - veja sobre <Link href="/internet-boa-mas-travando">internet boa mas travando e o bufferbloat</Link>.
         </p>
       </DocPage>
-    </PageShell>
+    </Banda>
   )
 }

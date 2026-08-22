@@ -1,8 +1,8 @@
 "use client";
+import { Banda } from "@/components/Banda";
 import { InstitutionalHero } from '@/components/institutional/InstitutionalFoundation'
 import { DnsResolverRow } from '@/components/dns/DnsResolverRow'
 import { NoticeBar } from '@/components/NoticeBar'
-import { PageShell } from '@/components/PageShell'
 import { useDnsCompare } from '@/hooks/useDnsCompare'
 
 // Comparação de resolvedores DNS públicos (issue #98) — substitui o
@@ -22,7 +22,7 @@ export function DnsClient() {
     : undefined
 
   return (
-    <PageShell contentMax="640px" mobilePadding="pt-7 px-5 pb-10">
+    <Banda className="py-8 md:py-12 lg:py-16">
       <InstitutionalHero
         overline="Ferramenta"
         title="Comparar servidores DNS"
@@ -59,6 +59,6 @@ export function DnsClient() {
           ))}
         </div>
       )}
-    </PageShell>
+    </Banda>
   )
 }

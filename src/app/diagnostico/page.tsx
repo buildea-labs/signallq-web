@@ -1,5 +1,5 @@
+import { Banda } from "@/components/Banda";
 import type { Metadata } from "next";
-import { PageShell } from "@/components/PageShell";
 import { DiagnosticoShell } from "@/components/diagnostico/DiagnosticoShell";
 import { FerramentasSecao } from "@/components/diagnostico/FerramentasSecao";
 
@@ -12,9 +12,9 @@ export const metadata: Metadata = {
 export default function DiagnosticoPage() {
   return (
     <div className="min-h-screen w-full sq-diagnostico-bg">
-      <PageShell contentMax="1200px">
+      <Banda className="py-8 md:py-12 lg:py-16">
         <DiagnosticoShell ferramentas={<FerramentasSecao />} />
-      </PageShell>
+      </Banda>
     </div>
   );
 }

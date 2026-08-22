@@ -1,8 +1,8 @@
 "use client"
 
+import { Banda } from "@/components/Banda";
 import { useEffect, useState } from 'react'
 import { ShieldCheck } from 'lucide-react'
-import { PageShell } from '../../components/PageShell'
 import {
   AccessibleAccordion,
   HighlightSection,
@@ -78,7 +78,7 @@ export default function PrivacyPageContent() {
   }
 
   return (
-    <PageShell contentMax="860px" mobilePadding="pt-7 px-5 pb-10">
+    <Banda className="py-8 md:py-12 lg:py-16">
       <ReadingLayout className="flex flex-col gap-7">
         <InstitutionalHero
           overline="Privacidade"
@@ -129,6 +129,6 @@ export default function PrivacyPageContent() {
           { title: 'Histórico de alterações', defaultOpen: true, content: <p>Versão 1.0 (1º de agosto de 2026): política unificada criada após auditoria do código Android e Web/PWA. Mudanças relevantes serão registradas nesta seção com a nova data de versão.</p> },
         ]} />
       </ReadingLayout>
-    </PageShell>
+    </Banda>
   )
 }

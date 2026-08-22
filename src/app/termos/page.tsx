@@ -1,5 +1,5 @@
+import { Banda } from "@/components/Banda";
 import type { Metadata } from 'next'
-import { PageShell } from '../../components/PageShell'
 import {
   AccessibleAccordion,
   HighlightSection,
@@ -62,7 +62,7 @@ const SECTIONS = [
 
 export default function Page() {
   return (
-    <PageShell contentMax="860px" mobilePadding="pt-7 px-5 pb-10">
+    <Banda className="py-8 md:py-12 lg:py-16">
       <ReadingLayout className="flex flex-col gap-7">
         <InstitutionalHero overline="Termos de Uso" title="Termos de Uso do site SignallQ" summary="As regras para usar o teste, o histórico local e o conteúdo público do SignallQ." meta="Última atualização: 18 de julho de 2026" illustration={<TermsIllustration />} />
         <HighlightSection title="Resumo direto">
@@ -80,7 +80,7 @@ export default function Page() {
           defaultOpen: index === 0 || index === 5 || index === 10,
         }))} />
       </ReadingLayout>
-    </PageShell>
+    </Banda>
   )
 }
 

@@ -3,8 +3,7 @@ import Link from 'next/link'
 
 export function SiteFooter() {
   const links = [
-    { label: "Planos de Internet", href: "/planos" },
-    { label: "Minha internet", href: "/" },
+    { label: "Planos de Internet", href: "/" },
     { label: "App SignallQ", href: "/app" },
     { label: "Ferramentas", href: "/ferramentas" },
     { label: "Teste de velocidade", href: "/teste-de-velocidade" },
@@ -90,8 +89,7 @@ export function SiteFooter() {
               <div className="font-medium text-[11px] leading-[1.45] text-[color:var(--text-tertiary)] tracking-[.3px] uppercase">
                 Produto
               </div>
-              <Link href="/planos" className="font-normal text-[14px] text-[color:var(--text-primary)] no-underline hover:underline">Planos de Internet</Link>
-              <Link href="/" className="font-normal text-[14px] text-[color:var(--text-primary)] no-underline hover:underline">Minha internet</Link>
+              <Link href="/" className="font-normal text-[14px] text-[color:var(--text-primary)] no-underline hover:underline">Planos de Internet</Link>
               <Link href="/app" className="font-normal text-[14px] text-[color:var(--text-primary)] no-underline hover:underline">App SignallQ</Link>
             </div>
             <div className="flex flex-col gap-[10px]">

@@ -1,6 +1,6 @@
+import { Banda } from "@/components/Banda";
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { PageShell } from '../../components/PageShell'
 import {
   HighlightSection,
   InstitutionalCta,
@@ -15,7 +15,7 @@ export const metadata: Metadata = routeMetadata(PAGE_META['/sobre'])
 
 export default function Page() {
   return (
-    <PageShell contentMax="860px" mobilePadding="pt-7 px-5 pb-10">
+    <Banda className="py-8 md:py-12 lg:py-16">
       <ReadingLayout className="flex flex-col gap-7">
         <InstitutionalHero
           title="Sobre o SignallQ"
@@ -67,6 +67,6 @@ export default function Page() {
         </HighlightSection>
         <InstitutionalCta label="Testar minha internet" href="/" supportingText="Comece pelo teste direto, sem cadastro." />
       </ReadingLayout>
-    </PageShell>
+    </Banda>
   )
 }

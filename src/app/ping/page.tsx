@@ -1,5 +1,5 @@
+import { Banda } from "@/components/Banda";
 import type { Metadata } from "next";
-import { PageShell } from "@/components/PageShell";
 import { PingTool } from "@/components/ping/PingTool";
 
 export const metadata: Metadata = {
@@ -13,8 +13,8 @@ export const metadata: Metadata = {
 
 export default function PingPage() {
   return (
-    <PageShell align="center" contentMax="560px">
+    <Banda className="py-8 md:py-12 lg:py-16">
       <PingTool />
-    </PageShell>
+    </Banda>
   );
 }

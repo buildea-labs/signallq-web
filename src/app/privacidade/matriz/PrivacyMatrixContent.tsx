@@ -1,5 +1,5 @@
+import { Banda } from "@/components/Banda";
 import { ShieldAlert } from 'lucide-react'
-import { PageShell } from '../../../components/PageShell'
 import {
   HighlightSection,
   IllustrationWrapper,
@@ -10,7 +10,7 @@ import Link from 'next/link'
 
 export default function PrivacyMatrixContent() {
   return (
-    <PageShell contentMax="1024px" mobilePadding="pt-7 px-5 pb-10">
+    <Banda className="py-8 md:py-12 lg:py-16">
       <div className="flex flex-col gap-7 w-full max-w-[1024px]">
         <InstitutionalHero
           overline="Matriz de Privacidade"
@@ -107,6 +107,6 @@ export default function PrivacyMatrixContent() {
           ]} />
         </section>
       </div>
-    </PageShell>
+    </Banda>
   )
 }

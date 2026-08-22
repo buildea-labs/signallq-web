@@ -1,5 +1,5 @@
+import { Banda } from "@/components/Banda";
 import { Metadata } from "next";
-import { PageShell } from "@/components/PageShell";
 import { IpModal } from "@/components/meu-ip/IpModal";
 
 export const metadata: Metadata = {
@@ -12,8 +12,8 @@ export const metadata: Metadata = {
 
 export default function MeuIpPage() {
   return (
-    <PageShell align="center" contentMax="860px">
+    <Banda className="py-8 md:py-12 lg:py-16">
       <IpModal isIntercepted={false} />
-    </PageShell>
+    </Banda>
   );
 }

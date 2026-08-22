@@ -8,8 +8,7 @@ import clsx from "clsx";
 import { SiteNavMobile } from "./SiteNavMobile";
 
 const ITENS = [
-  { key: "planos", label: "Planos", href: "/planos" },
-  { key: "home", label: "Minha internet", href: "/" },
+  { key: "home", label: "Planos", href: "/" },
   { key: "ferramentas", label: "Ferramentas", href: "/ferramentas" },
   { key: "como-medimos", label: "Como funciona", href: "/como-medimos" },
   { key: "sobre", label: "Sobre o SignallQ", href: "/sobre" },

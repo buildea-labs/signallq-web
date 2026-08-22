@@ -1,11 +1,11 @@
 "use client";
+import { Banda } from "@/components/Banda";
 import Link from 'next/link'
-import { PageShell } from '../components/PageShell'
 
 export function NotFoundClient() {
 
   return (
-    <PageShell mobilePadding="pt-8 px-5 pb-12">
+    <Banda className="py-8 md:py-12 lg:py-16">
       <div className="w-full min-h-[520px] flex flex-col items-center justify-center gap-[14px] text-center">
         <div className="font-medium text-[11px] leading-[1.45] text-[color:var(--text-secondary)] tracking-[.3px] uppercase">
           Erro 404
@@ -23,6 +23,6 @@ export function NotFoundClient() {
           </span>
         </Link>
       </div>
-    </PageShell>
+    </Banda>
   )
 }

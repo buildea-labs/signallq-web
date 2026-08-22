@@ -1,6 +1,6 @@
 "use client";
+import { Banda } from "@/components/Banda";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
-import { PageShell } from "@/components/PageShell";
 import { HistoryCompareBar } from "@/components/historico/HistoryCompareBar";
 import { HistoryEditDialog } from "@/components/historico/HistoryEditDialog";
 import { HistoryEmptyState, HistoryLoadingState, HistoryUnavailableState } from "@/components/historico/HistoryEmptyState";
@@ -14,7 +14,7 @@ export function HistoricoClient() {
   const history = useHistoryController()
 
   return (
-    <PageShell>
+    <Banda className="py-8 md:py-12 lg:py-16">
       <div className="flex flex-wrap items-baseline justify-between gap-3 w-full">
         <h1 className="m-0 font-bold text-[26px] leading-[1.23] text-[color:var(--text-primary)]">Histórico</h1>
         <span className="font-normal text-[12px] leading-[1.33] text-[color:var(--text-tertiary)]">
@@ -172,6 +172,6 @@ export function HistoricoClient() {
           onCancel={() => history.setConfirmBulkDeleteOpen(false)}
         />
       )}
-    </PageShell>
+    </Banda>
   )
 }

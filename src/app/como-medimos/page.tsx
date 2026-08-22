@@ -1,5 +1,5 @@
+import { Banda } from "@/components/Banda";
 import type { Metadata } from 'next'
-import { PageShell } from '../../components/PageShell'
 import {
   AccessibleAccordion,
   HighlightSection,
@@ -17,7 +17,7 @@ export const metadata: Metadata = routeMetadata(PAGE_META['/como-medimos'])
 
 export default function Page() {
   return (
-    <PageShell contentMax="860px" mobilePadding="pt-7 px-5 pb-10">
+    <Banda className="py-8 md:py-12 lg:py-16">
       <ReadingLayout className="flex flex-col gap-7">
         <InstitutionalHero overline="Metodologia" title="Como medimos sua conexão" summary="O que foi medido, como interpretamos e o que um teste no navegador não consegue afirmar." illustration={<MeasurementIllustration />} />
         <StepsBlock title="O caminho da medição" steps={[
@@ -40,7 +40,7 @@ export default function Page() {
         ]} />
         <InstitutionalCta label="Iniciar teste" href="/" />
       </ReadingLayout>
-    </PageShell>
+    </Banda>
   )
 }
 

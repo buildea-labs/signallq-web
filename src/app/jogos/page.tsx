@@ -1,10 +1,10 @@
-import { PageShell } from "@/components/PageShell";
+import { Banda } from "@/components/Banda";
 import { JogosModal } from "@/components/jogos/JogosModal";
 
 export default function JogosPage() {
   return (
-    <PageShell align="center" contentMax="860px">
+    <Banda className="py-8 md:py-12 lg:py-16">
       <JogosModal isIntercepted={false} />
-    </PageShell>
+    </Banda>
   );
 }

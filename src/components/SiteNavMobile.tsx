@@ -6,8 +6,7 @@ export const MENU_GROUPS = [
   {
     title: "Produto",
     items: [
-      { key: "planos", label: "Planos", href: "/planos" },
-      { key: "home", label: "Minha internet", href: "/" },
+      { key: "home", label: "Planos", href: "/" },
       { key: "app", label: "App", href: "/app" },
     ],
   },

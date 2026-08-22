@@ -1,7 +1,7 @@
 "use client";
+import { Banda } from "@/components/Banda";
 import Link from 'next/link'
 import { DocPage, type DocSection } from '../../components/DocPage'
-import { PageShell } from '../../components/PageShell'
 
 const SECTIONS: DocSection[] = [
   {
@@ -103,7 +103,7 @@ const SECTIONS: DocSection[] = [
 
 export function InternetBoaMasTravandoClient() {
   return (
-    <PageShell align="center" mobilePadding="pt-7 px-5 pb-10">
+    <Banda className="py-8 md:py-12 lg:py-16">
       <DocPage
         overline="Diagnóstico"
         title="Internet boa mas travando? Entenda os sintomas e causas"
@@ -117,6 +117,6 @@ export function InternetBoaMasTravandoClient() {
           pode ser outra: veja <Link href="/lag-em-jogos-online">lag em jogos online e o CGNAT</Link>. Para diagnósticos mais avançados na sua rede local, conheça também nosso <Link href="/app">App SignallQ</Link>.
         </p>
       </DocPage>
-    </PageShell>
+    </Banda>
   )
 }

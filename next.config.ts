@@ -39,6 +39,8 @@ const nextConfig: NextConfig = {
       // #99 — /modo-gamer era placeholder "Em breve"; a medição real de
       // latência até infraestrutura de jogos agora vive em /jogos.
       { source: "/modo-gamer", destination: "/jogos", permanent: true },
+      // /planos virou a página inicial (Home).
+      { source: "/planos", destination: "/", permanent: true },
     ];
   },
 };

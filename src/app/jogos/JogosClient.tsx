@@ -1,8 +1,8 @@
 "use client";
+import { Banda } from "@/components/Banda";
 import { InstitutionalHero } from '@/components/institutional/InstitutionalFoundation'
 import { GameLatencyRow } from '@/components/jogos/GameLatencyRow'
 import { NoticeBar } from '@/components/NoticeBar'
-import { PageShell } from '@/components/PageShell'
 import { useGameLatency } from '@/hooks/useGameLatency'
 
 // Medição real de latência de infraestrutura de jogos (issue #99) —
@@ -23,7 +23,7 @@ export function JogosClient() {
     : undefined
 
   return (
-    <PageShell contentMax="640px" mobilePadding="pt-7 px-5 pb-10">
+    <Banda className="py-8 md:py-12 lg:py-16">
       <InstitutionalHero
         overline="Ferramenta"
         title="Latência até servidores de jogos"
@@ -60,6 +60,6 @@ export function JogosClient() {
           ))}
         </div>
       )}
-    </PageShell>
+    </Banda>
   )
 }

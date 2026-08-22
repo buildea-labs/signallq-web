@@ -1,7 +1,7 @@
 "use client";
+import { Banda } from "@/components/Banda";
 import Link from 'next/link'
 import { DocPage, type DocSection } from '../../components/DocPage'
-import { PageShell } from '../../components/PageShell'
 
 const SECTIONS: DocSection[] = [
   {
@@ -100,7 +100,7 @@ const SECTIONS: DocSection[] = [
 
 export function InternetParaJogosClient() {
   return (
-    <PageShell align="center" mobilePadding="pt-7 px-5 pb-10">
+    <Banda className="py-8 md:py-12 lg:py-16">
       <DocPage
         overline="Guia"
         title="Que internet você precisa para jogar online sem travar"
@@ -113,6 +113,6 @@ export function InternetParaJogosClient() {
           Se as suas partidas costumam falhar quando outras pessoas estão puxando a internet ao mesmo tempo, veja a explicação completa sobre <Link href="/internet-boa-mas-travando">bufferbloat</Link>. Para diagnósticos aprofundados baseados no seu tipo de conexão, use o nosso <Link href="/app">App SignallQ</Link>.
         </p>
       </DocPage>
-    </PageShell>
+    </Banda>
   )
 }
