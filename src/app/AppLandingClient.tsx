@@ -5,8 +5,6 @@ import {
   AppLandingHero,
   AppLandingFeatures,
   AppLandingGallery,
-  AppLandingSteps,
-  AppLandingTrust,
   AppLandingCTA,
   APP_DIFERENCIAIS_ID,
 } from './AppLandingComponents'
@@ -39,8 +37,6 @@ export function AppLandingClient() {
         <div className="w-full max-w-[1080px] flex flex-col gap-[56px]">
           <AppLandingFeatures />
           <AppLandingGallery />
-          <AppLandingSteps />
-          <AppLandingTrust />
           <AppLandingCTA onBaixar={baixarNaPlayStore} />
         </div>
       </div>
