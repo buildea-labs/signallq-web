@@ -97,44 +97,6 @@ export function initTelemetryDeferred() {
   })
 }
 
-// Feature IDs do funil de speedtest — mesmos já usados pelo dashboard do
-// Console (GH#784, SPEEDTEST_FUNNEL_FEATURE_IDS no admin-worker).
-export const FEATURE_SPEEDTEST_INICIADO = 'speedtest_iniciado'
-export const FEATURE_SPEEDTEST_COMPLETOU = 'speedtest_completou'
-export const FEATURE_SPEEDTEST_COMPARTILHOU = 'speedtest_compartilhou'
-export const FEATURE_SPEEDTEST_ENTRADA_DIRETA = 'speedtest_entrada_direta'
-export const FEATURE_SPEEDTEST_ENTRADA_PROBLEMA = 'speedtest_entrada_problema'
-export const FEATURE_SPEEDTEST_PROBLEMA_SELECIONADO = 'speedtest_problema_selecionado'
-/**
- * DESCONTINUADO em 2026-08: a jornada do protótipo não tem tela ociosa, então
- * não existe mais "abandonar a escolha de problema antes de medir" — nada
- * emite este evento. Mantido para quem consulta a série histórica saber que o
- * corte é de produto, não perda de dado. Não reutilizar o identificador.
- */
-export const FEATURE_SPEEDTEST_PROBLEMA_ABANDONADO = 'speedtest_problema_abandonado'
-
-// Pergunta pós-resultado (#69) — distinta do funil pré-teste acima: não
-// reaproveita FEATURE_SPEEDTEST_PROBLEMA_SELECIONADO porque aquele evento é
-// do momento de entrada, antes da medição.
-export const FEATURE_SPEEDTEST_RESULTADO_SEM_PROBLEMA = 'speedtest_resultado_sem_problema'
-export const FEATURE_SPEEDTEST_RESULTADO_PROBLEMA_SELECIONADO = 'speedtest_resultado_problema_selecionado'
-export const FEATURE_SPEEDTEST_RESULTADO_APROFUNDAMENTO_INICIADO = 'speedtest_resultado_aprofundamento_iniciado'
-
-// Novos feature_id do site (dentro do mesmo evento feature_used já
-// whitelistado — nenhuma mudança de schema no worker).
+// Feature ID do CTA de download da landing (dentro do mesmo evento
+// feature_used já whitelistado no admin-worker — nenhuma mudança de schema).
 export const FEATURE_DOWNLOAD_APP_CLICADO = 'download_app_clicado'
-export const FEATURE_DIAGNOSIS_EXPANDED = 'diagnosis_expanded'
-export const FEATURE_TEST_REPEATED = 'speedtest_repetido'
-export const FEATURE_RECOMMENDATION_CLICKED = 'recommended_action_clicked'
-export const FEATURE_PRO_LISTA_ESPERA = 'pro_lista_espera_clicado'
-// PWA instalável (GH#1184) — funil de instalação: 'prompted' dispara quando o
-// prompt nativo (Android/Chrome/Edge/desktop) ou o fallback manual (iOS) é
-// mostrado ao usuário; 'installed' só dispara em confirmação real (evento
-// `appinstalled` do navegador ou outcome 'accepted' do prompt nativo).
-export const FEATURE_PWA_INSTALL_PROMPTED = 'pwa_install_prompted'
-export const FEATURE_PWA_INSTALLED = 'pwa_installed'
-
-// Página `/app` (#61) — CTA secundário ("Testar no navegador agora") precisa
-// de telemetria separada do CTA primário (FEATURE_DOWNLOAD_APP_CLICADO) para
-// não misturar interesse no app Android com interesse no teste Web no funil.
-export const FEATURE_APP_LANDING_WEB_TEST_CLICADO = 'app_landing_web_test_clicado'
