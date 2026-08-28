@@ -3,6 +3,9 @@ import React from 'react'
 const OPERATOR_LOGOS: Record<string, string> = {
   CLARO: '/assets/providers/claro/logo.svg',
   NIO: '/assets/providers/nio/logo.png',
+  BRISANET: '/assets/providers/brisanet/logo.svg',
+  DESKTOP: '/assets/providers/desktop/logo.svg',
+  ALGAR: '/assets/providers/algar/logo.svg',
 }
 
 interface ProviderLogoProps {
