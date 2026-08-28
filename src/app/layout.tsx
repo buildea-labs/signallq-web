@@ -1,18 +1,14 @@
 import type { Metadata, Viewport } from "next";
 import "../index.css";
-import { AdSenseScript } from "../components/AdSenseScript";
-import { CookieConsentBanner } from "../components/CookieConsentBanner";
 import { SiteNav } from "../components/SiteNav";
 import { SiteFooter } from "../components/SiteFooter";
-import { PwaToastStack } from "../components/PwaToastStack";
 import { ThemeScript } from "../components/ThemeScript";
 import { SITE_ORIGIN } from "../lib/routeMetadata";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_ORIGIN),
-  title: "SignallQ - Teste de Velocidade e Qualidade",
-  description: "Diagnóstico completo da sua conexão de internet. Medição de download, upload, latência, bufferbloat e jitter.",
-  manifest: "/manifest.json",
+  title: "SignallQ — o app que descobre por que sua internet está ruim",
+  description: "O app que não para no número: aponta causas prováveis da sua internet ruim. Baixe na Play Store.",
   icons: {
     icon: [
       {
@@ -52,10 +48,8 @@ export const viewport: Viewport = {
 
 export default function RootLayout({
   children,
-  modal,
 }: Readonly<{
   children: React.ReactNode;
-  modal: React.ReactNode;
 }>) {
   return (
     <html lang="pt-BR" className="antialiased" data-sq-theme="system" suppressHydrationWarning>
@@ -85,13 +79,9 @@ export default function RootLayout({
               falha) ficavam ancoradas no topo com um vazio embaixo. */}
           <main className="flex w-full flex-1 flex-col">
             {children}
-            {modal}
           </main>
         </div>
         <SiteFooter />
-        <AdSenseScript />
-        <CookieConsentBanner />
-        <PwaToastStack />
       </body>
     </html>
   );

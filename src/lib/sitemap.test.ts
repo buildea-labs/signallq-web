@@ -30,9 +30,4 @@ describe('public/sitemap.xml', () => {
     const missing = indexableCatalogPaths().filter((routePath) => !locs.includes(`${SITE_ORIGIN}${routePath}`))
     expect(missing).toEqual([])
   })
-
-  it('includes /privacidade/matriz specifically (regression: gap found in SEO audit)', () => {
-    const locs = loadSitemapLocs()
-    expect(locs).toContain(`${SITE_ORIGIN}/privacidade/matriz`)
-  })
 })
