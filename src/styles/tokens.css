@@ -27,8 +27,8 @@
 
   /* ---- Surface — Light (default) --------------------------------------- */
   --bg-primary:    #FFFFFF;  /* fundo principal de telas                       */
-  --bg-secondary:  #F8F5FB;  /* superfícies secundárias / chips (surface-container-low) */
-  --bg-card:       #FFFFFF;  /* cards, superfícies de conteúdo                 */
+  --bg-secondary:  #F7F7F8;  /* superfícies secundárias / chips (surface-container-low) */
+  --bg-card:       #F7F7F8;  /* cards, superfícies de conteúdo                 */
   --text-primary:  #1C1B1F;  /* título, corpo (on-surface)                     */
   --text-secondary:#49454F;  /* descrições (on-surface-variant)                */
   --text-tertiary: #49454F;  /* labels, captions, overlines, hints (2º degrau removido) */
@@ -108,8 +108,8 @@ html.dark {
      antecessor era #131217; reverter é trocar esta linha de volta.
      Precisa vencer o `.dark` do `_ds_bundle.css`, que ainda traz #131217. */
   --bg-primary:    #000000;
-  --bg-secondary:  #1D1B20;
-  --bg-card:       #211F26;
+  --bg-secondary:  #161616;
+  --bg-card:       #161616;
   --text-primary:  #E6E0E9;
   --text-secondary:#CAC4D0;
   --text-tertiary: #CAC4D0;
