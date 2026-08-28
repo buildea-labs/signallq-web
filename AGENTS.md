@@ -7,6 +7,7 @@
 - **Classificação:** produto.
 - **Estado atual:** aplicação Next.js com App Router, sem PWA, três rotas públicas (`/`, `/privacidade`, `/termos`) e um Route Handler de telemetria (`/api/track`), com validações Vitest.
 - **Mudança de escopo (2026-08-27):** o site deixou de ser o produto de medição/PWA e passou a ser só a landing do app Android. Ferramentas de diagnóstico, comparador de planos, PWA/Serwist, AdSense e conteúdo editorial/SEO foram removidos do repositório; ver histórico de commits para o corte completo.
+- **Publicação (2026-08-28):** PR #160 mergeada em `main` e publicada em produção via workflow **Deploy manual na Vercel** (`target=production`). `https://signallq.com` já serve a landing reduzida.
 
 ## Escopo e exclusões
 
@@ -40,13 +41,15 @@
 
 ## Agentes aplicáveis
 
-- **Líder funcional:** Claudete.
-- **Responsável técnico web:** Renan.
-- **Design:** Juliana.
-- **Growth e SEO editorial:** Marcos.
-- **Operações, métricas e dados:** Gustavo.
-- **Revisão independente:** Caio; não implementa a entrega que revisa.
-- **Fonte organizacional:** os agentes corporativos canônicos vivem em `../ai-governance/agents/`. Arquivos em `agents/` fornecem contexto específico de execução, mas não substituem a governança organizacional.
+Reavaliado em 2026-08-28 após a redução de escopo: com o site limitado a três rotas estáticas e um proxy de telemetria de clique, nem todo agente listado no portfólio tem trabalho rotineiro aqui. A lista abaixo distingue quem é central deste repositório de quem atua só sob demanda.
+
+- **Líder funcional (central):** Claudete — prioridade, escopo e critérios de aceite da landing.
+- **Responsável técnico web (central):** Renan — implementação, SEO técnico, acessibilidade, performance e o único dono técnico do repositório.
+- **Revisão independente (central):** Caio; não implementa a entrega que revisa — obrigatório em qualquer mudança de código, segurança ou produção.
+- **Design (sob demanda):** Juliana — só quando a landing, o CTA ou as páginas legais mudarem visualmente; não há mais fluxo de produto complexo a desenhar.
+- **Growth e SEO editorial (sob demanda, papel residual):** Marcos — o repositório não tem mais conteúdo editorial, blog ou comparador; acionar apenas para mensagem/posicionamento do CTA de download, não como rotina.
+- **Operações, métricas e dados (sob demanda, papel residual):** Gustavo — o único dado é o evento de clique em `/api/track`; acionar apenas se o catálogo dessa métrica ou o pipeline de telemetria mudar, não há mais superfície de dados a manter.
+- **Fonte organizacional:** os agentes corporativos canônicos vivem em `../ai-governance/agents/`. Este arquivo não redefine escopo organizacional, só a prioridade de engajamento dentro deste repositório.
 - **Skills locais:** `skills/` contém instruções específicas deste repositório.
 
 ## Critérios locais de conclusão
